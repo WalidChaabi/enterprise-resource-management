@@ -1,0 +1,67 @@
+<div class="space-y-6">
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12">
+      <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+    </div>
+  } @else if (error()) {
+    <app-alert variant="destructive">{{ error() }}</app-alert>
+  } @else if (department()) {
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b">
+      <div class="flex-1 min-w-0">
+        <h1 class="text-3xl font-bold tracking-tight">{{ department()!.name }}</h1>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+          (click)="openEditModal()">
+          {{ 'common.edit' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <div class="grid gap-4 lg:grid-cols-3">
+      <div class="lg:col-span-2 space-y-4">
+        <app-card>
+          <app-card-header class="pb-3">
+            <app-card-title class="text-base">{{ 'departments.detail.information' | translate }}</app-card-title>
+          </app-card-header>
+          <app-card-content class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ 'departments.detail.name' | translate }}</label>
+              <p class="text-base font-semibold">{{ department()!.name }}</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ 'departments.detail.employeeCount' | translate }}</label>
+              <p class="text-base font-semibold">{{ department()!.employeeCount || 0 }}</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ 'departments.detail.manager' | translate }}</label>
+              <p class="text-base">{{ department()!.managerName || '-' }}</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ 'departments.detail.description' | translate }}</label>
+              <p class="text-base text-muted-foreground">{{ department()!.description || ('common.noDescription' | translate) }}</p>
+            </div>
+          </app-card-content>
+        </app-card>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Reserved for future widgets (members, activity, etc.) -->
+      </div>
+    </div>
+
+    <app-dialog
+      [open]="showEditModal()"
+      [title]="'departments.editTitle' | translate"
+      (closed)="closeEditModal()">
+      <app-department-form
+        [modalMode]="true"
+        [departmentIdInput]="department()!.id"
+        (saved)="onDepartmentUpdated()"
+        (cancelled)="closeEditModal()">
+      </app-department-form>
+    </app-dialog>
+  }
+</div>

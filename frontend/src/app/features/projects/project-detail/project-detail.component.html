@@ -1,0 +1,177 @@
+<div class="space-y-4">
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12">
+      <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+    </div>
+  } @else if (error()) {
+    <app-alert variant="destructive">{{ error() }}</app-alert>
+  } @else if (project()) {
+    <!-- Header with Title, Status, and Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-3 mb-2">
+          <h1 class="text-3xl font-bold tracking-tight">{{ project()!.name }}</h1>
+          <app-badge [variant]="getStatusVariant(project()!.status)">
+            {{ 'projects.status.' + project()!.status.toLowerCase().replace('_', '-') | translate }}
+          </app-badge>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button 
+          type="button"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+          (click)="openEditModal()">
+          {{ 'common.edit' | translate }}
+        </button>
+        <button 
+          type="button"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+          (click)="openAddMemberModal()">
+          {{ 'projects.detail.addMember' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Key Metrics Row -->
+    <div class="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <app-card>
+        <app-card-content class="pt-6">
+          <div class="space-y-1">
+            <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ 'projects.detail.startDate' | translate }}</p>
+            <p class="text-lg font-semibold">{{ project()!.startDate ? (project()!.startDate | date:'mediumDate') : ('common.notSet' | translate) }}</p>
+          </div>
+        </app-card-content>
+      </app-card>
+      
+      <app-card>
+        <app-card-content class="pt-6">
+          <div class="space-y-1">
+            <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ 'projects.detail.deadline' | translate }}</p>
+            <p class="text-lg font-semibold">{{ project()!.deadline ? (project()!.deadline | date:'mediumDate') : ('common.notSet' | translate) }}</p>
+          </div>
+        </app-card-content>
+      </app-card>
+      
+      <app-card>
+        <app-card-content class="pt-6">
+          <div class="space-y-1">
+            <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ 'projects.detail.budget' | translate }}</p>
+            <p class="text-lg font-semibold">{{ formatBudget(project()!.budget) }}</p>
+          </div>
+        </app-card-content>
+      </app-card>
+      
+      <app-card>
+        <app-card-content class="pt-6">
+          <div class="space-y-1">
+            <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ 'projects.detail.members' | translate }}</p>
+            <p class="text-lg font-semibold">{{ project()!.membersCount || 0 }}</p>
+          </div>
+        </app-card-content>
+      </app-card>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid gap-4 lg:grid-cols-3">
+      <!-- Left Column: Description and Tasks -->
+      <div class="lg:col-span-2 space-y-4">
+        <!-- Description -->
+        @if (project()!.description) {
+          <app-card>
+            <app-card-header class="pb-3">
+              <app-card-title class="text-base">{{ 'common.description' | translate }}</app-card-title>
+            </app-card-header>
+            <app-card-content class="pt-0">
+              <p class="text-sm text-muted-foreground leading-relaxed">
+                {{ project()!.description }}
+              </p>
+            </app-card-content>
+          </app-card>
+        }
+
+        <!-- Tasks Section -->
+        <app-card>
+          <app-card-content class="pt-6">
+            <app-task-list [projectId]="project()!.id" />
+          </app-card-content>
+        </app-card>
+      </div>
+
+      <!-- Right Sidebar: Additional Info (if needed) -->
+      <div class="space-y-4">
+        <!-- This space can be used for additional widgets like members list, activity, etc. -->
+      </div>
+    </div>
+
+    <!-- Edit Project Modal -->
+    <app-dialog 
+      [open]="showEditModal()" 
+      [title]="'projects.editTitle' | translate"
+      (closed)="closeEditModal()">
+      <app-project-form
+        [modalMode]="true"
+        [projectIdInput]="project()!.id"
+        (saved)="onProjectUpdated()"
+        (cancelled)="closeEditModal()">
+      </app-project-form>
+    </app-dialog>
+
+    <!-- Add Member Modal -->
+    <app-dialog 
+      [open]="showAddMemberModal()" 
+      [title]="'projects.detail.addMember' | translate"
+      (closed)="closeAddMemberModal()">
+      <div class="space-y-4">
+        @if (loadingEmployees()) {
+          <div class="flex items-center justify-center py-8">
+            <div class="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          </div>
+        } @else {
+          <div class="space-y-2">
+            <label for="employee-select" class="text-sm font-medium">
+              {{ 'employees.title' | translate }} <span class="text-destructive">*</span>
+            </label>
+            <select
+              id="employee-select"
+              [value]="selectedEmployeeId()"
+              (change)="selectedEmployeeId.set($any($event.target).value)"
+              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+              <option value="">{{ 'employees.form.selectEmployee' | translate }}...</option>
+              @for (employee of employees(); track employee.id) {
+                <option [value]="employee.id">
+                  {{ employee.firstName }} {{ employee.lastName }} 
+                  @if (employee.email) {
+                    ({{ employee.email }})
+                  }
+                  @if (employee.jobTitle) {
+                    - {{ employee.jobTitle }}
+                  }
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-4">
+            <button
+              type="button"
+              class="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+              (click)="closeAddMemberModal()"
+              [disabled]="addingMember()">
+              {{ 'common.cancel' | translate }}
+            </button>
+            <button
+              type="button"
+              class="inline-flex items-center justify-center whitespace-nowrap rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+              (click)="onAddMember()"
+              [disabled]="!selectedEmployeeId() || addingMember()">
+              @if (addingMember()) {
+                <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+              }
+              {{ 'projects.detail.addMember' | translate }}
+            </button>
+          </div>
+        }
+      </div>
+    </app-dialog>
+  }
+</div>

@@ -1,0 +1,91 @@
+<div class="space-y-6">
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12">
+      <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+    </div>
+  } @else if (error()) {
+    <app-alert variant="destructive">{{ error() }}</app-alert>
+  } @else if (task()) {
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <h1 class="text-3xl font-bold tracking-tight">{{ task()!.name }}</h1>
+        <app-badge [variant]="getStatusVariant(task()!.status)">
+          {{ 'tasks.status.' + task()!.status.toLowerCase().replace('_', '-') | translate }}
+        </app-badge>
+        @if (task()!.priority) {
+          <app-badge [variant]="getPriorityVariant(task()!.priority)">
+            {{ task()!.priority }}
+          </app-badge>
+        }
+      </div>
+      <div class="flex gap-2">
+        @if (projectId()) {
+          <app-button variant="secondary" [routerLink]="['/projects', projectId()!, 'tasks', task()!.id, 'edit']">{{ 'common.edit' | translate }}</app-button>
+        }
+      </div>
+    </div>
+
+    @if (task()!.description) {
+      <app-card>
+        <app-card-header>
+          <app-card-title>{{ 'tasks.detail.description' | translate }}</app-card-title>
+        </app-card-header>
+        <app-card-content>
+          <p class="text-muted-foreground">{{ task()!.description }}</p>
+        </app-card-content>
+      </app-card>
+    }
+
+    <app-card>
+      <app-card-header>
+        <app-card-title>{{ 'tasks.detail.details' | translate }}</app-card-title>
+      </app-card-header>
+      <app-card-content>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <label class="text-sm font-medium text-muted-foreground">{{ 'tasks.detail.status' | translate }}</label>
+            <p class="text-base">
+              <app-badge [variant]="getStatusVariant(task()!.status)">
+                {{ 'tasks.status.' + task()!.status.toLowerCase().replace('_', '-') | translate }}
+              </app-badge>
+            </p>
+          </div>
+          @if (task()!.priority) {
+            <div>
+              <label class="text-sm font-medium text-muted-foreground">{{ 'tasks.detail.priority' | translate }}</label>
+              <p class="text-base">
+                <app-badge [variant]="getPriorityVariant(task()!.priority)">
+                  {{ task()!.priority }}
+                </app-badge>
+              </p>
+            </div>
+          }
+          @if (task()!.assigneeName) {
+            <div>
+              <label class="text-sm font-medium text-muted-foreground">{{ 'tasks.detail.assignee' | translate }}</label>
+              <p class="text-base">{{ task()!.assigneeName }}</p>
+            </div>
+          }
+          @if (task()!.dueDate) {
+            <div>
+              <label class="text-sm font-medium text-muted-foreground">{{ 'tasks.detail.dueDate' | translate }}</label>
+              <p class="text-base">{{ task()!.dueDate | date:'short' }}</p>
+            </div>
+          }
+          @if (task()!.estimatedHours) {
+            <div>
+              <label class="text-sm font-medium text-muted-foreground">{{ 'tasks.detail.estimatedHours' | translate }}</label>
+              <p class="text-base">{{ task()!.estimatedHours }}h</p>
+            </div>
+          }
+          @if (task()!.actualHours) {
+            <div>
+              <label class="text-sm font-medium text-muted-foreground">{{ 'tasks.detail.actualHours' | translate }}</label>
+              <p class="text-base">{{ task()!.actualHours }}h</p>
+            </div>
+          }
+        </div>
+      </app-card-content>
+    </app-card>
+  }
+</div>

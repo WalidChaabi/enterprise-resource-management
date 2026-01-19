@@ -1,0 +1,20 @@
+services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+    ports:
+      - "4200:4200"
+    volumes:
+      - ../src:/app/src
+      - ../angular.json:/app/angular.json
+      - ../tsconfig.json:/app/tsconfig.json
+      - ../tsconfig.app.json:/app/tsconfig.app.json
+      - ../tailwind.config.js:/app/tailwind.config.js
+      - ../postcss.config.js:/app/postcss.config.js
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+    stdin_open: true
+    tty: true

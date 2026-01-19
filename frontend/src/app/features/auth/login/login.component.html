@@ -1,0 +1,259 @@
+<!-- Enterprise Login Page -->
+<!-- Design philosophy: Trust, clarity, elegance through restraint -->
+
+<div class="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+  <div class="w-full max-w-md space-y-6">
+
+    <!-- Controls: Language & Theme Toggle -->
+    <!-- Enterprise pattern: Accessible controls, positioned top-right, non-intrusive -->
+    <div class="flex items-center justify-end gap-2">
+      <!-- Language Switcher -->
+      <div class="flex gap-0.5 rounded-md bg-muted/50 p-0.5">
+        @for (lang of languages; track lang.code) {
+        <button type="button"
+          class="inline-flex h-8 w-8 items-center justify-center rounded transition-all duration-150 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          [class.active]="currentLanguage() === lang.code" [class.bg-background]="currentLanguage() === lang.code"
+          [class.shadow-sm]="currentLanguage() === lang.code" (click)="setLanguage(lang.code)"
+          [attr.aria-label]="'Switch to ' + lang.label" [title]="lang.label">
+          <span [innerHTML]="getFlagSvg(lang.code)"></span>
+        </button>
+        }
+      </div>
+
+      <!-- Theme Toggle -->
+      <button type="button"
+        class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input bg-background transition-all duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        (click)="toggleTheme()" [attr.aria-label]="'Toggle ' + (theme() === 'dark' ? 'light' : 'dark') + ' mode'"
+        [title]="theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
+        @if (theme() === 'dark') {
+        <span [innerHTML]="getSunIcon()"></span>
+        } @else {
+        <span [innerHTML]="getMoonIcon()"></span>
+        }
+      </button>
+    </div>
+
+    <!-- Brand Identity Section -->
+    <!-- Enterprise pattern: Reinforce brand without overpowering form -->
+    <div class="flex flex-col items-center space-y-3">
+      <div class="flex items-center justify-center">
+        <!-- Theme-aware logo: White for dark mode, black for light mode -->
+        <img [src]="theme() === 'dark' ? 'assets/logos/logo-full-white.svg' : 'assets/logos/logo-full-black.svg'"
+          alt="{{ 'app.logo' | translate }}" class="h-10 w-auto transition-opacity duration-200 hover:opacity-80" />
+      </div>
+
+      <!-- Trust Signal -->
+      <!-- Enterprise pattern: Subtle security messaging, no technical jargon -->
+      <div class="flex items-center gap-2 text-xs text-muted-foreground">
+        <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <span>{{ 'auth.login.trustSignal' | translate }}</span>
+      </div>
+    </div>
+
+    <!-- Login Card -->
+    <app-card class="shadow-lg m-1">
+      <app-card-header class="space-y-1 text-center">
+        <app-card-title class="text-2xl">{{ 'auth.login.title' | translate }}</app-card-title>
+        <app-card-description class="text-sm">
+          {{ 'auth.login.subtitle' | translate }}
+        </app-card-description>
+      </app-card-header>
+
+      <app-card-content class="border-b">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5" novalidate>
+
+          <!-- Email Field -->
+          <!-- Enterprise pattern: Clear labels, helpful placeholders, accessible errors -->
+          <div class="space-y-2">
+            <label for="email" class="text-sm font-medium text-foreground">
+              {{ 'auth.login.email' | translate }}
+              <span class="text-destructive" aria-label="required">*</span>
+            </label>
+            <div class="relative">
+              <input type="email" id="email" name="email" formControlName="email" autocomplete="email"
+                [attr.aria-invalid]="email?.invalid && email?.touched"
+                [attr.aria-describedby]="email?.invalid && email?.touched ? 'email-error' : null"
+                placeholder="name@organization.com"
+                class="flex h-11 w-full rounded-md border bg-background px-3 py-2.5 text-sm transition-all duration-200 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                [ngClass]="{
+                  'border-input hover:border-input/80': !email?.invalid || !email?.touched,
+                  'border-destructive focus-visible:ring-destructive/20': email?.invalid && email?.touched
+                }" [disabled]="loading()" />
+            </div>
+            @if (email?.invalid && email?.touched) {
+            <p id="email-error" class="text-sm text-destructive flex items-start gap-1.5" role="alert">
+              <svg class="h-4 w-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{{ getFieldError('email') | translate }}</span>
+            </p>
+            }
+          </div>
+
+          <!-- Password Field -->
+          <!-- Enterprise pattern: Password visibility toggle, secure by default -->
+          <div class="space-y-2">
+            <label for="password" class="text-sm font-medium text-foreground">
+              {{ 'auth.login.password' | translate }}
+              <span class="text-destructive" aria-label="required">*</span>
+            </label>
+            <div class="relative">
+              <input [type]="showPassword() ? 'text' : 'password'" id="password" name="password"
+                formControlName="password" autocomplete="current-password"
+                [attr.aria-invalid]="password?.invalid && password?.touched"
+                [attr.aria-describedby]="password?.invalid && password?.touched ? 'password-error' : null"
+                placeholder="Enter your password"
+                class="flex h-11 w-full rounded-md border bg-background px-3 py-2.5 pr-10 text-sm transition-all duration-200 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                [ngClass]="{
+                  'border-input hover:border-input/80': !password?.invalid || !password?.touched,
+                  'border-destructive focus-visible:ring-destructive/20': password?.invalid && password?.touched
+                }" [disabled]="loading()" />
+
+              <!-- Password Visibility Toggle -->
+              <!-- Enterprise pattern: Accessible, keyboard-friendly, clear icon states -->
+              <button type="button" (click)="togglePasswordVisibility()"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                [attr.aria-pressed]="showPassword()"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm p-1"
+                tabindex="0">
+                @if (showPassword()) {
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.906 5.236m0 0L21 21" />
+                </svg>
+                } @else {
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                }
+              </button>
+            </div>
+            @if (password?.invalid && password?.touched) {
+            <p id="password-error" class="text-sm text-destructive flex items-start gap-1.5" role="alert">
+              <svg class="h-4 w-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{{ getFieldError('password') | translate }}</span>
+            </p>
+            }
+          </div>
+
+          <!-- Error Message Display -->
+          <!-- Enterprise pattern: Calm, informative, non-aggressive error presentation -->
+          @if (hasError()) {
+          <div class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4" role="alert"
+            aria-live="polite">
+            <svg class="h-5 w-5 flex-shrink-0 text-destructive mt-0.5" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-foreground">{{ errorMessage() | translate }}</p>
+            </div>
+          </div>
+          }
+
+          <!-- Submit Button -->
+          <!-- Enterprise pattern: Clear loading state, disabled during submission, accessible -->
+          <app-button type="submit" [disabled]="!canSubmit" class="w-full h-11 text-sm font-medium"
+            [attr.aria-busy]="loading()">
+            @if (loading()) {
+            <div class="flex items-center justify-center gap-2">
+              <div class="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+              <span>{{ 'auth.login.loggingIn' | translate }}</span>
+            </div>
+            } @else {
+            <span>{{ 'auth.login.signIn' | translate }}</span>
+            }
+          </app-button>
+        </form>
+      </app-card-content>
+
+      <!-- Future SSO Section (Prepared but hidden) -->
+      <!-- Enterprise pattern: Structure ready for SSO without visual clutter -->
+      <!-- 
+      <app-card-content class="border-t pt-4">
+        <div class="space-y-3">
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <span class="w-full border-t"></span>
+            </div>
+            <div class="relative flex justify-center text-xs uppercase">
+              <span class="bg-background px-2 text-muted-foreground">Or continue with</span>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" class="flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent">
+              <svg class="h-5 w-5" viewBox="0 0 24 24">...</svg>
+              <span>Google</span>
+            </button>
+            <button type="button" class="flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent">
+              <svg class="h-5 w-5" viewBox="0 0 24 24">...</svg>
+              <span>Microsoft</span>
+            </button>
+          </div>
+        </div>
+      </app-card-content>
+      -->
+
+      <!-- Demo Credentials Section -->
+      <!-- Enterprise pattern: De-emphasized, collapsible, clearly labeled as demo -->
+      <app-card-footer class="flex flex-col items-center pt-4 border-0">
+        <button type="button" (click)="toggleDemoCredentials()"
+          class="flex items-center gap-2 text-xs text-muted-foreground bg-transparent border-0 shadow-none transition-colors duration-150 
+            hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm px-2 py-1"
+          [attr.aria-expanded]="showDemoCredentials()"
+          [attr.aria-label]="'auth.login.toggleDemoCredentials' | translate">
+          <svg class="h-3.5 w-3.5 transition-transform duration-200" [ngClass]="{'rotate-180': showDemoCredentials()}"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+          <span class="font-medium">{{ 'auth.login.demoAccess' | translate }}</span>
+        </button>
+
+        @if (showDemoCredentials()) {
+        <div class="mt-3 w-full space-y-2 rounded-lg border border-border bg-muted/30 p-3 text-xs">
+          <p class="text-center font-medium text-muted-foreground mb-2">
+            {{ 'auth.login.demoCredentials' | translate }}
+          </p>
+          <div class="space-y-1.5 text-muted-foreground">
+            <div class="flex items-center justify-between">
+              <span class="font-medium">{{ 'auth.login.email' | translate }}:</span>
+              <code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">admin&#64;demo.com</code>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="font-medium">{{ 'auth.login.password' | translate }}:</span>
+              <code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">password</code>
+            </div>
+          </div>
+          <button type="button" (click)="fillDemoCredentials()"
+            class="mt-2 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            {{ 'auth.login.useDemoCredentials' | translate }}
+          </button>
+        </div>
+        }
+      </app-card-footer>
+    </app-card>
+
+    <!-- Future Tenant/Organization Switcher (Prepared but hidden) -->
+    <!-- Enterprise pattern: Structure ready for multi-tenant awareness -->
+    <!--
+    <div class="text-center">
+      <button type="button" class="text-xs text-muted-foreground hover:text-foreground transition-colors">
+        Switch organization
+      </button>
+    </div>
+    -->
+  </div>
+</div>

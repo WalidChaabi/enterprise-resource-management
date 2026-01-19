@@ -1,0 +1,61 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: erm-db
+    environment:
+      POSTGRES_DB: erm_db
+      POSTGRES_USER: erm_user
+      POSTGRES_PASSWORD: erm_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: erm-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
+      - ./pgadmin/pgpass:/pgpass
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+  app:
+    container_name: erm-backend
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - ~/.m2:/root/.m2
+    command: mvn spring-boot:run
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_URL: jdbc:postgresql://db:5432/erm_db
+      DB_USER: erm_user
+      DB_PASS: erm_pass
+      DB_SCHEMA: erm
+      # JWT_SECRET is REQUIRED - generate with: openssl rand -base64 32
+      # For dev, you can use a simple secret, but it must be at least 32 characters
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-minimum-32-characters-long-for-development-only}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      # Only enable if you need to repair Flyway checksum mismatches
+      # Set to true temporarily to fix checksum issues, then set back to false
+      FLYWAY_REPAIR_ON_MIGRATE: ${FLYWAY_REPAIR_ON_MIGRATE:-false}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
+  pgadmin_data:
+

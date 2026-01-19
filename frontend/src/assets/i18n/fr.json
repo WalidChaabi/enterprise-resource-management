@@ -1,0 +1,374 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "update": "Mettre à jour",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "actions": "Actions",
+    "status": "Statut",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "page": "Page",
+    "of": "sur",
+    "name": "Nom",
+    "email": "Email",
+    "password": "Mot de passe",
+    "description": "Description",
+    "members": "membres",
+    "noDescription": "Aucune description",
+    "notSet": "Non défini"
+  },
+  "app": {
+    "title": "Gestion des Ressources d'Entreprise",
+    "logo": "GRE"
+  },
+  "auth": {
+    "login": {
+      "title": "Gestion des Ressources d'Entreprise",
+      "subtitle": "Connectez-vous à votre compte",
+      "email": "Email",
+      "password": "Mot de passe",
+      "signIn": "Se connecter",
+      "loggingIn": "Connexion en cours...",
+      "emailRequired": "L'email est requis",
+      "emailInvalid": "Veuillez entrer un email valide",
+      "passwordRequired": "Le mot de passe est requis",
+      "passwordMinLength": "Le mot de passe doit contenir au moins 6 caractères",
+      "trustSignal": "Accès sécurisé à votre espace de travail organisationnel",
+      "demoCredentials": "Identifiants de démonstration",
+      "demoEmail": "Email : admin@demo.com",
+      "demoPassword": "Mot de passe : password",
+      "demoAccess": "Accès démonstration",
+      "toggleDemoCredentials": "Afficher/masquer les identifiants de démonstration",
+      "useDemoCredentials": "Utiliser les identifiants de démonstration",
+      "error": {
+        "default": "Échec de la connexion. Veuillez vérifier vos identifiants et réessayer."
+      }
+    },
+    "logout": "Déconnexion"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "projects": "Projets",
+    "employees": "Employés",
+    "departments": "Départements",
+    "reports": "Rapports",
+    "timeEntries": "Saisies de temps",
+    "leaveRequests": "Demandes de congé",
+    "sections": {
+      "core": "Principal",
+      "people": "Personnel",
+      "insights": "Analyses"
+    }
+  },
+  "search": {
+    "title": "Recherche",
+    "subtitle": "Rechercher parmi les employés, projets, tâches et plus encore",
+    "placeholder": "Rechercher...",
+    "search": "Rechercher",
+    "filterByType": "Filtrer par type",
+    "results": "Résultats de recherche",
+    "found": "Trouvé",
+    "items": "éléments",
+    "noResults": "Aucun résultat trouvé. Essayez un autre terme de recherche.",
+    "exportCSV": "Exporter CSV",
+    "exportPDF": "Exporter PDF",
+    "types": {
+      "employee": "Employé",
+      "project": "Projet",
+      "task": "Tâche",
+      "department": "Département",
+      "timeEntry": "Entrée de temps",
+      "leaveRequest": "Demande de congé"
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Bon retour, {{name}} !",
+    "welcomeCard": {
+      "title": "Gestion des Ressources d'Entreprise",
+      "subtitle": "Votre backend est prêt. Commencez à créer vos fonctionnalités !",
+      "projects": {
+        "title": "Projets",
+        "description": "Gérer vos projets"
+      },
+      "employees": {
+        "title": "Employés",
+        "description": "Voir et gérer les employés"
+      },
+      "reports": {
+        "title": "Rapports",
+        "description": "Voir les analyses et rapports"
+      }
+    }
+  },
+  "employees": {
+    "title": "Employés",
+    "newEmployee": "Nouvel employé",
+    "editTitle": "Modifier l'employé",
+    "table": {
+      "name": "Nom",
+      "email": "Email",
+      "jobTitle": "Poste",
+      "department": "Département",
+      "status": "Statut",
+      "actions": "Actions"
+    },
+    "form": {
+      "details": "Détails de l'employé",
+      "userId": "ID utilisateur",
+      "userIdPlaceholder": "Entrez l'ID utilisateur",
+      "userIdHint": "L'ID du compte utilisateur à lier à cet employé",
+      "employeeCode": "Code employé",
+      "employeeCodePlaceholder": "Entrez le code employé (optionnel)",
+      "jobTitle": "Poste",
+      "jobTitlePlaceholder": "Entrez le poste (optionnel)",
+      "department": "Département",
+      "selectDepartment": "Sélectionner un département",
+      "selectEmployee": "Sélectionner un employé",
+      "active": "Actif"
+    },
+    "detail": {
+      "title": "Détails de l'employé",
+      "personalInfo": "Informations personnelles",
+      "contactInfo": "Informations de contact",
+      "employmentInfo": "Informations d'emploi",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "phone": "Téléphone",
+      "address": "Adresse",
+      "jobTitle": "Poste",
+      "department": "Département",
+      "hireDate": "Date d'embauche",
+      "salary": "Salaire",
+      "employeeCode": "Code employé",
+      "roles": "Rôles"
+    }
+  },
+  "roles": {
+    "assignedRoles": "Rôles assignés",
+    "assignRole": "Assigner un rôle",
+    "selectRole": "Sélectionner un rôle",
+    "assign": "Assigner",
+    "removeRole": "Retirer le rôle",
+    "allRolesAssigned": "Tous les rôles disponibles ont été assignés"
+  },
+  "departments": {
+    "title": "Départements",
+    "newDepartment": "Nouveau département",
+    "editTitle": "Modifier le département",
+    "emptyState": "Aucun département trouvé. Créez votre premier département !",
+    "table": {
+      "name": "Nom",
+      "description": "Description",
+      "manager": "Manager",
+      "employees": "Employés",
+      "actions": "Actions"
+    },
+    "form": {
+      "details": "Détails du département",
+      "name": "Nom du département",
+      "namePlaceholder": "Entrez le nom du département",
+      "description": "Description",
+      "descriptionPlaceholder": "Optionnel : Décrivez le département...",
+      "manager": "Chef de département",
+      "selectManager": "Sélectionner un chef de département"
+    },
+    "detail": {
+      "title": "Détails du département",
+      "information": "Informations",
+      "name": "Nom",
+      "description": "Description",
+      "manager": "Manager",
+      "employeeCount": "Nombre d'employés"
+    }
+  },
+  "projects": {
+    "title": "Projets",
+    "newProject": "Nouveau projet",
+    "editTitle": "Modifier le projet",
+    "emptyState": "Aucun projet trouvé. Créez votre premier projet !",
+    "table": {
+      "name": "Nom",
+      "description": "Description",
+      "status": "Statut",
+      "members": "Membres",
+      "startDate": "Date de début",
+      "deadline": "Date limite",
+      "budget": "Budget"
+    },
+    "status": {
+      "planning": "Planification",
+      "active": "Actif",
+      "on-hold": "En attente",
+      "on_hold": "En attente",
+      "completed": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "form": {
+      "details": "Détails du projet",
+      "name": "Nom du projet",
+      "namePlaceholder": "Entrez le nom du projet",
+      "description": "Description",
+      "descriptionPlaceholder": "Optionnel : Décrivez le projet...",
+      "status": "Statut",
+      "startDate": "Date de début",
+      "deadline": "Date limite",
+      "budget": "Budget",
+      "manager": "Chef de projet",
+      "selectManager": "Sélectionner un chef de projet"
+    },
+    "detail": {
+      "title": "Détails du projet",
+      "description": "Description",
+      "status": "Statut",
+      "details": "Détails",
+      "startDate": "Date de début",
+      "deadline": "Date limite",
+      "budget": "Budget",
+      "members": "Membres",
+      "addMember": "Ajouter un membre",
+      "noDescription": "Aucune description fournie",
+      "tasks": "Tâches",
+      "newTask": "Nouvelle tâche"
+    }
+  },
+  "tasks": {
+    "title": "Tâches",
+    "newTask": "Nouvelle tâche",
+    "editTitle": "Modifier la tâche",
+    "emptyState": "Aucune tâche trouvée. Créez votre première tâche !",
+    "table": {
+      "name": "Nom",
+      "description": "Description",
+      "status": "Statut",
+      "assignee": "Assigné à",
+      "dueDate": "Date d'échéance",
+      "priority": "Priorité",
+      "actions": "Actions"
+    },
+    "status": {
+      "todo": "À faire",
+      "in_progress": "En cours",
+      "done": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "priority": {
+      "low": "Faible",
+      "medium": "Moyenne",
+      "high": "Élevée",
+      "urgent": "Urgente"
+    },
+    "form": {
+      "details": "Détails de la tâche",
+      "name": "Nom de la tâche",
+      "namePlaceholder": "Entrez le nom de la tâche",
+      "description": "Description",
+      "descriptionPlaceholder": "Optionnel : Décrivez la tâche...",
+      "status": "Statut",
+      "priority": "Priorité",
+      "selectPriority": "Sélectionner la priorité",
+      "assignee": "Assigné à",
+      "selectAssignee": "Sélectionner un assigné",
+      "dueDate": "Date d'échéance",
+      "estimatedHours": "Heures estimées",
+      "estimatedHoursHint": "Entrez les heures estimées pour cette tâche"
+    },
+    "detail": {
+      "title": "Détails de la tâche",
+      "details": "Détails",
+      "description": "Description",
+      "status": "Statut",
+      "assignee": "Assigné à",
+      "dueDate": "Date d'échéance",
+      "priority": "Priorité",
+      "estimatedHours": "Heures estimées",
+      "actualHours": "Heures réelles",
+      "noDescription": "Aucune description fournie"
+    }
+  },
+  "timeEntries": {
+    "title": "Entrées de temps",
+    "newTimeEntry": "Nouvelle entrée de temps",
+    "editTitle": "Modifier l'entrée de temps",
+    "emptyState": "Aucune entrée de temps trouvée. Créez votre première entrée de temps !",
+    "table": {
+      "date": "Date",
+      "project": "Projet",
+      "hours": "Heures",
+      "status": "Statut",
+      "actions": "Actions"
+    },
+    "form": {
+      "details": "Détails de l'entrée de temps",
+      "project": "Projet",
+      "selectProject": "Sélectionner un projet",
+      "date": "Date",
+      "hours": "Heures",
+      "hoursHint": "Entrez les heures travaillées (0,25 à 24 heures)",
+      "description": "Description",
+      "descriptionPlaceholder": "Optionnel : Décrivez le travail effectué..."
+    },
+    "submit": "Soumettre",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "rejectionReason": "Raison du rejet",
+    "rejectionReasonPlaceholder": "Optionnel : Fournissez une raison pour le rejet...",
+    "confirmReject": "Confirmer le rejet"
+  },
+  "leaveRequests": {
+    "title": "Demandes de congé",
+    "newLeaveRequest": "Nouvelle demande de congé",
+    "editTitle": "Modifier la demande de congé",
+    "emptyState": "Aucune demande de congé trouvée. Créez votre première demande de congé !",
+    "table": {
+      "employee": "Employé",
+      "type": "Type",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "days": "Jours",
+      "status": "Statut",
+      "actions": "Actions"
+    },
+    "types": {
+      "vacation": "Vacances",
+      "sick": "Congé maladie",
+      "personal": "Personnel",
+      "unpaid": "Congé sans solde",
+      "other": "Autre"
+    },
+    "form": {
+      "details": "Détails de la demande de congé",
+      "leaveType": "Type de congé",
+      "selectLeaveType": "Sélectionner le type de congé",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "totalDays": "Nombre total de jours",
+      "days": "jours",
+      "reason": "Raison",
+      "reasonPlaceholder": "Optionnel : Fournissez une raison pour votre demande de congé..."
+    },
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "cancel": "Annuler",
+    "rejectionReason": "Raison du rejet",
+    "rejectionReasonPlaceholder": "Optionnel : Fournissez une raison pour le rejet...",
+    "confirmReject": "Confirmer le rejet"
+  },
+  "errors": {
+    "generic": "Une erreur s'est produite",
+    "network": "Erreur réseau. Veuillez vérifier votre connexion.",
+    "unauthorized": "Vous n'êtes pas autorisé à effectuer cette action.",
+    "notFound": "Ressource introuvable.",
+    "serverError": "Erreur serveur. Veuillez réessayer plus tard."
+  }
+}

@@ -1,0 +1,313 @@
+@if (!modalMode()) {
+  <div class="space-y-6">
+    <div class="flex items-center justify-between">
+      <h1 class="text-3xl font-bold tracking-tight">
+        {{ isEditMode() ? ('tasks.editTitle' | translate) : ('tasks.newTask' | translate) }}
+      </h1>
+    </div>
+
+    @if (loading()) {
+      <div class="flex items-center justify-center py-12">
+        <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
+    } @else {
+      <app-card>
+        <app-card-header>
+          <app-card-title>{{ 'tasks.form.details' | translate }}</app-card-title>
+        </app-card-header>
+        <app-card-content>
+          @if (error()) {
+            <app-alert variant="destructive" class="mb-4">{{ error() }}</app-alert>
+          }
+
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+          <!-- Task Name -->
+          <div class="space-y-2">
+            <label for="name" class="text-sm font-medium">
+              {{ 'tasks.form.name' | translate }} <span class="text-destructive">*</span>
+            </label>
+            <input
+              id="name"
+              type="text"
+              formControlName="name"
+              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              [placeholder]="'tasks.form.namePlaceholder' | translate" />
+            @if (getFieldError('name')) {
+              <p class="text-sm text-destructive">{{ getFieldError('name') }}</p>
+            }
+          </div>
+
+          <!-- Description -->
+          <div class="space-y-2">
+            <label for="description" class="text-sm font-medium">
+              {{ 'tasks.form.description' | translate }}
+            </label>
+            <textarea
+              id="description"
+              formControlName="description"
+              rows="4"
+              class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              [placeholder]="'tasks.form.descriptionPlaceholder' | translate"></textarea>
+          </div>
+
+          <!-- Status and Priority -->
+          <div class="grid gap-4 md:grid-cols-2">
+            <!-- Status -->
+            <div class="space-y-2">
+              <label for="status" class="text-sm font-medium">
+                {{ 'tasks.form.status' | translate }} <span class="text-destructive">*</span>
+              </label>
+              <select
+                id="status"
+                formControlName="status"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                @for (status of taskStatuses; track status.value) {
+                  <option [value]="status.value">{{ status.label | translate }}</option>
+                }
+              </select>
+              @if (getFieldError('status')) {
+                <p class="text-sm text-destructive">{{ getFieldError('status') }}</p>
+              }
+            </div>
+
+            <!-- Priority -->
+            <div class="space-y-2">
+              <label for="priority" class="text-sm font-medium">
+                {{ 'tasks.form.priority' | translate }}
+              </label>
+              <select
+                id="priority"
+                formControlName="priority"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                <option value="">{{ 'tasks.form.selectPriority' | translate }}</option>
+                @for (priority of taskPriorities; track priority.value) {
+                  <option [value]="priority.value">{{ priority.label | translate }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Assignee and Due Date -->
+          <div class="grid gap-4 md:grid-cols-2">
+            <!-- Assignee -->
+            <div class="space-y-2">
+              <label for="assigneeId" class="text-sm font-medium">
+                {{ 'tasks.form.assignee' | translate }}
+              </label>
+              <select
+                id="assigneeId"
+                formControlName="assigneeId"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                <option value="">{{ 'tasks.form.selectAssignee' | translate }}</option>
+                @for (employee of employees(); track employee.id) {
+                  <option [value]="employee.id">
+                    {{ employee.firstName }} {{ employee.lastName }} {{ employee.email ? '(' + employee.email + ')' : '' }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <!-- Due Date -->
+            <div class="space-y-2">
+              <label for="dueDate" class="text-sm font-medium">
+                {{ 'tasks.form.dueDate' | translate }}
+              </label>
+              <input
+                id="dueDate"
+                type="date"
+                formControlName="dueDate"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+            </div>
+          </div>
+
+          <!-- Estimated Hours -->
+          <div class="space-y-2">
+            <label for="estimatedHours" class="text-sm font-medium">
+              {{ 'tasks.form.estimatedHours' | translate }}
+            </label>
+            <input
+              id="estimatedHours"
+              type="number"
+              formControlName="estimatedHours"
+              step="0.5"
+              min="0"
+              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+            @if (getFieldError('estimatedHours')) {
+              <p class="text-sm text-destructive">{{ getFieldError('estimatedHours') }}</p>
+            }
+            <p class="text-xs text-muted-foreground">{{ 'tasks.form.estimatedHoursHint' | translate }}</p>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex justify-end gap-2 pt-4">
+            <app-button
+              type="button"
+              variant="outline"
+              (click)="onCancel()"
+              [disabled]="saving()">
+              {{ 'common.cancel' | translate }}
+            </app-button>
+            <app-button
+              type="submit"
+              [disabled]="form.invalid || saving()">
+              @if (saving()) {
+                <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+              }
+              {{ isEditMode() ? ('common.update' | translate) : ('common.create' | translate) }}
+            </app-button>
+          </div>
+        </form>
+      </app-card-content>
+    </app-card>
+    }
+  </div>
+} @else {
+  @if (loading()) {
+    <div class="flex items-center justify-center py-8">
+      <div class="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+    </div>
+  } @else {
+    @if (error()) {
+      <app-alert variant="destructive" class="mb-4">{{ error() }}</app-alert>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+      <!-- Task Name -->
+      <div class="space-y-2">
+        <label for="name-modal" class="text-sm font-medium">
+          {{ 'tasks.form.name' | translate }} <span class="text-destructive">*</span>
+        </label>
+        <input
+          id="name-modal"
+          type="text"
+          formControlName="name"
+          class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          [placeholder]="'tasks.form.namePlaceholder' | translate" />
+        @if (getFieldError('name')) {
+          <p class="text-sm text-destructive">{{ getFieldError('name') }}</p>
+        }
+      </div>
+
+      <!-- Description -->
+      <div class="space-y-2">
+        <label for="description-modal" class="text-sm font-medium">
+          {{ 'tasks.form.description' | translate }}
+        </label>
+        <textarea
+          id="description-modal"
+          formControlName="description"
+          rows="4"
+          class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          [placeholder]="'tasks.form.descriptionPlaceholder' | translate"></textarea>
+      </div>
+
+      <!-- Status and Priority -->
+      <div class="grid gap-4 md:grid-cols-2">
+        <!-- Status -->
+        <div class="space-y-2">
+          <label for="status-modal" class="text-sm font-medium">
+            {{ 'tasks.form.status' | translate }} <span class="text-destructive">*</span>
+          </label>
+          <select
+            id="status-modal"
+            formControlName="status"
+            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+            @for (status of taskStatuses; track status.value) {
+              <option [value]="status.value">{{ status.label | translate }}</option>
+            }
+          </select>
+          @if (getFieldError('status')) {
+            <p class="text-sm text-destructive">{{ getFieldError('status') }}</p>
+          }
+        </div>
+
+        <!-- Priority -->
+        <div class="space-y-2">
+          <label for="priority-modal" class="text-sm font-medium">
+            {{ 'tasks.form.priority' | translate }}
+          </label>
+          <select
+            id="priority-modal"
+            formControlName="priority"
+            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+            <option value="">{{ 'tasks.form.selectPriority' | translate }}</option>
+            @for (priority of taskPriorities; track priority.value) {
+              <option [value]="priority.value">{{ priority.label | translate }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Assignee and Due Date -->
+      <div class="grid gap-4 md:grid-cols-2">
+        <!-- Assignee -->
+        <div class="space-y-2">
+          <label for="assigneeId-modal" class="text-sm font-medium">
+            {{ 'tasks.form.assignee' | translate }}
+          </label>
+          <select
+            id="assigneeId-modal"
+            formControlName="assigneeId"
+            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+            <option value="">{{ 'tasks.form.selectAssignee' | translate }}</option>
+            @for (employee of employees(); track employee.id) {
+              <option [value]="employee.id">
+                {{ employee.firstName }} {{ employee.lastName }} {{ employee.email ? '(' + employee.email + ')' : '' }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <!-- Due Date -->
+        <div class="space-y-2">
+          <label for="dueDate-modal" class="text-sm font-medium">
+            {{ 'tasks.form.dueDate' | translate }}
+          </label>
+          <input
+            id="dueDate-modal"
+            type="date"
+            formControlName="dueDate"
+            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+        </div>
+      </div>
+
+      <!-- Estimated Hours -->
+      <div class="space-y-2">
+        <label for="estimatedHours-modal" class="text-sm font-medium">
+          {{ 'tasks.form.estimatedHours' | translate }}
+        </label>
+        <input
+          id="estimatedHours-modal"
+          type="number"
+          formControlName="estimatedHours"
+          step="0.5"
+          min="0"
+          class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+        @if (getFieldError('estimatedHours')) {
+          <p class="text-sm text-destructive">{{ getFieldError('estimatedHours') }}</p>
+        }
+        <p class="text-xs text-muted-foreground">{{ 'tasks.form.estimatedHoursHint' | translate }}</p>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex justify-end gap-2 pt-4">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+          (click)="onCancel()"
+          [disabled]="saving()">
+          {{ 'common.cancel' | translate }}
+        </button>
+        <button
+          type="submit"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+          [disabled]="form.invalid || saving()">
+          @if (saving()) {
+            <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+          }
+          {{ isEditMode() ? ('common.update' | translate) : ('common.create' | translate) }}
+        </button>
+      </div>
+    </form>
+  }
+}

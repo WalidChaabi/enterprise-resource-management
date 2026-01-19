@@ -1,0 +1,10 @@
+# Logos Directory
+
+Place your application logos here.
+
+Recommended structure:
+- logo.svg (main logo)
+- logo-dark.svg (dark mode variant)
+- logo-light.svg (light mode variant)
+- favicon.ico (browser favicon)
+- icon-*.png (various sizes for PWA/manifests)

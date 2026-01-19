@@ -1,0 +1,113 @@
+<div class="flex min-h-screen">
+  @if (mobileSidebarOpen()) {
+    <div class="fixed inset-0 z-50 md:hidden" (click)="closeMobileSidebar()">
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+      <div class="absolute left-0 top-0 h-full" (click)="$event.stopPropagation()">
+        <app-sidebar
+          [theme]="theme()"
+          [isMobile]="true"
+          (navigated)="closeMobileSidebar()"></app-sidebar>
+      </div>
+    </div>
+  }
+
+  <app-sidebar class="hidden md:flex" [theme]="theme()"></app-sidebar>
+
+  <div class="flex min-h-screen flex-1 flex-col">
+    <header class="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div class="flex h-14 w-full items-center gap-4 px-6">
+        <button
+          type="button"
+          class="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+          (click)="toggleMobileSidebar()"
+          [attr.aria-label]="'Toggle navigation'">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <div class="flex items-center gap-2 min-w-0">
+          <button
+            type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+            (click)="goBack()"
+            [attr.aria-label]="'Go back'">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div class="min-w-0">
+            <app-breadcrumb [items]="breadcrumbs()"></app-breadcrumb>
+          </div>
+        </div>
+        <div class="hidden md:flex items-center ml-3">
+          <app-org-switcher
+            [organizations]="organizations()"
+            [currentName]="currentOrganization()"
+            (orgSelected)="switchOrganization($event)"></app-org-switcher>
+        </div>
+        <div class="hidden md:flex items-center ml-6 flex-1">
+          <div class="w-72">
+            <app-search-bar></app-search-bar>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <app-quick-action-menu></app-quick-action-menu>
+          <app-notification-menu
+            [items]="notifications()"
+            (markAll)="markNotificationsRead()"></app-notification-menu>
+          <app-help-menu
+            [documentationUrl]="uiConfig().documentationUrl"
+            [supportUrl]="uiConfig().supportUrl"
+            (shortcuts)="openShortcuts()"></app-help-menu>
+          <div class="flex gap-0.5 rounded-md bg-muted/50 p-0.5">
+            @for (lang of languages; track lang.code) {
+              <button 
+                class="inline-flex h-8 w-8 items-center justify-center rounded transition-all hover:scale-110 [&.active]:bg-background [&.active]:shadow-sm flag-button"
+                [class.active]="currentLanguage() === lang.code"
+                (click)="setLanguage(lang.code)"
+                [attr.aria-label]="'Switch to ' + lang.label"
+                [title]="lang.label">
+                <span class="flag-icon" [innerHTML]="getFlagSvg(lang.code)"></span>
+              </button>
+            }
+          </div>
+          <button 
+            class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+            (click)="toggleTheme()" 
+            [attr.aria-label]="'Toggle ' + (theme() === 'dark' ? 'light' : 'dark') + ' mode'"
+            type="button">
+            @if (theme() === 'dark') {
+              <span [innerHTML]="getSunIcon()"></span>
+            } @else {
+              <span [innerHTML]="getMoonIcon()"></span>
+            }
+          </button>
+          <!-- Mobile Search Icon -->
+          <a 
+            routerLink="/search"
+            class="md:hidden flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            [title]="'search.title' | translate">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </a>
+          <app-profile-menu
+            [name]="userFullName()"
+            [email]="userEmail()"
+            (settings)="openSettings()"
+            (logout)="logout()"></app-profile-menu>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1">
+      <div class="container py-6">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+    <app-keyboard-shortcuts
+      [open]="shortcutsOpen()"
+      [shortcuts]="shortcuts()"
+      (closed)="closeShortcuts()"></app-keyboard-shortcuts>
+  </div>
+</div>

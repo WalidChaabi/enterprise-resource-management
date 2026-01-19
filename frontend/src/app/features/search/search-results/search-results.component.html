@@ -1,0 +1,81 @@
+@if (result && result.items.length > 0) {
+  <div class="space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-lg font-semibold">{{ 'search.results' | translate }}</h2>
+        <p class="text-sm text-muted-foreground">
+          {{ 'search.found' | translate }} {{ result.totalElements }} {{ 'search.items' | translate }}
+        </p>
+      </div>
+      <div class="flex gap-2">
+        <app-button
+          variant="outline"
+          size="sm"
+          (click)="exportToCSV()"
+          [disabled]="exporting()">
+          @if (exporting()) {
+            <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+          }
+          {{ 'search.exportCSV' | translate }}
+        </app-button>
+        <app-button
+          variant="outline"
+          size="sm"
+          (click)="exportToPDF()"
+          [disabled]="exporting()">
+          @if (exporting()) {
+            <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+          }
+          {{ 'search.exportPDF' | translate }}
+        </app-button>
+      </div>
+    </div>
+
+    <div class="space-y-2">
+      @for (item of result.items; track item.id) {
+        <app-card class="hover:bg-accent cursor-pointer transition-colors">
+          <div [routerLink]="getEntityRoute(item)" class="p-4">
+            <div class="flex items-start justify-between">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="font-medium truncate">{{ item.title }}</h3>
+                  <app-badge variant="outline" class="text-xs">
+                    {{ getEntityTypeLabel(item.type) | translate }}
+                  </app-badge>
+                </div>
+                @if (item.description) {
+                  <p class="text-sm text-muted-foreground line-clamp-2">{{ item.description }}</p>
+                }
+                @if (item.metadata) {
+                  <div class="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    @for (meta of Object.entries(item.metadata); track meta[0]) {
+                      <span>{{ meta[0] }}: {{ meta[1] }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </app-card>
+      }
+    </div>
+
+    @if (result.totalPages > 1) {
+      <div class="flex items-center justify-center gap-2 pt-4">
+        <app-button variant="outline" size="sm" [disabled]="result.page === 0">
+          {{ 'common.previous' | translate }}
+        </app-button>
+        <span class="text-sm text-muted-foreground">
+          {{ 'common.page' | translate }} {{ result.page + 1 }} {{ 'common.of' | translate }} {{ result.totalPages }}
+        </span>
+        <app-button variant="outline" size="sm" [disabled]="result.page >= result.totalPages - 1">
+          {{ 'common.next' | translate }}
+        </app-button>
+      </div>
+    }
+  </div>
+} @else if (result && result.items.length === 0) {
+  <div class="flex flex-col items-center justify-center py-12 text-center">
+    <p class="text-muted-foreground">{{ 'search.noResults' | translate }}</p>
+  </div>
+}

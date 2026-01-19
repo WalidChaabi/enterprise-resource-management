@@ -1,0 +1,222 @@
+<div class="space-y-6">
+  @if (!modalMode()) {
+    <div class="flex items-center justify-between">
+      <h1 class="text-3xl font-bold tracking-tight">
+        {{ isEditMode() ? ('employees.editTitle' | translate) : ('employees.newEmployee' | translate) }}
+      </h1>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12">
+      <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+    </div>
+  } @else {
+    @if (!modalMode()) {
+      <app-card>
+        <app-card-header>
+          <app-card-title>{{ 'employees.form.details' | translate }}</app-card-title>
+        </app-card-header>
+        <app-card-content>
+          @if (error()) {
+            <app-alert variant="destructive" class="mb-4">{{ error() }}</app-alert>
+          }
+
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+            <!-- User ID (only for create) -->
+            @if (!isEditMode()) {
+              <div class="space-y-2">
+                <label for="userId" class="text-sm font-medium">
+                  {{ 'employees.form.userId' | translate }} <span class="text-destructive">*</span>
+                </label>
+                <input
+                  id="userId"
+                  type="text"
+                  formControlName="userId"
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  [placeholder]="'employees.form.userIdPlaceholder' | translate" />
+                @if (getFieldError('userId')) {
+                  <p class="text-sm text-destructive">{{ getFieldError('userId') }}</p>
+                }
+                <p class="text-xs text-muted-foreground">{{ 'employees.form.userIdHint' | translate }}</p>
+              </div>
+            }
+
+            <!-- Employee Code -->
+            <div class="space-y-2">
+              <label for="employeeCode" class="text-sm font-medium">
+                {{ 'employees.form.employeeCode' | translate }}
+              </label>
+              <input
+                id="employeeCode"
+                type="text"
+                formControlName="employeeCode"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                [placeholder]="'employees.form.employeeCodePlaceholder' | translate" />
+            </div>
+
+            <!-- Job Title -->
+            <div class="space-y-2">
+              <label for="jobTitle" class="text-sm font-medium">
+                {{ 'employees.form.jobTitle' | translate }}
+              </label>
+              <input
+                id="jobTitle"
+                type="text"
+                formControlName="jobTitle"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                [placeholder]="'employees.form.jobTitlePlaceholder' | translate" />
+            </div>
+
+            <!-- Department -->
+            <div class="space-y-2">
+              <label for="departmentId" class="text-sm font-medium">
+                {{ 'employees.form.department' | translate }}
+              </label>
+              <select
+                id="departmentId"
+                formControlName="departmentId"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                <option value="">{{ 'employees.form.selectDepartment' | translate }}</option>
+                @for (department of departments(); track department.id) {
+                  <option [value]="department.id">{{ department.name }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Active Status (only for edit) -->
+            @if (isEditMode()) {
+              <div class="space-y-2">
+                <label class="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    formControlName="active"
+                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                  <span class="text-sm font-medium">{{ 'employees.form.active' | translate }}</span>
+                </label>
+              </div>
+            }
+
+            <!-- Form Actions -->
+            <div class="flex justify-end gap-2 pt-4">
+              <app-button
+                type="button"
+                variant="outline"
+                (click)="onCancel()"
+                [disabled]="saving()">
+                {{ 'common.cancel' | translate }}
+              </app-button>
+              <app-button
+                type="submit"
+                [disabled]="form.invalid || saving()">
+                @if (saving()) {
+                  <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                }
+                {{ isEditMode() ? ('common.update' | translate) : ('common.create' | translate) }}
+              </app-button>
+            </div>
+          </form>
+        </app-card-content>
+      </app-card>
+    } @else {
+      @if (error()) {
+        <app-alert variant="destructive" class="mb-4">{{ error() }}</app-alert>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+        <!-- User ID (only for create) -->
+        @if (!isEditMode()) {
+          <div class="space-y-2">
+            <label for="userId-modal" class="text-sm font-medium">
+              {{ 'employees.form.userId' | translate }} <span class="text-destructive">*</span>
+            </label>
+            <input
+              id="userId-modal"
+              type="text"
+              formControlName="userId"
+              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              [placeholder]="'employees.form.userIdPlaceholder' | translate" />
+            @if (getFieldError('userId')) {
+              <p class="text-sm text-destructive">{{ getFieldError('userId') }}</p>
+            }
+            <p class="text-xs text-muted-foreground">{{ 'employees.form.userIdHint' | translate }}</p>
+          </div>
+        }
+
+        <!-- Employee Code -->
+        <div class="space-y-2">
+          <label for="employeeCode-modal" class="text-sm font-medium">
+            {{ 'employees.form.employeeCode' | translate }}
+          </label>
+          <input
+            id="employeeCode-modal"
+            type="text"
+            formControlName="employeeCode"
+            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            [placeholder]="'employees.form.employeeCodePlaceholder' | translate" />
+        </div>
+
+        <!-- Job Title -->
+        <div class="space-y-2">
+          <label for="jobTitle-modal" class="text-sm font-medium">
+            {{ 'employees.form.jobTitle' | translate }}
+          </label>
+          <input
+            id="jobTitle-modal"
+            type="text"
+            formControlName="jobTitle"
+            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            [placeholder]="'employees.form.jobTitlePlaceholder' | translate" />
+        </div>
+
+        <!-- Department -->
+        <div class="space-y-2">
+          <label for="departmentId-modal" class="text-sm font-medium">
+            {{ 'employees.form.department' | translate }}
+          </label>
+          <select
+            id="departmentId-modal"
+            formControlName="departmentId"
+            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+            <option value="">{{ 'employees.form.selectDepartment' | translate }}</option>
+            @for (department of departments(); track department.id) {
+              <option [value]="department.id">{{ department.name }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Active Status (only for edit) -->
+        @if (isEditMode()) {
+          <div class="space-y-2">
+            <label class="flex items-center gap-2">
+              <input
+                type="checkbox"
+                formControlName="active"
+                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+              <span class="text-sm font-medium">{{ 'employees.form.active' | translate }}</span>
+            </label>
+          </div>
+        }
+
+        <!-- Form Actions -->
+        <div class="flex justify-end gap-2 pt-4">
+          <app-button
+            type="button"
+            variant="outline"
+            (click)="onCancel()"
+            [disabled]="saving()">
+            {{ 'common.cancel' | translate }}
+          </app-button>
+          <app-button
+            type="submit"
+            [disabled]="form.invalid || saving()">
+            @if (saving()) {
+              <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+            }
+            {{ isEditMode() ? ('common.update' | translate) : ('common.create' | translate) }}
+          </app-button>
+        </div>
+      </form>
+    }
+  }
+</div>

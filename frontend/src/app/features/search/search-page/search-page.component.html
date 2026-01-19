@@ -1,0 +1,22 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-3xl font-bold tracking-tight mb-2">{{ 'search.title' | translate }}</h1>
+    <p class="text-muted-foreground">{{ 'search.subtitle' | translate }}</p>
+  </div>
+
+  <app-search-bar
+    (searchResults)="onSearchResults($event)"
+    (searchError)="onSearchError($event)">
+  </app-search-bar>
+
+  @if (error()) {
+    <app-alert variant="destructive">{{ error() }}</app-alert>
+  }
+
+  @if (searchResult()) {
+    <app-search-results
+      [result]="searchResult()!"
+      [query]="searchQuery()">
+    </app-search-results>
+  }
+</div>

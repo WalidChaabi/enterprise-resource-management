@@ -1,0 +1,127 @@
+<div class="space-y-8">
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12">
+      <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+    </div>
+  } @else if (error()) {
+    <app-alert variant="destructive">{{ error() }}</app-alert>
+  } @else if (employee()) {
+    <div class="flex flex-col gap-4 pb-2 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-semibold">
+          {{ (employee()!.firstName?.charAt(0) || '') + (employee()!.lastName?.charAt(0) || '') }}
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-3xl font-bold tracking-tight">{{ employee()!.firstName }} {{ employee()!.lastName }}</h1>
+          <p class="text-sm text-muted-foreground">{{ employee()!.email || '-' }}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+          (click)="openEditModal()">
+          {{ 'common.edit' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-3">
+      <div class="lg:col-span-2 space-y-6">
+        <app-card>
+          <app-card-header class="pb-3">
+            <app-card-title class="text-base">{{ 'employees.detail.contactInfo' | translate }}</app-card-title>
+          </app-card-header>
+          <app-card-content class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ 'common.email' | translate }}</label>
+              <p class="text-base font-semibold">{{ employee()!.email || '-' }}</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ 'employees.detail.employeeCode' | translate }}</label>
+              <p class="text-base">{{ employee()!.employeeCode || '-' }}</p>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Organization</label>
+              <p class="text-base">{{ employee()!.organizationName || '-' }}</p>
+            </div>
+          </app-card-content>
+        </app-card>
+
+        <app-card>
+          <app-card-header class="pb-3">
+            <app-card-title class="text-base">{{ 'employees.detail.employmentInfo' | translate }}</app-card-title>
+          </app-card-header>
+          <app-card-content class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ 'employees.table.jobTitle' | translate }}</label>
+              <p class="text-base">{{ employee()!.jobTitle || '-' }}</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ 'employees.table.department' | translate }}</label>
+              <p class="text-base">{{ employee()!.departmentName || '-' }}</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Department Code</label>
+              <p class="text-base">{{ employee()!.departmentCode || '-' }}</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ 'common.status' | translate }}</label>
+              <div class="mt-1">
+                <app-badge [variant]="employee()!.active ? 'default' : 'secondary'">
+                  {{ employee()!.active ? ('common.active' | translate) : ('common.inactive' | translate) }}
+                </app-badge>
+              </div>
+            </div>
+          </app-card-content>
+        </app-card>
+
+        <app-card>
+          <app-card-header class="pb-3">
+            <app-card-title class="text-base">Record Details</app-card-title>
+          </app-card-header>
+          <app-card-content class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created</label>
+              <p class="text-base">{{ employee()!.createdAt ? (employee()!.createdAt | date:'medium') : '-' }}</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Updated</label>
+              <p class="text-base">{{ employee()!.updatedAt ? (employee()!.updatedAt | date:'medium') : '-' }}</p>
+            </div>
+          </app-card-content>
+        </app-card>
+
+        <app-card>
+          <app-card-header class="pb-3">
+            <app-card-title class="text-base">{{ 'employees.detail.roles' | translate }}</app-card-title>
+          </app-card-header>
+          <app-card-content>
+            <app-role-picker
+              [assignedRoleIds]="getAssignedRoleIds()"
+              [disabled]="assigningRole()"
+              (roleSelected)="onRoleSelected($event)"
+              (roleRemoved)="onRoleRemoved($event)">
+            </app-role-picker>
+          </app-card-content>
+        </app-card>
+      </div>
+
+      <div class="space-y-6">
+        <!-- Reserved for future widgets (activity, timeline, etc.) -->
+      </div>
+    </div>
+
+    <app-dialog
+      [open]="showEditModal()"
+      [title]="'employees.editTitle' | translate"
+      (closed)="closeEditModal()">
+      <app-employee-form
+        [modalMode]="true"
+        [employeeIdInput]="employee()!.id"
+        (saved)="onEmployeeUpdated()"
+        (cancelled)="closeEditModal()">
+      </app-employee-form>
+    </app-dialog>
+  }
+</div>

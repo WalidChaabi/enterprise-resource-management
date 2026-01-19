@@ -1,0 +1,10 @@
+services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "4200:80"
+    volumes:
+      - ../src:/app/src # Optional: for dev if using a dev stage, but this is prod build
+    restart: always

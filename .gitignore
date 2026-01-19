@@ -1,0 +1,93 @@
+# ============================================
+# Enterprise Resource Management - Root .gitignore
+# ============================================
+
+# Backend (Java/Spring Boot)
+backend/target/
+backend/.gradle/
+backend/.idea/
+backend/*.iml
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/bin/
+backend/out/
+backend/*.log
+backend/logs/
+
+# Frontend (Angular/Node)
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.cache/
+frontend/.vscode/
+frontend/coverage/
+frontend/.nyc_output/
+frontend/*.log
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+env.example
+
+# Docker
+docker-compose.override.yml
+*.env.docker
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Build artifacts
+*.jar
+*.war
+*.ear
+*.class
+
+# Package files
+*.tar.gz
+*.zip
+
+# Test coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Misc
+.cache/
+.temp/
+.tmp/

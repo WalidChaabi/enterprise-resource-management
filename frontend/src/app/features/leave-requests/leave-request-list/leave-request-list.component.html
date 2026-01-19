@@ -1,0 +1,159 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-foreground">{{ 'leaveRequests.title' | translate }}</h1>
+    </div>
+    <app-button (click)="openCreateModal()">
+      {{ 'leaveRequests.newLeaveRequest' | translate }}
+    </app-button>
+  </div>
+
+  @if (loading()) {
+    <app-card>
+      <app-card-content class="p-6">
+        <app-skeleton-table [rows]="5" [columns]="[
+          { width: '20%' },
+          { width: '15%' },
+          { width: '15%' },
+          { width: '15%' },
+          { width: '10%' },
+          { width: '15%' },
+          { width: '10%' }
+        ]" />
+      </app-card-content>
+    </app-card>
+  } @else if (error()) {
+    <div class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+      <svg class="h-5 w-5 flex-shrink-0 text-destructive mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-foreground">{{ error() }}</p>
+      </div>
+    </div>
+  } @else if (leaveRequests().length === 0) {
+    <app-card>
+      <app-card-content>
+        <div class="flex flex-col items-center justify-center py-12 text-center">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            <svg class="h-6 w-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 class="text-base font-semibold text-foreground mb-1">No leave requests</h3>
+          <p class="text-sm text-muted-foreground mb-6 max-w-sm">Submit a leave request to request time off from work.</p>
+          <app-button (click)="openCreateModal()">
+            {{ 'leaveRequests.newLeaveRequest' | translate }}
+          </app-button>
+        </div>
+      </app-card-content>
+    </app-card>
+  } @else {
+    <app-card>
+      <div class="table-wrapper">
+        <table class="table-enhanced">
+          <thead>
+            <tr>
+              <th>{{ 'leaveRequests.table.employee' | translate }}</th>
+              <th>{{ 'leaveRequests.table.type' | translate }}</th>
+              <th>{{ 'leaveRequests.table.startDate' | translate }}</th>
+              <th>{{ 'leaveRequests.table.endDate' | translate }}</th>
+              <th>{{ 'leaveRequests.table.days' | translate }}</th>
+              <th>{{ 'leaveRequests.table.status' | translate }}</th>
+              <th>{{ 'leaveRequests.table.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (request of leaveRequests(); track request.id) {
+              <tr>
+                <td class="p-4 align-middle">{{ request.employeeName || '-' }}</td>
+                <td class="p-4 align-middle">{{ request.leaveType }}</td>
+                <td class="p-4 align-middle">{{ request.startDate | date:'short' }}</td>
+                <td class="p-4 align-middle">{{ request.endDate | date:'short' }}</td>
+                <td class="p-4 align-middle">{{ request.days }}</td>
+                <td class="p-4 align-middle">
+                  <app-badge [variant]="getStatusVariant(request.status)">
+                    {{ request.status }}
+                  </app-badge>
+                </td>
+                <td class="p-4 align-middle">
+                  <div class="flex items-center gap-2">
+                    @if (canCancelRequest(request)) {
+                      <app-button variant="ghost" size="sm" [routerLink]="['/leave-requests', request.id, 'edit']">
+                        {{ 'common.edit' | translate }}
+                      </app-button>
+                    }
+                    @if (canApproveRequest(request)) {
+                      <app-button 
+                        variant="default" 
+                        size="sm" 
+                        (click)="approveRequest(request)"
+                        [disabled]="processing() === request.id">
+                        @if (processing() === request.id) {
+                          <div class="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                        }
+                        {{ 'leaveRequests.approve' | translate }}
+                      </app-button>
+                      @if (rejectingRequestId() !== request.id) {
+                        <app-button 
+                          variant="destructive" 
+                          size="sm" 
+                          (click)="startRejectRequest(request)">
+                          {{ 'leaveRequests.reject' | translate }}
+                        </app-button>
+                      }
+                    }
+                    @if (canCancelRequest(request)) {
+                      <app-button 
+                        variant="outline" 
+                        size="sm" 
+                        (click)="cancelRequest(request)"
+                        [disabled]="processing() === request.id">
+                        {{ 'leaveRequests.cancel' | translate }}
+                      </app-button>
+                    }
+                  </div>
+                  @if (rejectingRequestId() === request.id) {
+                    <div class="mt-2 space-y-2 rounded-md border p-3 bg-muted/50">
+                      <label class="text-sm font-medium">{{ 'leaveRequests.rejectionReason' | translate }}</label>
+                      <textarea
+                        [value]="rejectionReason()"
+                        (input)="rejectionReason.set($any($event.target).value)"
+                        rows="2"
+                        class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        [placeholder]="'leaveRequests.rejectionReasonPlaceholder' | translate"></textarea>
+                      <div class="flex gap-2">
+                        <app-button 
+                          size="sm" 
+                          variant="destructive"
+                          (click)="confirmReject(request)"
+                          [disabled]="processing() === request.id">
+                          {{ 'leaveRequests.confirmReject' | translate }}
+                        </app-button>
+                        <app-button 
+                          size="sm" 
+                          variant="outline"
+                          (click)="cancelReject()"
+                          [disabled]="processing() === request.id">
+                          {{ 'common.cancel' | translate }}
+                        </app-button>
+                      </div>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </app-card>
+  }
+
+  <!-- Create Leave Request Modal -->
+  <app-dialog 
+    [open]="showCreateModal()" 
+    [title]="'leaveRequests.newLeaveRequest' | translate"
+    (closed)="closeCreateModal()">
+    <app-leave-request-form [modalMode]="true" (saved)="onLeaveRequestCreated()" (cancelled)="closeCreateModal()"></app-leave-request-form>
+  </app-dialog>
+</div>

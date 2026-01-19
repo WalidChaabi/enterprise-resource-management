@@ -1,0 +1,66 @@
+<div class="space-y-4">
+  @if (loading()) {
+    <div class="flex items-center justify-center py-4">
+      <div class="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+    </div>
+  } @else if (error()) {
+    <div class="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+      {{ error() }}
+    </div>
+  } @else {
+    <div class="space-y-3">
+      <!-- Assigned Roles -->
+      @if (assignedRoleIds.length > 0) {
+        <div>
+          <label class="text-sm font-medium mb-2 block">{{ 'roles.assignedRoles' | translate }}</label>
+          <div class="flex flex-wrap gap-2">
+            @for (roleId of assignedRoleIds; track roleId) {
+              @if (getRoleById(roleId)) {
+                <app-badge variant="default" class="flex items-center gap-1">
+                  {{ getRoleById(roleId)!.name }}
+                  @if (!disabled) {
+                    <button
+                      (click)="onRemoveRole(roleId)"
+                      class="ml-1 rounded-full hover:bg-destructive/20 p-0.5"
+                      type="button"
+                      [attr.aria-label]="'roles.removeRole' | translate">
+                      <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  }
+                </app-badge>
+              }
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Assign New Role -->
+      @if (!disabled && getUnassignedRoles().length > 0) {
+        <div>
+          <label class="text-sm font-medium mb-2 block">{{ 'roles.assignRole' | translate }}</label>
+          <div class="flex gap-2">
+            <select
+              [value]="selectedRoleId()"
+              (change)="selectedRoleId.set($any($event.target).value)"
+              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+              <option value="">{{ 'roles.selectRole' | translate }}</option>
+              @for (role of getUnassignedRoles(); track role.id) {
+                <option [value]="role.id">{{ role.name }}</option>
+              }
+            </select>
+            <app-button
+              (click)="onAssignRole()"
+              [disabled]="!selectedRoleId()"
+              size="sm">
+              {{ 'roles.assign' | translate }}
+            </app-button>
+          </div>
+        </div>
+      } @else if (!disabled && getUnassignedRoles().length === 0) {
+        <p class="text-sm text-muted-foreground">{{ 'roles.allRolesAssigned' | translate }}</p>
+      }
+    </div>
+  }
+</div>

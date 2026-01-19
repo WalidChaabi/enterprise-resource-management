@@ -1,0 +1,374 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "update": "Update",
+    "search": "Search",
+    "filter": "Filter",
+    "actions": "Actions",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "of": "of",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "description": "Description",
+    "members": "members",
+    "noDescription": "No description",
+    "notSet": "Not set"
+  },
+  "app": {
+    "title": "Enterprise Resource Management",
+    "logo": "ERM"
+  },
+  "auth": {
+    "login": {
+      "title": "Enterprise Resource Management",
+      "subtitle": "Sign in to your account",
+      "email": "Email",
+      "password": "Password",
+      "signIn": "Sign In",
+      "loggingIn": "Logging in...",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "trustSignal": "Secure access to your organization workspace",
+      "demoCredentials": "Demo Credentials",
+      "demoEmail": "Email: admin@demo.com",
+      "demoPassword": "Password: password",
+      "demoAccess": "Demo Access",
+      "toggleDemoCredentials": "Toggle demo credentials",
+      "useDemoCredentials": "Use Demo Credentials",
+      "error": {
+        "default": "Login failed. Please check your credentials and try again."
+      }
+    },
+    "logout": "Logout"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "employees": "Employees",
+    "departments": "Departments",
+    "reports": "Reports",
+    "timeEntries": "Time Entries",
+    "leaveRequests": "Leave Requests",
+    "sections": {
+      "core": "Core",
+      "people": "People",
+      "insights": "Insights"
+    }
+  },
+  "search": {
+    "title": "Search",
+    "subtitle": "Search across employees, projects, tasks, and more",
+    "placeholder": "Search...",
+    "search": "Search",
+    "filterByType": "Filter by type",
+    "results": "Search Results",
+    "found": "Found",
+    "items": "items",
+    "noResults": "No results found. Try a different search term.",
+    "exportCSV": "Export CSV",
+    "exportPDF": "Export PDF",
+    "types": {
+      "employee": "Employee",
+      "project": "Project",
+      "task": "Task",
+      "department": "Department",
+      "timeEntry": "Time Entry",
+      "leaveRequest": "Leave Request"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back, {{name}}!",
+    "welcomeCard": {
+      "title": "Enterprise Resource Management",
+      "subtitle": "Your backend is ready. Start building your features!",
+      "projects": {
+        "title": "Projects",
+        "description": "Manage your projects"
+      },
+      "employees": {
+        "title": "Employees",
+        "description": "View and manage employees"
+      },
+      "reports": {
+        "title": "Reports",
+        "description": "View analytics and reports"
+      }
+    }
+  },
+  "employees": {
+    "title": "Employees",
+    "newEmployee": "New Employee",
+    "editTitle": "Edit Employee",
+    "table": {
+      "name": "Name",
+      "email": "Email",
+      "jobTitle": "Job Title",
+      "department": "Department",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "form": {
+      "details": "Employee Details",
+      "userId": "User ID",
+      "userIdPlaceholder": "Enter user ID",
+      "userIdHint": "The ID of the user account to link to this employee",
+      "employeeCode": "Employee Code",
+      "employeeCodePlaceholder": "Enter employee code (optional)",
+      "jobTitle": "Job Title",
+      "jobTitlePlaceholder": "Enter job title (optional)",
+      "department": "Department",
+      "selectDepartment": "Select a department",
+      "selectEmployee": "Select an employee",
+      "active": "Active"
+    },
+    "detail": {
+      "title": "Employee Details",
+      "personalInfo": "Personal Information",
+      "contactInfo": "Contact Information",
+      "employmentInfo": "Employment Information",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone",
+      "address": "Address",
+      "jobTitle": "Job Title",
+      "department": "Department",
+      "hireDate": "Hire Date",
+      "salary": "Salary",
+      "employeeCode": "Employee Code",
+      "roles": "Roles"
+    }
+  },
+  "roles": {
+    "assignedRoles": "Assigned Roles",
+    "assignRole": "Assign Role",
+    "selectRole": "Select a role",
+    "assign": "Assign",
+    "removeRole": "Remove role",
+    "allRolesAssigned": "All available roles have been assigned"
+  },
+  "departments": {
+    "title": "Departments",
+    "newDepartment": "New Department",
+    "editTitle": "Edit Department",
+    "emptyState": "No departments found. Create your first department!",
+    "table": {
+      "name": "Name",
+      "description": "Description",
+      "manager": "Manager",
+      "employees": "Employees",
+      "actions": "Actions"
+    },
+    "form": {
+      "details": "Department Details",
+      "name": "Department Name",
+      "namePlaceholder": "Enter department name",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional: Describe the department...",
+      "manager": "Department Manager",
+      "selectManager": "Select a department manager"
+    },
+    "detail": {
+      "title": "Department Details",
+      "information": "Information",
+      "name": "Name",
+      "description": "Description",
+      "manager": "Manager",
+      "employeeCount": "Employee Count"
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "newProject": "New Project",
+    "editTitle": "Edit Project",
+    "emptyState": "No projects found. Create your first project!",
+    "table": {
+      "name": "Name",
+      "description": "Description",
+      "status": "Status",
+      "members": "Members",
+      "startDate": "Start Date",
+      "deadline": "Deadline",
+      "budget": "Budget"
+    },
+    "status": {
+      "planning": "Planning",
+      "active": "Active",
+      "on-hold": "On Hold",
+      "on_hold": "On Hold",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "form": {
+      "details": "Project Details",
+      "name": "Project Name",
+      "namePlaceholder": "Enter project name",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional: Describe the project...",
+      "status": "Status",
+      "startDate": "Start Date",
+      "deadline": "Deadline",
+      "budget": "Budget",
+      "manager": "Project Manager",
+      "selectManager": "Select a project manager"
+    },
+    "detail": {
+      "title": "Project Details",
+      "description": "Description",
+      "status": "Status",
+      "details": "Details",
+      "startDate": "Start Date",
+      "deadline": "Deadline",
+      "budget": "Budget",
+      "members": "Members",
+      "addMember": "Add Member",
+      "noDescription": "No description provided",
+      "tasks": "Tasks",
+      "newTask": "New Task"
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "newTask": "New Task",
+    "editTitle": "Edit Task",
+    "emptyState": "No tasks found. Create your first task!",
+    "table": {
+      "name": "Name",
+      "description": "Description",
+      "status": "Status",
+      "assignee": "Assignee",
+      "dueDate": "Due Date",
+      "priority": "Priority",
+      "actions": "Actions"
+    },
+    "status": {
+      "todo": "To Do",
+      "in_progress": "In Progress",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "form": {
+      "details": "Task Details",
+      "name": "Task Name",
+      "namePlaceholder": "Enter task name",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional: Describe the task...",
+      "status": "Status",
+      "priority": "Priority",
+      "selectPriority": "Select priority",
+      "assignee": "Assignee",
+      "selectAssignee": "Select an assignee",
+      "dueDate": "Due Date",
+      "estimatedHours": "Estimated Hours",
+      "estimatedHoursHint": "Enter estimated hours for this task"
+    },
+    "detail": {
+      "title": "Task Details",
+      "details": "Details",
+      "description": "Description",
+      "status": "Status",
+      "assignee": "Assignee",
+      "dueDate": "Due Date",
+      "priority": "Priority",
+      "estimatedHours": "Estimated Hours",
+      "actualHours": "Actual Hours",
+      "noDescription": "No description provided"
+    }
+  },
+  "timeEntries": {
+    "title": "Time Entries",
+    "newTimeEntry": "New Time Entry",
+    "editTitle": "Edit Time Entry",
+    "emptyState": "No time entries found. Create your first time entry!",
+    "table": {
+      "date": "Date",
+      "project": "Project",
+      "hours": "Hours",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "form": {
+      "details": "Time Entry Details",
+      "project": "Project",
+      "selectProject": "Select a project",
+      "date": "Date",
+      "hours": "Hours",
+      "hoursHint": "Enter hours worked (0.25 to 24 hours)",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional: Describe the work performed..."
+    },
+    "submit": "Submit",
+    "approve": "Approve",
+    "reject": "Reject",
+    "rejectionReason": "Rejection Reason",
+    "rejectionReasonPlaceholder": "Optional: Provide a reason for rejection...",
+    "confirmReject": "Confirm Reject"
+  },
+  "leaveRequests": {
+    "title": "Leave Requests",
+    "newLeaveRequest": "New Leave Request",
+    "editTitle": "Edit Leave Request",
+    "emptyState": "No leave requests found. Create your first leave request!",
+    "table": {
+      "employee": "Employee",
+      "type": "Type",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "days": "Days",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "types": {
+      "vacation": "Vacation",
+      "sick": "Sick Leave",
+      "personal": "Personal",
+      "unpaid": "Unpaid Leave",
+      "other": "Other"
+    },
+    "form": {
+      "details": "Leave Request Details",
+      "leaveType": "Leave Type",
+      "selectLeaveType": "Select leave type",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "totalDays": "Total Days",
+      "days": "days",
+      "reason": "Reason",
+      "reasonPlaceholder": "Optional: Provide a reason for your leave request..."
+    },
+    "approve": "Approve",
+    "reject": "Reject",
+    "cancel": "Cancel",
+    "rejectionReason": "Rejection Reason",
+    "rejectionReasonPlaceholder": "Optional: Provide a reason for rejection...",
+    "confirmReject": "Confirm Reject"
+  },
+  "errors": {
+    "generic": "An error occurred",
+    "network": "Network error. Please check your connection.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "notFound": "Resource not found.",
+    "serverError": "Server error. Please try again later."
+  }
+}

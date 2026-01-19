@@ -1,0 +1,10 @@
+ui:
+  documentation-url: "https://docs.example.com"
+  support-url: "https://support.example.com"
+  shortcuts-enabled: true
+settings:
+  shortcuts:
+    - key: "shift+/"
+      action: "openShortcuts"
+    - key: "/"
+      action: "focusSearch"
