@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ProjectService } from '../../../core/services/project.service';
 import { EmployeeService } from '../../../core/services/employee.service';
@@ -17,10 +17,9 @@ import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.com
 import { ProjectFormComponent } from '../project-form/project-form.component';
 
 @Component({
-  selector: 'app-project-detail',
-  standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, BadgeComponent, AlertComponent, TaskListComponent, DialogComponent, ProjectFormComponent],
-  templateUrl: './project-detail.component.html'
+    selector: 'app-project-detail',
+    imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, BadgeComponent, AlertComponent, TaskListComponent, DialogComponent, ProjectFormComponent],
+    templateUrl: './project-detail.component.html'
 })
 export class ProjectDetailComponent implements OnInit {
   private readonly projectService = inject(ProjectService);

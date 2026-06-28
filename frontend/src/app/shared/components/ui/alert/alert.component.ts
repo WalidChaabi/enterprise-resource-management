@@ -21,14 +21,13 @@ const alertVariants = cva(
 export type AlertVariant = VariantProps<typeof alertVariants>['variant'];
 
 @Component({
-  selector: 'app-alert',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-alert',
+    imports: [CommonModule],
+    template: `
     <div [class]="classes()" [attr.role]="role()">
       <ng-content />
     </div>
-  `,
+  `
 })
 export class AlertComponent {
   variant = input<AlertVariant>('default');
@@ -41,14 +40,13 @@ export class AlertComponent {
 }
 
 @Component({
-  selector: 'app-alert-title',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-alert-title',
+    imports: [CommonModule],
+    template: `
     <h5 [class]="mergeClasses('mb-1 font-medium leading-none tracking-tight', class())">
       <ng-content />
     </h5>
-  `,
+  `
 })
 export class AlertTitleComponent {
   class = input<string>('');
@@ -56,14 +54,13 @@ export class AlertTitleComponent {
 }
 
 @Component({
-  selector: 'app-alert-description',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-alert-description',
+    imports: [CommonModule],
+    template: `
     <div [class]="mergeClasses('text-sm [&_p]:leading-relaxed', class())">
       <ng-content />
     </div>
-  `,
+  `
 })
 export class AlertDescriptionComponent {
   class = input<string>('');

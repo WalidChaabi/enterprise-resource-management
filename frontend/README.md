@@ -21,7 +21,7 @@ The app will be available at `http://localhost:4200`
 
 ### Default Login Credentials
 - Email: `admin@demo.com`
-- Password: `password`
+- Password: `password123`
 
 ## Project Structure
 

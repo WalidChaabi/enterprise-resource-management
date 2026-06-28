@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ReportingService } from '../../../core/services/reporting.service';
@@ -10,24 +11,25 @@ import { CardComponent, CardHeaderComponent, CardTitleComponent, CardDescription
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
 
 @Component({
-  selector: 'app-reporting-dashboard',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    TranslatePipe,
-    CardComponent,
-    CardHeaderComponent,
-    CardTitleComponent,
-    CardDescriptionComponent,
-    CardContentComponent,
-    AlertComponent
-  ],
-  templateUrl: './reporting-dashboard.component.html'
+    selector: 'app-reporting-dashboard',
+    imports: [
+        CommonModule,
+        RouterModule,
+        TranslatePipe,
+        CardComponent,
+        CardHeaderComponent,
+        CardTitleComponent,
+        CardDescriptionComponent,
+        CardContentComponent,
+        AlertComponent
+    ],
+    templateUrl: './reporting-dashboard.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReportingDashboardComponent implements OnInit {
+export class ReportingDashboardComponent {
   private readonly reportingService = inject(ReportingService);
   private readonly resourceAllocationService = inject(ResourceAllocationService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly dashboard = signal<Dashboard | null>(null);
   readonly allocation = signal<ResourceAllocation | null>(null);
@@ -56,7 +58,7 @@ export class ReportingDashboardComponent implements OnInit {
       .slice(0, 5);
   });
 
-  ngOnInit(): void {
+  constructor() {
     this.loadReportingData();
   }
 
@@ -64,26 +66,32 @@ export class ReportingDashboardComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
-    this.reportingService.getDashboard().subscribe({
-      next: (dashboard) => {
-        this.dashboard.set(dashboard);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(err?.error?.message || err?.message || 'Failed to load reports');
-        this.loading.set(false);
-      }
-    });
+    this.reportingService
+      .getDashboard()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (dashboard) => {
+          this.dashboard.set(dashboard);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set(err?.error?.message || err?.message || 'Failed to load reports');
+          this.loading.set(false);
+        }
+      });
 
-    this.resourceAllocationService.getResourceAllocation().subscribe({
-      next: (allocation) => {
-        this.allocation.set(allocation);
-      },
-      error: (err) => {
-        const currentError = this.error();
-        const nextError = err?.error?.message || err?.message || 'Failed to load resource allocation';
-        this.error.set(currentError ? `${currentError}. ${nextError}` : nextError);
-      }
-    });
+    this.resourceAllocationService
+      .getResourceAllocation()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (allocation) => {
+          this.allocation.set(allocation);
+        },
+        error: (err) => {
+          const currentError = this.error();
+          const nextError = err?.error?.message || err?.message || 'Failed to load resource allocation';
+          this.error.set(currentError ? `${currentError}. ${nextError}` : nextError);
+        }
+      });
   }
 }

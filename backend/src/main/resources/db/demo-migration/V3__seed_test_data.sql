@@ -1,4 +1,4 @@
--- Seed data for testing
+-- Dev/demo seed data (applied only when erm.demo-data.enabled=true)
 -- Password: "password123" (BCrypt hash)
 
 INSERT INTO erm.organizations (id, name, code, is_active, created_at, updated_at)
@@ -14,7 +14,6 @@ VALUES
     ('660e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440000', 'DEPARTMENT_MANAGER', 'Department Manager', 'Department management access', 'ORG', NOW(), NOW())
 ON CONFLICT DO NOTHING;
 
--- Create default departments
 INSERT INTO erm.departments (id, organization_id, name, code, is_active, created_at, updated_at)
 VALUES 
     ('880e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440000', 'Human Resources', 'HR', true, NOW(), NOW()),
@@ -48,4 +47,3 @@ VALUES
     ('770e8400-e29b-41d4-a716-446655440003', '660e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440000', NOW()),
     ('770e8400-e29b-41d4-a716-446655440003', '660e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440000', NOW())
 ON CONFLICT DO NOTHING;
-

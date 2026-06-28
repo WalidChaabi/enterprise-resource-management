@@ -1,12 +1,11 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 /**
- * HTTP Interceptor for global error handling
- * Handles 401 (unauthorized) and other errors
+ * Handles 401 responses by attempting a cookie-based refresh once.
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
@@ -14,15 +13,33 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
-        // Unauthorized - token expired or invalid
-        authService.logout();
-        router.navigate(['/login'], { 
-          queryParams: { returnUrl: router.url } 
+      const isAuthEndpoint = req.url.includes('/auth/login')
+        || req.url.includes('/auth/refresh')
+        || req.url.includes('/auth/logout');
+
+      if (error.status === 401 && !isAuthEndpoint && !req.headers.has('X-Auth-Retry')) {
+        return authService.refreshSession().pipe(
+          switchMap(() => next(req.clone({
+            withCredentials: true,
+            setHeaders: { 'X-Auth-Retry': '1' }
+          }))),
+          catchError(() => {
+            authService.clearLocalSession();
+            router.navigate(['/login'], {
+              queryParams: { returnUrl: router.url }
+            });
+            return throwError(() => error);
+          })
+        );
+      }
+
+      if (error.status === 401 && !isAuthEndpoint) {
+        authService.clearLocalSession();
+        router.navigate(['/login'], {
+          queryParams: { returnUrl: router.url }
         });
       }
 
-      // Re-throw error for component-level handling
       return throwError(() => error);
     })
   );

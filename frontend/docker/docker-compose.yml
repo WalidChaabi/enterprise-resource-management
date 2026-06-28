@@ -1,10 +1,18 @@
+name: erm-platform
+
+networks:
+  default:
+    name: erm-platform-network
+
 services:
-  frontend:
+  front:
+    container_name: erm-front
+    image: erm-front:latest
     build:
       context: ..
       dockerfile: docker/Dockerfile
     ports:
       - "4200:80"
     volumes:
-      - ../src:/app/src # Optional: for dev if using a dev stage, but this is prod build
+      - ../src:/app/src
     restart: always

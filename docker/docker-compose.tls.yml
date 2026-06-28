@@ -1,0 +1,17 @@
+# TLS overlay — replaces published ports and enables HTTPS on the frontend.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.tls.yml up --build
+
+services:
+  backend:
+    ports: !override []
+    expose:
+      - "8080"
+
+  front:
+    ports: !override
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    environment:
+      NGINX_USE_TLS: "true"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro

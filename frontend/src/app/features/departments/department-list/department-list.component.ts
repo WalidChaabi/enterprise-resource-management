@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, inject, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { DepartmentService } from '../../../core/services/department.service';
@@ -12,13 +13,14 @@ import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.com
 import { DepartmentFormComponent } from '../department-form/department-form.component';
 
 @Component({
-  selector: 'app-department-list',
-  standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, CardContentComponent, BadgeComponent, SkeletonTableComponent, DialogComponent, DepartmentFormComponent],
-  templateUrl: './department-list.component.html'
+    selector: 'app-department-list',
+    imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, CardContentComponent, BadgeComponent, SkeletonTableComponent, DialogComponent, DepartmentFormComponent],
+    templateUrl: './department-list.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DepartmentListComponent implements OnInit {
+export class DepartmentListComponent {
   private readonly departmentService = inject(DepartmentService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly departments = signal<Department[]>([]);
   readonly departmentList = computed<Department[]>(() => {
@@ -34,7 +36,7 @@ export class DepartmentListComponent implements OnInit {
   readonly error = signal<string>('');
   readonly showCreateModal = signal<boolean>(false);
 
-  ngOnInit(): void {
+  constructor() {
     this.loadDepartments();
   }
 
@@ -42,7 +44,7 @@ export class DepartmentListComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
-    this.departmentService.getDepartments().subscribe({
+    this.departmentService.getDepartments().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (departments) => {
         const departmentList = Array.isArray(departments)
           ? departments

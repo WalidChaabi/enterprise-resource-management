@@ -16,29 +16,32 @@ import org.springframework.web.bind.annotation.RestController;
 import com.company.erm.dto.OrganizationSummaryDTO;
 import com.company.erm.dto.OrganizationSwitchRequestDTO;
 import com.company.erm.dto.OrganizationSwitchResponseDTO;
+import com.company.erm.security.AuthCookieService;
+import com.company.erm.service.AuthService.AuthSession;
 import com.company.erm.service.OrganizationSwitcherService;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
-/**
- * REST controller for organization switching.
- */
 @RestController
 @RequestMapping("/api/organizations")
 @PreAuthorize("isAuthenticated()")
 public class OrganizationSwitcherController {
 
     private final OrganizationSwitcherService organizationSwitcherService;
+    private final AuthCookieService authCookieService;
 
-    public OrganizationSwitcherController(OrganizationSwitcherService organizationSwitcherService) {
+    public OrganizationSwitcherController(
+            OrganizationSwitcherService organizationSwitcherService,
+            AuthCookieService authCookieService) {
         this.organizationSwitcherService = organizationSwitcherService;
+        this.authCookieService = authCookieService;
     }
 
     @GetMapping
     public ResponseEntity<List<OrganizationSummaryDTO>> listOrganizations(Authentication authentication) {
-        String currentUserEmail = authentication.getName();
         List<OrganizationSummaryDTO> orgs = organizationSwitcherService
-            .listOrganizationsForUser(currentUserEmail);
+            .listOrganizationsForUser(authentication.getName());
         return ResponseEntity.ok(orgs);
     }
 
@@ -46,10 +49,16 @@ public class OrganizationSwitcherController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<OrganizationSwitchResponseDTO> switchOrganization(
             @Valid @RequestBody OrganizationSwitchRequestDTO request,
-            Authentication authentication) {
-        String currentUserEmail = authentication.getName();
-        OrganizationSwitchResponseDTO response = organizationSwitcherService
-            .switchOrganization(currentUserEmail, request.getOrgId());
-        return ResponseEntity.ok(response);
+            Authentication authentication,
+            HttpServletResponse response) {
+        AuthSession session = organizationSwitcherService.switchOrganization(
+                authentication.getName(), request.getOrgId());
+        authCookieService.writeAccessCookie(response, session.accessToken());
+
+        OrganizationSwitchResponseDTO body = new OrganizationSwitchResponseDTO(
+                request.getOrgId(),
+                session.response().accessToken(),
+                "Bearer");
+        return ResponseEntity.ok(body);
     }
 }

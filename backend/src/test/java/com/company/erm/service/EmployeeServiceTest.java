@@ -293,24 +293,25 @@ class EmployeeServiceTest {
         
         when(permissionChecker.hasRole(organizationId, "admin@example.com", "DEPARTMENT_MANAGER")).thenReturn(false);
         when(userRepository.findByOrganizationIdAndFilters(organizationId, null, null, pageable)).thenReturn(userPage);
-        when(employeeMapper.toResponseDTO(employee)).thenReturn(
-                new EmployeeResponseDTO(
-                        employee.getId(),
-                        organizationId,
-                        organization.getName(),
-                        departmentId,
-                        department.getName(),
-                        department.getCode(),
-                        "employee@example.com",
-                        "Test",
-                        "User",
-                        true,
-                        List.of(),
-                        java.time.LocalDateTime.now(),
-                        java.time.LocalDateTime.now(),
-                        null,
-                        null
-                )
+        EmployeeResponseDTO employeeDto = new EmployeeResponseDTO(
+                employee.getId(),
+                organizationId,
+                organization.getName(),
+                departmentId,
+                department.getName(),
+                department.getCode(),
+                "employee@example.com",
+                "Test",
+                "User",
+                true,
+                List.of(),
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                null,
+                null
+        );
+        when(employeeMapper.toResponsePage(userPage, organizationId)).thenReturn(
+                new PageImpl<>(List.of(employeeDto), pageable, 1)
         );
 
         // When
@@ -320,6 +321,7 @@ class EmployeeServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
         verify(userRepository).findByOrganizationIdAndFilters(organizationId, null, null, pageable);
+        verify(employeeMapper).toResponsePage(userPage, organizationId);
     }
 
     @Test

@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
 import { Dashboard } from '../models/dashboard.model';
@@ -15,6 +15,9 @@ export class ReportingService {
   private readonly api = inject(ApiService);
   private readonly authService = inject(AuthService);
 
+  private dashboard$?: Observable<Dashboard>;
+  private cachedOrgId?: string;
+
   private getOrgId(): string {
     const orgId = this.authService.getOrganizationId();
     if (!orgId) {
@@ -24,10 +27,22 @@ export class ReportingService {
   }
 
   /**
-   * Get dashboard data with statistics and alerts
+   * Get dashboard data with statistics and alerts.
+   * Shared across dashboard page and sidebar indicators.
    */
   getDashboard(): Observable<Dashboard> {
     const orgId = this.getOrgId();
-    return this.api.get<Dashboard>(`${API_ENDPOINTS.REPORTS(orgId)}/dashboard`);
+    if (!this.dashboard$ || this.cachedOrgId !== orgId) {
+      this.cachedOrgId = orgId;
+      this.dashboard$ = this.api
+        .get<Dashboard>(`${API_ENDPOINTS.REPORTS(orgId)}/dashboard`)
+        .pipe(shareReplay({ bufferSize: 1, refCount: true }));
+    }
+    return this.dashboard$;
+  }
+
+  invalidateDashboard(): void {
+    this.dashboard$ = undefined;
+    this.cachedOrgId = undefined;
   }
 }

@@ -1,9 +1,16 @@
+name: erm-platform
+
+networks:
+  default:
+    name: erm-platform-network
+
 services:
-  app:
+  backend:
+    container_name: erm-backend
+    image: erm-backend:latest
     build:
       context: ..
       dockerfile: docker/Dockerfile.prod
-    container_name: erm-backend
     ports:
       - "8080:8080"
     environment:

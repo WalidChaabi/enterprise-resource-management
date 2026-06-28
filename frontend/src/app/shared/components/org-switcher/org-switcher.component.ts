@@ -3,10 +3,9 @@ import { CommonModule } from '@angular/common';
 import { OrganizationSummary } from '../../../core/models/organization.model';
 
 @Component({
-  selector: 'app-org-switcher',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-org-switcher',
+    imports: [CommonModule],
+    template: `
     <div class="relative">
       <button
         type="button"

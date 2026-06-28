@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { EmployeeService } from '../../../core/services/employee.service';
 import { DepartmentService } from '../../../core/services/department.service';
-import { Employee, EmployeeCreateDTO, EmployeeUpdateDTO } from '../../../core/models/employee.model';
+import { EmployeeCreateDTO, EmployeeUpdateDTO } from '../../../core/models/employee.model';
 import { Department } from '../../../core/models/department.model';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
@@ -13,22 +13,21 @@ import { InputComponent } from '../../../shared/components/ui/input/input.compon
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
 
 @Component({
-  selector: 'app-employee-form',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule,
-    TranslatePipe,
-    ButtonComponent,
-    CardComponent,
-    CardHeaderComponent,
-    CardTitleComponent,
-    CardContentComponent,
-    InputComponent,
-    AlertComponent
-  ],
-  templateUrl: './employee-form.component.html'
+    selector: 'app-employee-form',
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterModule,
+        TranslatePipe,
+        ButtonComponent,
+        CardComponent,
+        CardHeaderComponent,
+        CardTitleComponent,
+        CardContentComponent,
+        InputComponent,
+        AlertComponent
+    ],
+    templateUrl: './employee-form.component.html'
 })
 export class EmployeeFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);

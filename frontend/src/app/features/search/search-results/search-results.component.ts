@@ -9,10 +9,9 @@ import { CardComponent } from '../../../shared/components/ui/card/card.component
 import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
 
 @Component({
-  selector: 'app-search-results',
-  standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, BadgeComponent, DatePipe],
-  templateUrl: './search-results.component.html'
+    selector: 'app-search-results',
+    imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, BadgeComponent, DatePipe],
+    templateUrl: './search-results.component.html'
 })
 export class SearchResultsComponent implements OnInit {
   private readonly searchService = inject(SearchService);

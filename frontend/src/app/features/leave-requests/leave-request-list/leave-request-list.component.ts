@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -16,14 +17,15 @@ import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.com
 import { LeaveRequestFormComponent } from '../leave-request-form/leave-request-form.component';
 
 @Component({
-  selector: 'app-leave-request-list',
-  standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, TranslatePipe, ButtonComponent, CardComponent, CardContentComponent, BadgeComponent, SkeletonTableComponent, DatePipe, InputComponent, DialogComponent, LeaveRequestFormComponent],
-  templateUrl: './leave-request-list.component.html'
+    selector: 'app-leave-request-list',
+    imports: [CommonModule, RouterModule, FormsModule, TranslatePipe, ButtonComponent, CardComponent, CardContentComponent, BadgeComponent, SkeletonTableComponent, DatePipe, InputComponent, DialogComponent, LeaveRequestFormComponent],
+    templateUrl: './leave-request-list.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LeaveRequestListComponent implements OnInit {
+export class LeaveRequestListComponent {
   private readonly leaveRequestService = inject(LeaveRequestService);
   private readonly authService = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly leaveRequests = signal<LeaveRequest[]>([]);
   readonly loading = signal<boolean>(false);
@@ -37,7 +39,7 @@ export class LeaveRequestListComponent implements OnInit {
     return this.authService.hasAnyRole(ROLES.HR_ADMIN, ROLES.ORG_ADMIN, ROLES.DEPARTMENT_MANAGER);
   });
 
-  ngOnInit(): void {
+  constructor() {
     this.loadLeaveRequests();
   }
 
@@ -45,7 +47,7 @@ export class LeaveRequestListComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
-    this.leaveRequestService.getLeaveRequests().subscribe({
+    this.leaveRequestService.getLeaveRequests().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (leaveRequests) => {
         // Handle both array and paginated response
         const requests = Array.isArray(leaveRequests) ? leaveRequests : (leaveRequests.content || []);
@@ -102,7 +104,7 @@ export class LeaveRequestListComponent implements OnInit {
     this.processing.set(request.id);
     this.error.set('');
 
-    this.leaveRequestService.approveLeaveRequest(request.id).subscribe({
+    this.leaveRequestService.approveLeaveRequest(request.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.loadLeaveRequests();
         this.processing.set(null);
@@ -141,7 +143,7 @@ export class LeaveRequestListComponent implements OnInit {
 
     const reason = this.rejectionReason().trim() || undefined;
 
-    this.leaveRequestService.rejectLeaveRequest(request.id, reason).subscribe({
+    this.leaveRequestService.rejectLeaveRequest(request.id, reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.rejectingRequestId.set(null);
         this.rejectionReason.set('');
@@ -174,7 +176,7 @@ export class LeaveRequestListComponent implements OnInit {
     this.processing.set(request.id);
     this.error.set('');
 
-    this.leaveRequestService.cancelLeaveRequest(request.id).subscribe({
+    this.leaveRequestService.cancelLeaveRequest(request.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.loadLeaveRequests();
         this.processing.set(null);

@@ -10,19 +10,18 @@ import { BadgeComponent } from '../../../shared/components/ui/badge/badge.compon
 import { SkeletonComponent } from '../../../shared/components/ui/skeleton/skeleton.component';
 
 @Component({
-  selector: 'app-roles-settings',
-  standalone: true,
-  imports: [
-    CommonModule,
-    TranslatePipe,
-    CardComponent,
-    CardHeaderComponent,
-    CardTitleComponent,
-    CardContentComponent,
-    BadgeComponent,
-    SkeletonComponent
-  ],
-  template: `
+    selector: 'app-roles-settings',
+    imports: [
+        CommonModule,
+        TranslatePipe,
+        CardComponent,
+        CardHeaderComponent,
+        CardTitleComponent,
+        CardContentComponent,
+        BadgeComponent,
+        SkeletonComponent
+    ],
+    template: `
     <div class="mt-6 space-y-6">
       <div class="flex items-center justify-between">
         <div>

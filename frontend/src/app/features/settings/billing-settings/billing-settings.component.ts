@@ -8,20 +8,19 @@ import { AlertComponent } from '../../../shared/components/ui/alert/alert.compon
 import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
 
 @Component({
-  selector: 'app-billing-settings',
-  standalone: true,
-  imports: [
-    CommonModule,
-    DatePipe,
-    TranslatePipe,
-    CardComponent,
-    CardHeaderComponent,
-    CardTitleComponent,
-    CardContentComponent,
-    AlertComponent,
-    BadgeComponent
-  ],
-  template: `
+    selector: 'app-billing-settings',
+    imports: [
+        CommonModule,
+        DatePipe,
+        TranslatePipe,
+        CardComponent,
+        CardHeaderComponent,
+        CardTitleComponent,
+        CardContentComponent,
+        AlertComponent,
+        BadgeComponent
+    ],
+    template: `
     <div class="mt-6 space-y-6">
       <div>
         <h2 class="text-xl font-semibold text-foreground">Billing</h2>

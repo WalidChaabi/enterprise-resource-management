@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { ReportingService } from '../../core/services/reporting.service';
 import { Dashboard } from '../../core/models/dashboard.model';
@@ -15,24 +15,23 @@ import { ChartComponent } from '../../shared/components/chart/chart.component';
 import { ChartConfiguration } from 'chart.js';
 
 @Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe, CardComponent, CardHeaderComponent, CardTitleComponent, CardDescriptionComponent, CardContentComponent, ButtonComponent, SkeletonComponent, ChartComponent],
-  templateUrl: './dashboard.component.html'
+    selector: 'app-dashboard',
+    imports: [CommonModule, RouterModule, TranslatePipe, CardComponent, CardHeaderComponent, CardTitleComponent, CardDescriptionComponent, CardContentComponent, ButtonComponent, SkeletonComponent, ChartComponent],
+    templateUrl: './dashboard.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent {
   private readonly authService = inject(AuthService);
   private readonly reportingService = inject(ReportingService);
   private readonly sanitizer = inject(DomSanitizer);
-  private subscription?: Subscription;
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly currentUser = this.authService.currentUser;
   readonly loading = signal<boolean>(false);
   readonly dashboard = signal<Dashboard | null>(null);
   readonly error = signal<string | null>(null);
-  readonly AlertType = AlertType; // Expose for template
+  readonly AlertType = AlertType;
 
-  // Static chart data - created once to prevent infinite loops
   private readonly _weeklyHoursChartData: ChartConfiguration['data'] = {
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     datasets: [{
@@ -44,25 +43,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }]
   };
 
-  readonly weeklyHoursChartData = computed<ChartConfiguration['data']>(() => {
-    // Return the same reference to prevent re-renders
-    return this._weeklyHoursChartData;
-  });
+  readonly weeklyHoursChartData = computed<ChartConfiguration['data']>(() => this._weeklyHoursChartData);
 
   readonly projectStatusChartData = computed<ChartConfiguration['data']>(() => {
     const dashboard = this.dashboard();
     const activeProjects = dashboard?.activeProjects || 0;
-    
-    // Only create new object if activeProjects actually changed
+
     return {
       labels: ['Active', 'Planning', 'On Hold', 'Completed'],
       datasets: [{
-        data: [
-          activeProjects,
-          5, // Sample - would come from API
-          2, // Sample
-          10 // Sample
-        ],
+        data: [activeProjects, 5, 2, 10],
         backgroundColor: [
           'hsl(var(--chart-1))',
           'hsl(var(--chart-2))',
@@ -73,11 +63,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     };
   });
 
-  // Static chart options - created once
   private readonly _chartOptions: ChartConfiguration['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: false, // Disable animations to prevent loops
+    animation: false,
     plugins: {
       legend: {
         position: 'bottom',
@@ -90,24 +79,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
     scales: {
       y: {
         beginAtZero: true,
-        grid: {
-          color: 'hsl(var(--border))'
-        }
+        grid: { color: 'hsl(var(--border))' }
       },
       x: {
-        grid: {
-          color: 'hsl(var(--border))'
-        }
+        grid: { color: 'hsl(var(--border))' }
       }
     }
   };
 
-  readonly chartOptions = computed<ChartConfiguration['options']>(() => {
-    // Return the same reference
-    return this._chartOptions;
-  });
+  readonly chartOptions = computed<ChartConfiguration['options']>(() => this._chartOptions);
 
-  // Next Actions - prioritized list of what managers should do next
   readonly nextActions = computed(() => {
     const dashboard = this.dashboard();
     if (!dashboard) return [];
@@ -120,7 +101,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       count?: number;
     }> = [];
 
-    // High priority: Critical alerts
     const highAlerts = dashboard.alerts?.filter(a => a.severity === 'HIGH') || [];
     if (highAlerts.length > 0) {
       actions.push({
@@ -132,7 +112,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
     }
 
-    // High priority: Pending leave requests requiring approval
     if (dashboard.pendingLeaveRequests > 0) {
       actions.push({
         priority: 'high',
@@ -143,7 +122,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Medium priority: Pending time entries
     if (dashboard.pendingTimeEntries > 0) {
       actions.push({
         priority: 'medium',
@@ -154,7 +132,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Medium priority: Medium severity alerts
     const mediumAlerts = dashboard.alerts?.filter(a => a.severity === 'MEDIUM') || [];
     if (mediumAlerts.length > 0) {
       actions.push({
@@ -166,7 +143,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Low priority: Setup guidance for new users
     if (dashboard.activeProjects === 0 && dashboard.totalProjects === 0) {
       actions.push({
         priority: 'low',
@@ -190,14 +166,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
     }
 
-    return actions.slice(0, 5); // Limit to top 5 actions
+    return actions.slice(0, 5);
   });
 
-  // Check if this is a first-time/low-data state
   readonly isLowDataState = computed(() => {
     const dashboard = this.dashboard();
     if (!dashboard) return false;
-    
+
     return (
       dashboard.totalProjects === 0 ||
       dashboard.totalEmployees === 0 ||
@@ -205,7 +180,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     );
   });
 
-  // Recent Activity - lightweight timeline of recent events
   readonly recentActivity = computed(() => {
     const dashboard = this.dashboard();
     if (!dashboard) return [];
@@ -217,7 +191,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       timestamp?: string;
     }> = [];
 
-    // Recent approvals
     if (dashboard.approvedLeaveRequests > 0) {
       activities.push({
         type: 'approval',
@@ -226,7 +199,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Recent alerts
     const recentAlerts = dashboard.alerts?.slice(0, 2) || [];
     recentAlerts.forEach(alert => {
       activities.push({
@@ -236,7 +208,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
     });
 
-    // Project milestones
     if (dashboard.completedProjects > 0) {
       activities.push({
         type: 'milestone',
@@ -245,7 +216,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Time tracking updates
     if (dashboard.approvedTimeEntries > 0) {
       activities.push({
         type: 'update',
@@ -254,37 +224,33 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
     }
 
-    return activities.slice(0, 4); // Limit to 4 most recent
+    return activities.slice(0, 4);
   });
 
-  // Cache for alert icons to avoid recreating them
   private readonly alertIconCache = new Map<AlertType, SafeHtml>();
 
-  ngOnInit(): void {
+  constructor() {
     this.loadDashboard();
-  }
-
-  ngOnDestroy(): void {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
   }
 
   private loadDashboard(): void {
     this.loading.set(true);
     this.error.set(null);
-    
-    this.subscription = this.reportingService.getDashboard().subscribe({
-      next: (data) => {
-        this.dashboard.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set('Failed to load dashboard data');
-        this.loading.set(false);
-        console.error('Dashboard load error:', err);
-      }
-    });
+
+    this.reportingService
+      .getDashboard()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.dashboard.set(data);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set('Failed to load dashboard data');
+          this.loading.set(false);
+          console.error('Dashboard load error:', err);
+        }
+      });
   }
 
   getAlertsBySeverity(severity: AlertSeverity): Alert[] {
@@ -296,7 +262,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   getAlertIcon(type: AlertType): SafeHtml {
-    // Use cache to avoid recreating SafeHtml objects
     if (this.alertIconCache.has(type)) {
       return this.alertIconCache.get(type)!;
     }

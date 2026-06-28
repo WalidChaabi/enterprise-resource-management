@@ -3,8 +3,10 @@ package com.company.erm.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,7 +20,6 @@ import com.company.erm.dto.ProjectCreateDTO;
 import com.company.erm.dto.ProjectResponseDTO;
 import com.company.erm.dto.ProjectUpdateDTO;
 import com.company.erm.mapper.ProjectMapper;
-import com.company.erm.repository.ProjectRepository;
 import com.company.erm.service.ProjectService;
 
 import jakarta.validation.Valid;
@@ -29,20 +30,18 @@ import jakarta.validation.Valid;
 public class ProjectController {
 
     private final ProjectService projectService;
-    private final ProjectRepository projectRepository;
     private final ProjectMapper projectMapper;
 
     public ProjectController(
         ProjectService projectService,
-        ProjectRepository projectRepository,
         ProjectMapper projectMapper
     ) {
         this.projectService = projectService;
-        this.projectRepository = projectRepository;
         this.projectMapper = projectMapper;
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public ProjectResponseDTO create(
         @PathVariable UUID orgId,
         @org.springframework.web.bind.annotation.RequestBody @Valid ProjectCreateDTO dto
@@ -52,7 +51,7 @@ public class ProjectController {
 
     @GetMapping
     public List<ProjectResponseDTO> list(@PathVariable UUID orgId) {
-        return projectRepository.findByOrganizationIdAndArchivedFalse(orgId)
+        return projectService.listActive(orgId)
             .stream()
             .map(projectMapper::toDto)
             .toList();

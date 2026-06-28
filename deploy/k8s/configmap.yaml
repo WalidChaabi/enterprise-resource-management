@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erm-config
+  namespace: erm
+  labels:
+    app.kubernetes.io/part-of: erm-platform
+data:
+  POSTGRES_DB: erm_db
+  DB_SCHEMA: erm
+  SPRING_PROFILES_ACTIVE: prod
+  JWT_EXPIRATION: "86400000"
+  ERM_DEMO_DATA_ENABLED: "false"
+  CORS_ALLOWED_ORIGINS: http://localhost,http://erm.local
+  DB_URL: jdbc:postgresql://erm-db:5432/erm_db

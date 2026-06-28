@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { EmployeeService } from '../../../core/services/employee.service';
@@ -15,28 +16,29 @@ import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.com
 import { EmployeeFormComponent } from '../employee-form/employee-form.component';
 
 @Component({
-  selector: 'app-employee-list',
-  standalone: true,
-  imports: [
-    CommonModule, 
-    RouterModule, 
-    TranslatePipe, 
-    ButtonComponent, 
-    CardComponent, 
-    CardContentComponent, 
-    CardHeaderComponent,
-    CardTitleComponent,
-    BadgeComponent, 
-    AlertComponent, 
-    SkeletonTableComponent,
-    DialogComponent,
-    EmployeeFormComponent
-  ],
-  templateUrl: './employee-list.component.html'
+    selector: 'app-employee-list',
+    imports: [
+        CommonModule,
+        RouterModule,
+        TranslatePipe,
+        ButtonComponent,
+        CardComponent,
+        CardContentComponent,
+        CardHeaderComponent,
+        CardTitleComponent,
+        BadgeComponent,
+        AlertComponent,
+        SkeletonTableComponent,
+        DialogComponent,
+        EmployeeFormComponent
+    ],
+    templateUrl: './employee-list.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EmployeeListComponent implements OnInit {
+export class EmployeeListComponent {
   private readonly employeeService = inject(EmployeeService);
   private readonly authService = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly employees = signal<Employee[]>([]);
   readonly loading = signal<boolean>(false);
@@ -53,7 +55,7 @@ export class EmployeeListComponent implements OnInit {
   // Expose Math to template
   readonly Math = Math;
 
-  ngOnInit(): void {
+  constructor() {
     this.loadEmployees();
   }
 
@@ -65,7 +67,7 @@ export class EmployeeListComponent implements OnInit {
       page,
       size: this.pageSize(),
       active: true
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (page: Page<Employee>) => {
         this.employees.set(page.content);
         this.totalElements.set(page.totalElements);

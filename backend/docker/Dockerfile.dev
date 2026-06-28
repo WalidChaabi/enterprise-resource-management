@@ -10,6 +10,10 @@ COPY mvnw.cmd mvnw.cmd
 
 RUN mvn -B dependency:go-offline
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 8080
 
 CMD ["mvn", "spring-boot:run"]

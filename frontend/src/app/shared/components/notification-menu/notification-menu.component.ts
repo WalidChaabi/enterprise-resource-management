@@ -3,10 +3,9 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Notification } from '../../../core/models/notification.model';
 
 @Component({
-  selector: 'app-notification-menu',
-  standalone: true,
-  imports: [CommonModule, DatePipe],
-  template: `
+    selector: 'app-notification-menu',
+    imports: [CommonModule, DatePipe],
+    template: `
     <div class="relative">
       <button
         type="button"

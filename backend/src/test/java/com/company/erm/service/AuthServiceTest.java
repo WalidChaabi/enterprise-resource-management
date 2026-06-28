@@ -54,6 +54,9 @@ class AuthServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private RefreshTokenService refreshTokenService;
+
     @InjectMocks
     private AuthService authService;
 
@@ -70,9 +73,6 @@ class AuthServiceTest {
         testUser = TestDataFactory.createUser(organization, null, "test@example.com", "password123", realPasswordEncoder);
         testRole = TestDataFactory.createRole(organization, "HR_ADMIN", "HR Administrator");
         userRole = TestDataFactory.createUserRole(testUser, testRole);
-        
-        // Mock password encoder - default to false, override for specific cases in tests
-        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
     }
 
     @Test
@@ -84,9 +84,10 @@ class AuthServiceTest {
         when(userRoleRepository.findByUser(testUser)).thenReturn(List.of(userRole));
         when(tokenProvider.generateToken(any(), any(), any())).thenReturn("test-jwt-token");
         when(passwordEncoder.matches("password123", testUser.getPasswordHash())).thenReturn(true);
+        when(refreshTokenService.issueRefreshToken(testUser)).thenReturn("refresh-token");
 
         // When
-        AuthResponse response = authService.login(request);
+        AuthResponse response = authService.login(request).response();
 
         // Then
         assertThat(response).isNotNull();
@@ -170,9 +171,10 @@ class AuthServiceTest {
         when(userRoleRepository.findByUser(testUser)).thenReturn(List.of(userRole1, userRole2));
         when(tokenProvider.generateToken(any(), any(), any())).thenReturn("test-jwt-token");
         when(passwordEncoder.matches("password123", testUser.getPasswordHash())).thenReturn(true);
+        when(refreshTokenService.issueRefreshToken(testUser)).thenReturn("refresh-token");
 
         // When
-        AuthResponse response = authService.login(request);
+        AuthResponse response = authService.login(request).response();
 
         // Then
         assertThat(response.roles()).hasSize(2);

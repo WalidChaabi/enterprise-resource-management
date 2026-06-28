@@ -1,15 +1,25 @@
+# Build stage
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build -- --configuration=production
+
 # Serve stage
 FROM nginx:alpine
 
-# Copy custom nginx config
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/nginx.conf /etc/nginx/nginx.http.conf
+COPY docker/nginx.ssl.conf /etc/nginx/nginx.ssl.conf
+COPY docker/proxy-params.conf /etc/nginx/proxy-params.conf
+COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
-# Copy built artifacts from local dist
-# Note: Requires 'npm run build' to be run locally first
-COPY dist/enterprise-resource-management-frontend/browser /usr/share/nginx/html
+COPY --from=build /app/dist/enterprise-resource-management-frontend/browser /usr/share/nginx/html
 
-# Expose port 80
-EXPOSE 80
+EXPOSE 80 443
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

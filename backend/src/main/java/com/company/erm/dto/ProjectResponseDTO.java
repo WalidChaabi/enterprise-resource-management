@@ -11,6 +11,7 @@ public class ProjectResponseDTO {
 
     private UUID id;
     private String name;
+    private String description;
     private ProjectStatus status;
     private LocalDate startDate;
     private LocalDate deadline;

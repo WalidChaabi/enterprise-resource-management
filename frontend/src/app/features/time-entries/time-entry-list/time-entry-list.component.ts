@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -16,14 +17,15 @@ import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.com
 import { TimeEntryFormComponent } from '../time-entry-form/time-entry-form.component';
 
 @Component({
-  selector: 'app-time-entry-list',
-  standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, BadgeComponent, SkeletonTableComponent, DatePipe, InputComponent, DialogComponent, TimeEntryFormComponent],
-  templateUrl: './time-entry-list.component.html'
+    selector: 'app-time-entry-list',
+    imports: [CommonModule, RouterModule, FormsModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, BadgeComponent, SkeletonTableComponent, DatePipe, InputComponent, DialogComponent, TimeEntryFormComponent],
+    templateUrl: './time-entry-list.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TimeEntryListComponent implements OnInit {
+export class TimeEntryListComponent {
   private readonly timeEntryService = inject(TimeEntryService);
   private readonly authService = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly timeEntries = signal<TimeEntry[]>([]);
   readonly loading = signal<boolean>(false);
@@ -62,7 +64,7 @@ export class TimeEntryListComponent implements OnInit {
     };
   });
 
-  ngOnInit(): void {
+  constructor() {
     this.loadTimeEntries();
   }
 
@@ -70,7 +72,7 @@ export class TimeEntryListComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
-    this.timeEntryService.getTimeEntries().subscribe({
+    this.timeEntryService.getTimeEntries().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (timeEntries) => {
         // Handle both array and paginated response
         const entries = Array.isArray(timeEntries) ? timeEntries : (timeEntries.content || []);
@@ -130,7 +132,7 @@ export class TimeEntryListComponent implements OnInit {
     this.processing.set(entry.id);
     this.error.set('');
 
-    this.timeEntryService.submitTimeEntry(entry.id).subscribe({
+    this.timeEntryService.submitTimeEntry(entry.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.loadTimeEntries();
         this.processing.set(null);
@@ -157,7 +159,7 @@ export class TimeEntryListComponent implements OnInit {
     this.processing.set(entry.id);
     this.error.set('');
 
-    this.timeEntryService.approveTimeEntry(entry.id).subscribe({
+    this.timeEntryService.approveTimeEntry(entry.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.loadTimeEntries();
         this.processing.set(null);
@@ -196,7 +198,7 @@ export class TimeEntryListComponent implements OnInit {
 
     const reason = this.rejectionReason().trim() || undefined;
 
-    this.timeEntryService.rejectTimeEntry(entry.id, reason).subscribe({
+    this.timeEntryService.rejectTimeEntry(entry.id, reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.rejectingEntryId.set(null);
         this.rejectionReason.set('');

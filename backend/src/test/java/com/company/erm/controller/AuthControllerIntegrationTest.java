@@ -17,6 +17,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import com.company.erm.config.MockMvcTestConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -25,6 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import jakarta.servlet.http.Cookie;
+import org.springframework.test.web.servlet.MvcResult;
 
 /**
  * Integration tests for AuthController.
@@ -35,7 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * - Inactive user
  * - Request validation
  */
-@SpringBootTest(classes = com.example.erm_backend.ErmBackendApplication.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@SpringBootTest(classes = com.company.erm.ErmBackendApplication.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@Import(MockMvcTestConfiguration.class)
 @ActiveProfiles("test")
 @Transactional
 @DisplayName("AuthController Integration Tests")
@@ -154,12 +160,15 @@ class AuthControllerIntegrationTest {
     @Test
     @DisplayName("POST /auth/login should return 401 for inactive user")
     void login_shouldReturn401_whenUserInactive() throws Exception {
-        // Given
-        testUser.setActive(false);
-        userRepository.save(testUser);
+        // Given - create inactive user (avoid updating persisted user without audit timestamps)
+        User inactiveUser = TestDataFactory.createInactiveUser(organization, department, passwordEncoder);
+        inactiveUser.setEmail("inactive@example.com");
+        userRepository.save(inactiveUser);
+        UserRole inactiveUserRole = TestDataFactory.createUserRole(inactiveUser, role);
+        userRoleRepository.save(inactiveUserRole);
 
         String requestBody = objectMapper.writeValueAsString(
-                new com.company.erm.dto.AuthRequest("test@example.com", "password123")
+                new com.company.erm.dto.AuthRequest("inactive@example.com", "password123")
         );
 
         // When/Then
@@ -183,5 +192,53 @@ class AuthControllerIntegrationTest {
                         .content(invalidRequestBody))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    @DisplayName("POST /auth/refresh should return 204 when refresh cookie is valid")
+    void refresh_shouldReturn204_whenRefreshCookieValid() throws Exception {
+        String requestBody = objectMapper.writeValueAsString(
+                new com.company.erm.dto.AuthRequest("test@example.com", "password123")
+        );
+
+        MvcResult loginResult = mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Cookie[] cookies = loginResult.getResponse().getCookies();
+
+        mockMvc.perform(post("/auth/refresh").cookie(cookies))
+                .andExpect(status().isNoContent())
+                .andExpect(header().exists("Set-Cookie"));
+    }
+
+    @Test
+    @DisplayName("POST /auth/refresh should return 401 when refresh cookie is missing")
+    void refresh_shouldReturn401_whenRefreshCookieMissing() throws Exception {
+        mockMvc.perform(post("/auth/refresh"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTH_ERROR"));
+    }
+
+    @Test
+    @DisplayName("POST /auth/logout should return 204 and clear auth cookies")
+    void logout_shouldReturn204_andClearCookies() throws Exception {
+        String requestBody = objectMapper.writeValueAsString(
+                new com.company.erm.dto.AuthRequest("test@example.com", "password123")
+        );
+
+        MvcResult loginResult = mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Cookie[] cookies = loginResult.getResponse().getCookies();
+
+        mockMvc.perform(post("/auth/logout").cookie(cookies))
+                .andExpect(status().isNoContent())
+                .andExpect(header().exists("Set-Cookie"));
     }
 }

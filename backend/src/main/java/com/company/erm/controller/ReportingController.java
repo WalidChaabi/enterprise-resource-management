@@ -19,17 +19,14 @@ import com.company.erm.dto.LeaveReportDTO;
 import com.company.erm.dto.ProjectStatsDTO;
 import com.company.erm.dto.ResourceAllocationDTO;
 import com.company.erm.dto.TimeReportDTO;
-import com.company.erm.service.ReportingService;
+import com.company.erm.service.reporting.DashboardService;
+import com.company.erm.service.reporting.LeaveReportService;
+import com.company.erm.service.reporting.ResourceAllocationService;
+import com.company.erm.service.reporting.TimeReportService;
 
 /**
  * REST controller for reporting and analytics.
- * 
- * Provides endpoints for:
- * - Project statistics
- * - Time tracking reports
- * - Leave management reports
- * - Dashboard data
- * 
+ *
  * Permissions: ORG_ADMIN, PROJECT_MANAGER, HR_ADMIN
  */
 @RestController
@@ -37,129 +34,70 @@ import com.company.erm.service.ReportingService;
 @PreAuthorize("hasAnyRole('ORG_ADMIN', 'PROJECT_MANAGER', 'HR_ADMIN')")
 public class ReportingController {
 
-    private final ReportingService reportingService;
+    private final DashboardService dashboardService;
+    private final TimeReportService timeReportService;
+    private final LeaveReportService leaveReportService;
+    private final ResourceAllocationService resourceAllocationService;
 
-    public ReportingController(ReportingService reportingService) {
-        this.reportingService = reportingService;
+    public ReportingController(
+            DashboardService dashboardService,
+            TimeReportService timeReportService,
+            LeaveReportService leaveReportService,
+            ResourceAllocationService resourceAllocationService) {
+        this.dashboardService = dashboardService;
+        this.timeReportService = timeReportService;
+        this.leaveReportService = leaveReportService;
+        this.resourceAllocationService = resourceAllocationService;
     }
 
-    /**
-     * Get dashboard with overall statistics.
-     * 
-     * Returns aggregated data for projects, time tracking, leave management, employees, and budget.
-     */
     @GetMapping("/dashboard")
     public ResponseEntity<DashboardDTO> getDashboard(@PathVariable UUID organizationId) {
-        DashboardDTO dashboard = reportingService.getDashboard(organizationId);
-        return ResponseEntity.ok(dashboard);
+        return ResponseEntity.ok(dashboardService.getDashboard(organizationId));
     }
 
-    /**
-     * Get project statistics.
-     * 
-     * Returns detailed statistics for a specific project including:
-     * - Budget vs cost
-     * - Member count
-     * - Task count and completion percentage
-     * - Total hours logged
-     */
     @GetMapping("/projects/{projectId}/stats")
     public ResponseEntity<ProjectStatsDTO> getProjectStats(
             @PathVariable UUID organizationId,
             @PathVariable UUID projectId) {
-        ProjectStatsDTO stats = reportingService.getProjectStats(organizationId, projectId);
-        return ResponseEntity.ok(stats);
+        return ResponseEntity.ok(timeReportService.getProjectStats(organizationId, projectId));
     }
 
-    /**
-     * Get time report by project.
-     * 
-     * Returns time tracking data grouped by project.
-     * 
-     * @param startDate Optional start date filter (format: YYYY-MM-DD)
-     * @param endDate Optional end date filter (format: YYYY-MM-DD)
-     */
     @GetMapping("/time/by-project")
     public ResponseEntity<List<TimeReportDTO>> getTimeReportByProject(
             @PathVariable UUID organizationId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        List<TimeReportDTO> report = reportingService.getTimeReportByProject(organizationId, startDate, endDate);
-        return ResponseEntity.ok(report);
+        return ResponseEntity.ok(timeReportService.getTimeReportByProject(organizationId, startDate, endDate));
     }
 
-    /**
-     * Get time report by employee.
-     * 
-     * Returns time tracking data grouped by employee.
-     * 
-     * @param startDate Optional start date filter (format: YYYY-MM-DD)
-     * @param endDate Optional end date filter (format: YYYY-MM-DD)
-     */
     @GetMapping("/time/by-employee")
     public ResponseEntity<List<TimeReportDTO>> getTimeReportByEmployee(
             @PathVariable UUID organizationId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        List<TimeReportDTO> report = reportingService.getTimeReportByEmployee(organizationId, startDate, endDate);
-        return ResponseEntity.ok(report);
+        return ResponseEntity.ok(timeReportService.getTimeReportByEmployee(organizationId, startDate, endDate));
     }
 
-    /**
-     * Get time tracking summary.
-     * 
-     * Returns overall time tracking statistics.
-     * 
-     * @param startDate Optional start date filter (format: YYYY-MM-DD)
-     * @param endDate Optional end date filter (format: YYYY-MM-DD)
-     */
     @GetMapping("/time/summary")
     public ResponseEntity<TimeReportDTO> getTimeSummary(
             @PathVariable UUID organizationId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        TimeReportDTO summary = reportingService.getTimeSummary(organizationId, startDate, endDate);
-        return ResponseEntity.ok(summary);
+        return ResponseEntity.ok(timeReportService.getTimeSummary(organizationId, startDate, endDate));
     }
 
-    /**
-     * Get leave balance report.
-     * 
-     * Returns leave balance information for all employees including:
-     * - Total days used
-     * - Days pending approval
-     * - Days approved
-     * - Days used this year
-     */
     @GetMapping("/leave/balance")
     public ResponseEntity<List<LeaveBalanceDTO>> getLeaveBalance(@PathVariable UUID organizationId) {
-        List<LeaveBalanceDTO> balance = reportingService.getLeaveBalance(organizationId);
-        return ResponseEntity.ok(balance);
+        return ResponseEntity.ok(leaveReportService.getLeaveBalance(organizationId));
     }
 
-    /**
-     * Get upcoming leave requests.
-     * 
-     * Returns approved leave requests for the next 30 days.
-     */
     @GetMapping("/leave/upcoming")
     public ResponseEntity<List<LeaveReportDTO>> getUpcomingLeaveRequests(@PathVariable UUID organizationId) {
-        List<LeaveReportDTO> upcoming = reportingService.getUpcomingLeaveRequests(organizationId);
-        return ResponseEntity.ok(upcoming);
+        return ResponseEntity.ok(leaveReportService.getUpcomingLeaveRequests(organizationId));
     }
 
-    /**
-     * Get resource allocation view.
-     * 
-     * Returns detailed resource allocation information including:
-     * - Employee workload and utilization
-     * - Project staffing status
-     * - Overallocation and underutilization alerts
-     * - Resource gaps and availability
-     */
     @GetMapping("/resource-allocation")
     public ResponseEntity<ResourceAllocationDTO> getResourceAllocation(@PathVariable UUID organizationId) {
-        ResourceAllocationDTO allocation = reportingService.getResourceAllocation(organizationId);
-        return ResponseEntity.ok(allocation);
+        return ResponseEntity.ok(resourceAllocationService.getResourceAllocation(organizationId));
     }
 }

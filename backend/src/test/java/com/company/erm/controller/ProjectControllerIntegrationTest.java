@@ -20,6 +20,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import com.company.erm.config.MockMvcTestConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -44,7 +46,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * - Multi-tenant isolation
  * - Date validation
  */
-@SpringBootTest(classes = com.example.erm_backend.ErmBackendApplication.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@SpringBootTest(classes = com.company.erm.ErmBackendApplication.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@Import(MockMvcTestConfiguration.class)
 @ActiveProfiles("test")
 @Transactional
 @DisplayName("ProjectController Integration Tests")
@@ -91,6 +94,11 @@ class ProjectControllerIntegrationTest {
     private String adminToken;
     private String projectManagerToken;
     private String regularUserToken;
+
+    private Project persistProject(Project project) {
+        project.setOrganization(organizationRepository.getReferenceById(organization.getId()));
+        return projectRepository.save(project);
+    }
 
     @BeforeEach
     void setUp() {
@@ -240,7 +248,7 @@ class ProjectControllerIntegrationTest {
         project.setBudget(new BigDecimal("100000.00"));
         project.setOrganization(organization);
         project.setArchived(false);
-        projectRepository.save(project);
+        persistProject(project);
 
         // When/Then
         mockMvc.perform(get("/api/v1/organizations/{organizationId}/projects", organization.getId())
@@ -276,7 +284,7 @@ class ProjectControllerIntegrationTest {
         archivedProject.setBudget(new BigDecimal("50000.00"));
         archivedProject.setOrganization(organization);
         archivedProject.setArchived(true);
-        projectRepository.save(archivedProject);
+        persistProject(archivedProject);
 
         // When/Then
         mockMvc.perform(get("/api/v1/organizations/{organizationId}/projects", organization.getId())
@@ -300,7 +308,7 @@ class ProjectControllerIntegrationTest {
         project.setBudget(new BigDecimal("75000.00"));
         project.setOrganization(organization);
         project.setArchived(false);
-        projectRepository.save(project);
+        persistProject(project);
 
         // When/Then
         mockMvc.perform(delete("/api/v1/organizations/{organizationId}/projects/{projectId}", 
@@ -339,7 +347,7 @@ class ProjectControllerIntegrationTest {
         project.setBudget(new BigDecimal("50000.00"));
         project.setOrganization(organization);
         project.setArchived(false);
-        projectRepository.save(project);
+        persistProject(project);
 
         // When/Then - PROJECT_MANAGER cannot archive (only ORG_ADMIN can)
         mockMvc.perform(delete("/api/v1/organizations/{organizationId}/projects/{projectId}", 

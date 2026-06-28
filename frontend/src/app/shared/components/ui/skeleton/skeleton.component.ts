@@ -3,10 +3,9 @@ import { CommonModule } from '@angular/common';
 import { mergeClasses } from '@/shared/utils/merge-classes';
 
 @Component({
-  selector: 'app-skeleton',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-skeleton',
+    imports: [CommonModule],
+    template: `
     <div 
       [class]="mergeClasses(
         'animate-pulse rounded-md bg-muted',
@@ -15,7 +14,7 @@ import { mergeClasses } from '@/shared/utils/merge-classes';
       [style.width]="width()"
       [style.height]="height()">
     </div>
-  `,
+  `
 })
 export class SkeletonComponent {
   className = input<string>('');
@@ -25,10 +24,9 @@ export class SkeletonComponent {
 }
 
 @Component({
-  selector: 'app-skeleton-text',
-  standalone: true,
-  imports: [CommonModule, SkeletonComponent],
-  template: `
+    selector: 'app-skeleton-text',
+    imports: [CommonModule, SkeletonComponent],
+    template: `
     <div [class]="mergeClasses('space-y-2', containerClass())">
       @for (line of getLinesArray(); track $index) {
         <app-skeleton 
@@ -37,7 +35,7 @@ export class SkeletonComponent {
           [height]="height()" />
       }
     </div>
-  `,
+  `
 })
 export class SkeletonTextComponent {
   lines = input<number>(3);
@@ -59,10 +57,9 @@ export class SkeletonTextComponent {
 }
 
 @Component({
-  selector: 'app-skeleton-table',
-  standalone: true,
-  imports: [CommonModule, SkeletonComponent],
-  template: `
+    selector: 'app-skeleton-table',
+    imports: [CommonModule, SkeletonComponent],
+    template: `
     <div class="space-y-3">
       <!-- Header -->
       <div class="flex gap-4">
@@ -85,7 +82,7 @@ export class SkeletonTextComponent {
         </div>
       }
     </div>
-  `,
+  `
 })
 export class SkeletonTableComponent {
   columns = input<Array<{ width?: string }>>([

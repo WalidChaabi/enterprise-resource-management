@@ -1,0 +1,146 @@
+<aside
+  class="flex flex-col bg-background border-r transition-all duration-300"
+  [ngClass]="{
+    'w-16': isCollapsed && !isMobile,
+    'w-64': !isCollapsed || isMobile,
+    'h-full': isMobile,
+    'sticky top-0 h-screen': !isMobile,
+    'px-2': isCollapsed && !isMobile,
+    'px-4': !isCollapsed || isMobile,
+    'py-4': isCollapsed && !isMobile,
+    'py-6': !isCollapsed || isMobile
+  }">
+
+  <div class="mb-6 flex items-center" [ngClass]="{'justify-center': isCollapsed && !isMobile, 'justify-start': !isCollapsed || isMobile}">
+    @if (isCollapsed && !isMobile) {
+      <a
+        routerLink="/dashboard"
+        class="flex items-center justify-center transition-opacity duration-200 hover:opacity-80"
+        (click)="handleNavigate()"
+        [attr.aria-label]="'app.logo' | translate">
+        <img
+          [src]="theme === 'dark' ? 'assets/logos/logo-symbol-white.svg' : 'assets/logos/logo-symbol-black.svg'"
+          alt="{{ 'app.logo' | translate }}"
+          class="h-10 w-10" />
+      </a>
+    } @else {
+      <a routerLink="/dashboard" class="flex items-center transition-opacity duration-200 hover:opacity-80" (click)="handleNavigate()">
+        <img
+          [src]="theme === 'dark' ? 'assets/logos/logo-full-white.svg' : 'assets/logos/logo-full-black.svg'"
+          alt="{{ 'app.logo' | translate }}"
+          class="h-6 w-auto" />
+      </a>
+    }
+  </div>
+
+  @if (currentCreateAction && !isCollapsed) {
+    <div class="mb-4">
+      <a
+        [routerLink]="currentCreateAction.route"
+        class="flex w-full items-center justify-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition-all duration-150 hover:bg-primary/10 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        (click)="handleNavigate()">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>{{ currentCreateAction.label | translate }}</span>
+      </a>
+    </div>
+  }
+
+  <nav class="flex flex-1 flex-col gap-6 overflow-y-auto">
+    @for (section of sections; track section.id) {
+      <div class="space-y-1">
+        @if ((!isCollapsed || isMobile) && section.items.length > 0) {
+          <div class="px-3 pb-1">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {{ section.label | translate }}
+            </h3>
+          </div>
+        }
+
+        @for (item of section.items; track item.route.join('/')) {
+          <a
+            [routerLink]="item.route"
+            (click)="handleNavigate()"
+            routerLinkActive="bg-primary text-primary-foreground"
+            [routerLinkActiveOptions]="item.route[0] === '/dashboard' ? {exact: true} : {exact: false}"
+            class="group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            [ngClass]="{
+              'justify-center': isCollapsed && !isMobile,
+              'justify-start': !isCollapsed || isMobile
+            }"
+            [attr.aria-label]="isCollapsed && !isMobile ? (item.label | translate) : undefined"
+            [title]="isCollapsed && !isMobile ? (item.label | translate) : undefined">
+
+            <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path [attr.d]="item.icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+            </svg>
+
+            @if (!isCollapsed || isMobile) {
+              <span class="flex-1 truncate">{{ item.label | translate }}</span>
+            }
+
+            @if (item.indicator && item.indicator.count > 0 && (!isCollapsed || isMobile)) {
+              <span
+                class="flex-shrink-0 text-xs font-medium px-1.5 py-0.5 rounded"
+                [ngClass]="{
+                  'bg-destructive/10 text-destructive border border-destructive/20': item.indicator.priority === 'high',
+                  'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 border border-yellow-500/20': item.indicator.priority === 'medium',
+                  'bg-muted text-muted-foreground border border-border': item.indicator.priority === 'low'
+                }">
+                {{ item.indicator.count > 99 ? '99+' : item.indicator.count }}
+              </span>
+            }
+
+            @if (item.indicator && item.indicator.count > 0 && isCollapsed && !isMobile) {
+              <span
+                class="absolute right-2 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full"
+                [ngClass]="{
+                  'bg-destructive': item.indicator.priority === 'high',
+                  'bg-yellow-500': item.indicator.priority === 'medium',
+                  'bg-muted-foreground/60': item.indicator.priority === 'low'
+                }"
+                [attr.aria-label]="item.indicator.count + ' ' + (item.label | translate)">
+              </span>
+            }
+          </a>
+        }
+      </div>
+    }
+  </nav>
+
+  <div class="mt-auto space-y-2 border-t border-border pt-4">
+    @if (!isMobile) {
+      <button
+        type="button"
+        class="flex w-full items-center justify-center gap-3 rounded-lg p-2 text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        (click)="onToggleCollapse()"
+        [attr.aria-label]="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+        [title]="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          @if (isCollapsed) {
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          } @else {
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          }
+        </svg>
+        @if (!isCollapsed) {
+          <span class="text-sm">{{ isCollapsed ? 'Expand' : 'Collapse' }}</span>
+        }
+      </button>
+    }
+    <button
+      type="button"
+      class="flex w-full items-center justify-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive transition-all duration-150 hover:bg-destructive/20 hover:text-destructive active:bg-destructive/50 active:text-destructive-foreground active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      (click)="onLogout()"
+      [attr.aria-label]="'auth.logout' | translate"
+      [title]="isCollapsed && !isMobile ? ('auth.logout' | translate) : undefined">
+      <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+      </svg>
+      @if (!isCollapsed || isMobile) {
+        <span>{{ 'auth.logout' | translate }}</span>
+      }
+    </button>
+  </div>
+</aside>

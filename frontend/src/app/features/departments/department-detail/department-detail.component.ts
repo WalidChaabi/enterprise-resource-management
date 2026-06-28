@@ -11,10 +11,9 @@ import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.com
 import { DepartmentFormComponent } from '../department-form/department-form.component';
 
 @Component({
-  selector: 'app-department-detail',
-  standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, AlertComponent, DialogComponent, DepartmentFormComponent],
-  templateUrl: './department-detail.component.html'
+    selector: 'app-department-detail',
+    imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, AlertComponent, DialogComponent, DepartmentFormComponent],
+    templateUrl: './department-detail.component.html'
 })
 export class DepartmentDetailComponent implements OnInit {
   private readonly departmentService = inject(DepartmentService);

@@ -9,10 +9,9 @@ export interface BreadcrumbItem {
 }
 
 @Component({
-  selector: 'app-breadcrumb',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
-  template: `
+    selector: 'app-breadcrumb',
+    imports: [CommonModule, RouterModule],
+    template: `
     <nav class="flex items-center space-x-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
       <ol class="flex items-center space-x-2">
         @for (item of items(); track $index) {
@@ -37,7 +36,7 @@ export interface BreadcrumbItem {
         }
       </ol>
     </nav>
-  `,
+  `
 })
 export class BreadcrumbComponent {
   items = input.required<BreadcrumbItem[]>();

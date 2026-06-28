@@ -1,9 +1,9 @@
-import { Component, DestroyRef, HostListener, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, HostListener, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, Location } from '@angular/common';
 import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { filter } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { ThemeService } from '../../core/services/theme.service';
@@ -28,27 +28,26 @@ import { KeyboardShortcutsComponent } from '../../shared/components/keyboard-sho
 import { SidebarComponent } from '../sidebar/sidebar.component';
 
 @Component({
-  selector: 'app-main-layout',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    RouterOutlet,
-    TranslatePipe,
-    ButtonComponent,
-    SearchBarComponent,
-    BreadcrumbComponent,
-    ProfileMenuComponent,
-    NotificationMenuComponent,
-    QuickActionMenuComponent,
-    HelpMenuComponent,
-    OrgSwitcherComponent,
-    KeyboardShortcutsComponent,
-    SidebarComponent
-  ],
-  templateUrl: './main-layout.component.html'
+    selector: 'app-main-layout',
+    imports: [
+        CommonModule,
+        RouterModule,
+        RouterOutlet,
+        TranslatePipe,
+        ButtonComponent,
+        SearchBarComponent,
+        BreadcrumbComponent,
+        ProfileMenuComponent,
+        NotificationMenuComponent,
+        QuickActionMenuComponent,
+        HelpMenuComponent,
+        OrgSwitcherComponent,
+        KeyboardShortcutsComponent,
+        SidebarComponent
+    ],
+    templateUrl: './main-layout.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-
 export class MainLayoutComponent {
   private readonly authService = inject(AuthService);
   private readonly sanitizer = inject(DomSanitizer);
@@ -163,7 +162,7 @@ export class MainLayoutComponent {
   }
 
   markNotificationsRead(): void {
-    this.notificationService.markAllRead().subscribe({
+    this.notificationService.markAllRead().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.loadNotifications();
       },
@@ -174,7 +173,7 @@ export class MainLayoutComponent {
   }
 
   private loadNotifications(): void {
-    this.notificationService.getNotifications(0, 20).subscribe({
+    this.notificationService.getNotifications(0, 20).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (page) => {
         this.notifications.set(page.content);
       },
@@ -185,7 +184,7 @@ export class MainLayoutComponent {
   }
 
   private loadOrganizations(): void {
-    this.orgSwitcherService.listOrganizations().subscribe({
+    this.orgSwitcherService.listOrganizations().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (orgs) => {
         this.organizations.set(orgs);
         const currentOrg = this.authService.getCurrentUser()?.organizationId;
@@ -203,7 +202,7 @@ export class MainLayoutComponent {
   }
 
   private loadUiConfig(): void {
-    this.uiConfigService.getUiConfig().subscribe({
+    this.uiConfigService.getUiConfig().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (config) => {
         this.uiConfig.set({
           documentationUrl: config.documentationUrl,
@@ -217,7 +216,7 @@ export class MainLayoutComponent {
   }
 
   private loadShortcuts(): void {
-    this.settingsService.getShortcuts().subscribe({
+    this.settingsService.getShortcuts().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (shortcuts) => {
         this.shortcuts.set(shortcuts);
       },
@@ -228,7 +227,7 @@ export class MainLayoutComponent {
   }
 
   switchOrganization(orgId: string): void {
-    this.orgSwitcherService.switchOrganization(orgId).subscribe({
+    this.orgSwitcherService.switchOrganization(orgId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.currentOrganization.set(
           this.organizations().find(org => org.id === response.activeOrgId)?.name || ''

@@ -19,21 +19,10 @@ export const roleGuard = (...allowedRoles: Role[]): CanActivateFn => {
       return false;
     }
 
-    // For development: Allow all authenticated users to access pages
-    // TODO: Remove this in production and uncomment the role check below
-    const user = authService.getCurrentUser();
-    if (user) {
-      console.warn(`[DEV MODE] Role guard bypassed. User roles: ${user.roles?.join(', ') || 'none'}. Required: ${allowedRoles.join(', ')}`);
+    if (authService.hasAnyRole(...allowedRoles)) {
       return true;
     }
 
-    // Production role check (currently disabled for development)
-    // if (authService.hasAnyRole(...allowedRoles)) {
-    //   return true;
-    // }
-
-    // If no user or role check fails, redirect to dashboard
-    console.warn(`Access denied to ${state.url}. Required roles: ${allowedRoles.join(', ')}`);
     router.navigate(['/dashboard']);
     return false;
   };

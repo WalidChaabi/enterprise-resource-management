@@ -4,17 +4,16 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/f
 import { mergeClasses } from '@/shared/utils/merge-classes';
 
 @Component({
-  selector: 'app-input',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => InputComponent),
-      multi: true,
-    },
-  ],
-  template: `
+    selector: 'app-input',
+    imports: [CommonModule, FormsModule],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => InputComponent),
+            multi: true,
+        },
+    ],
+    template: `
     <input
       [type]="type()"
       [class]="classes()"
@@ -25,7 +24,7 @@ import { mergeClasses } from '@/shared/utils/merge-classes';
       (blur)="onBlur()"
       [attr.id]="id()"
       [attr.name]="name()" />
-  `,
+  `
 })
 export class InputComponent implements ControlValueAccessor {
   type = input<string>('text');
@@ -36,7 +35,7 @@ export class InputComponent implements ControlValueAccessor {
   class = input<string>('');
 
   value: string = '';
-  onChange = (value: string) => {};
+  onChange = (_value: string) => {};
   onTouched = () => {};
 
   classes() {
@@ -68,7 +67,7 @@ export class InputComponent implements ControlValueAccessor {
     this.onTouched = fn;
   }
 
-  setDisabledState(isDisabled: boolean): void {
+  setDisabledState(_isDisabled: boolean): void {
     // Handled by input binding
   }
 }

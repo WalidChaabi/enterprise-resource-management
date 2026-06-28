@@ -4,10 +4,9 @@ import { RouterModule, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
 
 @Component({
-  selector: 'app-settings',
-  standalone: true,
-  imports: [CommonModule, RouterModule, RouterOutlet, TranslatePipe],
-  template: `
+    selector: 'app-settings',
+    imports: [CommonModule, RouterModule, RouterOutlet, TranslatePipe],
+    template: `
     <div class="space-y-6">
       <div>
         <h1 class="text-2xl font-semibold text-foreground">Settings</h1>

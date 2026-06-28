@@ -8,39 +8,38 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.company.erm.dto.OrganizationSummaryDTO;
-import com.company.erm.dto.OrganizationSwitchResponseDTO;
 import com.company.erm.entity.Organization;
 import com.company.erm.entity.User;
 import com.company.erm.entity.UserRole;
 import com.company.erm.exception.BusinessException;
 import com.company.erm.repository.UserRepository;
 import com.company.erm.repository.UserRoleRepository;
-import com.company.erm.security.JwtTokenProvider;
+import com.company.erm.service.AuthService.AuthSession;
+import com.company.erm.service.reporting.DashboardService;
 
-/**
- * Service for listing organizations and switching active organization.
- */
 @Service
 @Transactional
 public class OrganizationSwitcherService {
 
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
-    private final JwtTokenProvider tokenProvider;
+    private final AuthService authService;
+    private final DashboardService dashboardService;
 
     public OrganizationSwitcherService(
             UserRepository userRepository,
             UserRoleRepository userRoleRepository,
-            JwtTokenProvider tokenProvider) {
+            AuthService authService,
+            DashboardService dashboardService) {
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
-        this.tokenProvider = tokenProvider;
+        this.authService = authService;
+        this.dashboardService = dashboardService;
     }
 
     @Transactional(readOnly = true)
     public List<OrganizationSummaryDTO> listOrganizationsForUser(String currentUserEmail) {
-        User user = userRepository.findByEmail(currentUserEmail)
-            .orElseThrow(() -> new BusinessException("User not found"));
+        User user = loadUser(currentUserEmail);
 
         List<UserRole> userRoles = userRoleRepository.findByUser(user);
         if (userRoles.isEmpty()) {
@@ -55,10 +54,20 @@ public class OrganizationSwitcherService {
             .toList();
     }
 
-    public OrganizationSwitchResponseDTO switchOrganization(String currentUserEmail, UUID orgId) {
-        User user = userRepository.findByEmail(currentUserEmail)
-            .orElseThrow(() -> new BusinessException("User not found"));
+    public AuthSession switchOrganization(String currentUserEmail, UUID orgId) {
+        User user = loadUser(currentUserEmail);
+        validateOrganizationAccess(user, orgId);
+        dashboardService.evictDashboard(orgId);
+        return authService.buildSessionForOrganization(user, orgId);
+    }
 
+    @Transactional(readOnly = true)
+    public User loadUser(String email) {
+        return userRepository.findByEmail(email)
+            .orElseThrow(() -> new BusinessException("User not found"));
+    }
+
+    private void validateOrganizationAccess(User user, UUID orgId) {
         boolean hasAccess = !userRoleRepository
             .findByUserIdAndOrganizationId(user.getId(), orgId)
             .isEmpty();
@@ -70,13 +79,5 @@ public class OrganizationSwitcherService {
                 HttpStatus.FORBIDDEN
             );
         }
-
-        String token = tokenProvider.generateToken(
-            user.getId(),
-            user.getEmail(),
-            orgId
-        );
-
-        return new OrganizationSwitchResponseDTO(orgId, token, "Bearer");
     }
 }

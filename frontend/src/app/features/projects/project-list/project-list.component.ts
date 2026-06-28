@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ProjectService } from '../../../core/services/project.service';
@@ -15,14 +16,15 @@ import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.com
 import { ProjectFormComponent } from '../project-form/project-form.component';
 
 @Component({
-  selector: 'app-project-list',
-  standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, BadgeComponent, AlertComponent, SkeletonComponent, DialogComponent, ProjectFormComponent],
-  templateUrl: './project-list.component.html'
+    selector: 'app-project-list',
+    imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, BadgeComponent, AlertComponent, SkeletonComponent, DialogComponent, ProjectFormComponent],
+    templateUrl: './project-list.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProjectListComponent implements OnInit {
+export class ProjectListComponent {
   private readonly projectService = inject(ProjectService);
   private readonly authService = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly projects = signal<Project[]>([]);
   readonly loading = signal<boolean>(false);
@@ -33,7 +35,7 @@ export class ProjectListComponent implements OnInit {
     return this.authService.hasAnyRole(ROLES.ORG_ADMIN, ROLES.PROJECT_MANAGER);
   });
 
-  ngOnInit(): void {
+  constructor() {
     this.loadProjects();
   }
 
@@ -41,7 +43,7 @@ export class ProjectListComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
-    this.projectService.getProjects().subscribe({
+    this.projectService.getProjects().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (projects) => {
         this.projects.set(projects);
         this.loading.set(false);

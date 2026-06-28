@@ -5,7 +5,7 @@
     @if (dashboard() && isLowDataState()) {
       <p class="text-sm text-muted-foreground mt-1">Welcome, {{ currentUser()?.firstName || '' }}. Let's get your organization set up.</p>
     } @else {
-      <p class="text-sm text-muted-foreground mt-1">{{ 'dashboard.welcome' | translate: { name: currentUser()?.firstName || '' } }}</p>
+      <p class="text-sm text-muted-foreground mt-1">{{ 'dashboard.welcome' | translate:{ name: currentUser()?.firstName || '' } }}</p>
     }
   </div>
 

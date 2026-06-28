@@ -24,9 +24,8 @@ import com.company.erm.dto.QuickProjectCreateDTO;
 import com.company.erm.dto.TimeEntryCreateDTO;
 import com.company.erm.dto.TimeEntryResponseDTO;
 import com.company.erm.entity.User;
-import com.company.erm.exception.BusinessException;
 import com.company.erm.mapper.ProjectMapper;
-import com.company.erm.repository.UserRepository;
+import com.company.erm.service.CurrentUserService;
 import com.company.erm.service.DepartmentService;
 import com.company.erm.service.EmployeeService;
 import com.company.erm.service.LeaveRequestService;
@@ -43,7 +42,7 @@ import jakarta.validation.Valid;
 @PreAuthorize("isAuthenticated()")
 public class QuickActionsController {
 
-    private final UserRepository userRepository;
+    private final CurrentUserService currentUserService;
     private final EmployeeService employeeService;
     private final ProjectService projectService;
     private final DepartmentService departmentService;
@@ -52,14 +51,14 @@ public class QuickActionsController {
     private final ProjectMapper projectMapper;
 
     public QuickActionsController(
-            UserRepository userRepository,
+            CurrentUserService currentUserService,
             EmployeeService employeeService,
             ProjectService projectService,
             DepartmentService departmentService,
             TimeEntryService timeEntryService,
             LeaveRequestService leaveRequestService,
             ProjectMapper projectMapper) {
-        this.userRepository = userRepository;
+        this.currentUserService = currentUserService;
         this.employeeService = employeeService;
         this.projectService = projectService;
         this.departmentService = departmentService;
@@ -70,10 +69,11 @@ public class QuickActionsController {
 
     @PostMapping("/employees")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('HR_ADMIN', 'ORG_ADMIN')")
     public ResponseEntity<EmployeeResponseDTO> createEmployee(
             @Valid @RequestBody EmployeeCreateDTO dto,
             Authentication authentication) {
-        User currentUser = loadCurrentUser(authentication);
+        User currentUser = currentUserService.requireUser(authentication);
         EmployeeResponseDTO created = employeeService.createEmployee(
             currentUser.getOrganization().getId(),
             dto,
@@ -88,10 +88,11 @@ public class QuickActionsController {
 
     @PostMapping("/projects")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('ORG_ADMIN', 'PROJECT_MANAGER')")
     public ResponseEntity<ProjectResponseDTO> createProject(
             @Valid @RequestBody QuickProjectCreateDTO dto,
             Authentication authentication) {
-        User currentUser = loadCurrentUser(authentication);
+        User currentUser = currentUserService.requireUser(authentication);
 
         ProjectCreateDTO createDTO = new ProjectCreateDTO();
         createDTO.setName(dto.getName());
@@ -115,10 +116,11 @@ public class QuickActionsController {
 
     @PostMapping("/departments")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('HR_ADMIN', 'ORG_ADMIN')")
     public ResponseEntity<DepartmentResponseDTO> createDepartment(
             @Valid @RequestBody DepartmentCreateDTO dto,
             Authentication authentication) {
-        User currentUser = loadCurrentUser(authentication);
+        User currentUser = currentUserService.requireUser(authentication);
         DepartmentResponseDTO created = departmentService.createDepartment(
             currentUser.getOrganization().getId(),
             dto,
@@ -133,10 +135,11 @@ public class QuickActionsController {
 
     @PostMapping("/time-entries")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('ORG_ADMIN', 'PROJECT_MANAGER', 'HR_ADMIN', 'EMPLOYEE')")
     public ResponseEntity<TimeEntryResponseDTO> createTimeEntry(
             @Valid @RequestBody TimeEntryCreateDTO dto,
             Authentication authentication) {
-        User currentUser = loadCurrentUser(authentication);
+        User currentUser = currentUserService.requireUser(authentication);
         TimeEntryResponseDTO created = timeEntryService.createTimeEntry(
             currentUser.getOrganization().getId(),
             dto,
@@ -151,10 +154,11 @@ public class QuickActionsController {
 
     @PostMapping("/leave-requests")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('ORG_ADMIN', 'HR_ADMIN', 'DEPARTMENT_MANAGER', 'EMPLOYEE')")
     public ResponseEntity<LeaveRequestResponseDTO> createLeaveRequest(
             @Valid @RequestBody LeaveRequestCreateDTO dto,
             Authentication authentication) {
-        User currentUser = loadCurrentUser(authentication);
+        User currentUser = currentUserService.requireUser(authentication);
         LeaveRequestResponseDTO created = leaveRequestService.createLeaveRequest(
             currentUser.getOrganization().getId(),
             dto,
@@ -165,11 +169,5 @@ public class QuickActionsController {
             .buildAndExpand(created.getId())
             .toUri();
         return ResponseEntity.created(location).body(created);
-    }
-
-    private User loadCurrentUser(Authentication authentication) {
-        String email = authentication.getName();
-        return userRepository.findByEmail(email)
-            .orElseThrow(() -> new BusinessException("User not found"));
     }
 }

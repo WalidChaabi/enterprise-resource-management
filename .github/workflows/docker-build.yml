@@ -2,39 +2,89 @@ name: Docker Build
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, develop]
     tags:
       - 'v*'
+  pull_request:
+    branches: [main, master, develop]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
 jobs:
-  build:
-    name: Build Docker Images
+  build-and-smoke:
+    name: Build, Push, and Smoke Test
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
-      - name: Build Backend Image
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract backend image metadata
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/erm-backend
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           file: ./backend/docker/Dockerfile.prod
-          push: false
-          tags: erm-backend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      
-      - name: Build Frontend Image
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            erm-backend:latest
+            ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha,scope=erm-backend
+          cache-to: type=gha,mode=max,scope=erm-backend
+
+      - name: Extract frontend image metadata
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/erm-front
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push frontend image
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           file: ./frontend/docker/Dockerfile
-          push: false
-          tags: erm-frontend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            erm-front:latest
+            ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha,scope=erm-front
+          cache-to: type=gha,mode=max,scope=erm-front
+
+      - name: Run compose smoke tests
+        run: |
+          chmod +x docker/scripts/smoke-test.sh
+          docker/scripts/smoke-test.sh

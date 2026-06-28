@@ -1,5 +1,6 @@
 package com.company.erm.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,6 +18,13 @@ public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> 
 
     @EntityGraph(attributePaths = {"role"})
     List<UserRole> findByUser(User user);
+
+    @EntityGraph(attributePaths = {"role"})
+    @Query("SELECT ur FROM UserRole ur WHERE ur.user.id IN :userIds AND ur.organization.id = :organizationId")
+    List<UserRole> findByUserIdInAndOrganizationId(
+        @Param("userIds") Collection<UUID> userIds,
+        @Param("organizationId") UUID organizationId
+    );
     
     @Query("SELECT ur FROM UserRole ur WHERE ur.user.id = :userId AND ur.organization.id = :organizationId")
     List<UserRole> findByUserIdAndOrganizationId(

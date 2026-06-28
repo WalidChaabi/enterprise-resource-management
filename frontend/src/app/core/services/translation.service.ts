@@ -1,4 +1,4 @@
-import { Injectable, signal, effect } from '@angular/core';
+import { ApplicationRef, Injectable, inject, signal, effect } from '@angular/core';
 
 export type Language = 'en' | 'fr';
 
@@ -10,11 +10,15 @@ export interface Translations {
   providedIn: 'root'
 })
 export class TranslationService {
+  private readonly appRef = inject(ApplicationRef);
   private readonly LANGUAGE_KEY = 'app-language';
   private readonly translations: Map<Language, Translations> = new Map();
   
   readonly currentLanguage = signal<Language>(this.getInitialLanguage());
   readonly translationsLoaded = signal<boolean>(false);
+  readonly languageTick = signal(0);
+  
+  private readonly translationMemo = new Map<string, string>();
 
   constructor() {
     // Load translations on initialization
@@ -29,27 +33,34 @@ export class TranslationService {
 
   setLanguage(language: Language): void {
     this.currentLanguage.set(language);
+    this.languageTick.update((value) => value + 1);
+    this.translationMemo.clear();
     localStorage.setItem(this.LANGUAGE_KEY, language);
+    this.appRef.tick();
   }
 
   translate(key: string, params?: { [key: string]: string | number }): string {
-    const translations = this.translations.get(this.currentLanguage());
+    const language = this.currentLanguage();
+    const cacheKey = `${language}:${key}:${JSON.stringify(params ?? {})}`;
+    const cached = this.translationMemo.get(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const translations = this.translations.get(language);
     if (!translations) {
       return key;
     }
 
     const value = this.getNestedValue(translations, key);
-    
+
     if (typeof value !== 'string') {
       return key;
     }
 
-    // Replace parameters in translation
-    if (params) {
-      return this.replaceParams(value, params);
-    }
-
-    return value;
+    const result = params ? this.replaceParams(value, params) : value;
+    this.translationMemo.set(cacheKey, result);
+    return result;
   }
 
   private getNestedValue(obj: Translations, path: string): string | Translations | undefined {
@@ -104,7 +115,10 @@ export class TranslationService {
 
       this.translations.set('en', enTranslations);
       this.translations.set('fr', frTranslations);
+      this.translationMemo.clear();
+      this.languageTick.update((value) => value + 1);
       this.translationsLoaded.set(true);
+      this.appRef.tick();
     } catch (error) {
       console.error('Failed to load translations:', error);
       // Fallback to empty translations

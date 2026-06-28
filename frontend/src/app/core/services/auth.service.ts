@@ -1,14 +1,14 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthRequest, AuthResponse, User } from '../models/auth.model';
-import { STORAGE_KEYS, ROLES, type Role } from '../utils/constants';
+import { STORAGE_KEYS, type Role } from '../utils/constants';
 
 /**
- * Authentication service
- * Manages user authentication state using Angular Signals
+ * Authentication service using httpOnly cookies for tokens.
+ * User profile is stored in sessionStorage (not the JWT).
  */
 @Injectable({
   providedIn: 'root'
@@ -16,12 +16,11 @@ import { STORAGE_KEYS, ROLES, type Role } from '../utils/constants';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly apiUrl = `${environment.apiUrl}/auth/login`;
+  private readonly apiBase = environment.apiUrl;
 
-  // Reactive state using Signals
   private readonly currentUserSignal = signal<User | null>(null);
   public readonly currentUser = this.currentUserSignal.asReadonly();
-  
+
   public readonly isAuthenticated = computed(() => this.currentUserSignal() !== null);
   public readonly organizationId = computed(() => this.currentUserSignal()?.organizationId ?? null);
 
@@ -30,24 +29,27 @@ export class AuthService {
   }
 
   login(credentials: AuthRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(this.apiUrl, credentials).pipe(
-      tap(response => {
-        this.setSession(response);
-        this.setCurrentUser(response);
-      })
+    return this.http.post<AuthResponse>(`${this.apiBase}/auth/login`, credentials, {
+      withCredentials: true
+    }).pipe(
+      tap(response => this.setCurrentUser(response))
     );
   }
 
+  refreshSession(): Observable<void> {
+    return this.http.post<void>(`${this.apiBase}/auth/refresh`, {}, {
+      withCredentials: true
+    });
+  }
+
   logout(): void {
-    localStorage.removeItem(STORAGE_KEYS.TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem(STORAGE_KEYS.ORGANIZATION_ID);
-    this.currentUserSignal.set(null);
-    this.router.navigate(['/login']);
+    this.http.post(`${this.apiBase}/auth/logout`, {}, { withCredentials: true })
+      .pipe(catchError(() => of(null)))
+      .subscribe(() => this.clearLocalSession());
   }
 
   getToken(): string | null {
-    return localStorage.getItem(STORAGE_KEYS.TOKEN);
+    return null;
   }
 
   getCurrentUser(): User | null {
@@ -69,9 +71,11 @@ export class AuthService {
     return roles.some(role => user.roles.includes(role));
   }
 
-  private setSession(response: AuthResponse): void {
-    localStorage.setItem(STORAGE_KEYS.TOKEN, response.accessToken);
-    localStorage.setItem(STORAGE_KEYS.ORGANIZATION_ID, response.organizationId);
+  clearLocalSession(): void {
+    sessionStorage.removeItem(STORAGE_KEYS.USER);
+    sessionStorage.removeItem(STORAGE_KEYS.ORGANIZATION_ID);
+    this.currentUserSignal.set(null);
+    this.router.navigate(['/login']);
   }
 
   private setCurrentUser(response: AuthResponse): void {
@@ -84,19 +88,20 @@ export class AuthService {
       roles: response.roles,
       active: true
     };
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    sessionStorage.setItem(STORAGE_KEYS.ORGANIZATION_ID, response.organizationId);
     this.currentUserSignal.set(user);
   }
 
   private loadUserFromStorage(): void {
-    const userStr = localStorage.getItem(STORAGE_KEYS.USER);
+    const userStr = sessionStorage.getItem(STORAGE_KEYS.USER);
     if (userStr) {
       try {
         const user = JSON.parse(userStr) as User;
         this.currentUserSignal.set(user);
       } catch (error) {
         console.error('Failed to load user from storage', error);
-        this.logout();
+        this.clearLocalSession();
       }
     }
   }

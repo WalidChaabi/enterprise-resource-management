@@ -1,3 +1,15 @@
+name: erm-platform
+
+networks:
+  default:
+    name: erm-platform-network
+
+volumes:
+  pgdata:
+    name: erm-platform-pgdata
+  pgadmin_data:
+    name: erm-platform-pgadmin-data
+
 services:
   db:
     image: postgres:16-alpine
@@ -27,8 +39,9 @@ services:
     depends_on:
       - db
 
-  app:
+  backend:
     container_name: erm-backend
+    image: erm-backend:latest
     build:
       context: ..
       dockerfile: docker/Dockerfile.dev
@@ -43,19 +56,10 @@ services:
       DB_USER: erm_user
       DB_PASS: erm_pass
       DB_SCHEMA: erm
-      # JWT_SECRET is REQUIRED - generate with: openssl rand -base64 32
-      # For dev, you can use a simple secret, but it must be at least 32 characters
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key-minimum-32-characters-long-for-development-only}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
-      # Only enable if you need to repair Flyway checksum mismatches
-      # Set to true temporarily to fix checksum issues, then set back to false
       FLYWAY_REPAIR_ON_MIGRATE: ${FLYWAY_REPAIR_ON_MIGRATE:-false}
     ports:
       - "8080:8080"
     depends_on:
       - db
-
-volumes:
-  pgdata:
-  pgadmin_data:
-

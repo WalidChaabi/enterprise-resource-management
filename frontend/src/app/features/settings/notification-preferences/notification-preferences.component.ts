@@ -9,20 +9,19 @@ import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComp
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
 
 @Component({
-  selector: 'app-notification-preferences',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    TranslatePipe,
-    ButtonComponent,
-    CardComponent,
-    CardHeaderComponent,
-    CardTitleComponent,
-    CardContentComponent,
-    AlertComponent
-  ],
-  template: `
+    selector: 'app-notification-preferences',
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        TranslatePipe,
+        ButtonComponent,
+        CardComponent,
+        CardHeaderComponent,
+        CardTitleComponent,
+        CardContentComponent,
+        AlertComponent
+    ],
+    template: `
     <div class="mt-6 space-y-6">
       <div>
         <h2 class="text-xl font-semibold text-foreground">Notification Preferences</h2>

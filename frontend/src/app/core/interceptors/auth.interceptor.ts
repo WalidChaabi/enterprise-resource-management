@@ -1,22 +1,21 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from '../services/auth.service';
+
+const REQUEST_ID_HEADER = 'X-Request-Id';
+
+function createRequestId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
 
 /**
- * HTTP Interceptor to automatically add JWT token to requests
+ * Sends credentials (httpOnly auth cookies) and a correlation ID on API requests.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
-  const token = authService.getToken();
+  const headers = req.headers.has(REQUEST_ID_HEADER)
+    ? req.headers
+    : req.headers.set(REQUEST_ID_HEADER, createRequestId());
 
-  // Skip adding token to login endpoint
-  if (token && !req.url.includes('/auth/login')) {
-    req = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-  }
-
-  return next(req);
+  return next(req.clone({ withCredentials: true, headers }));
 };

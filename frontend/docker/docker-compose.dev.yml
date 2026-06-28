@@ -1,5 +1,13 @@
+name: erm-platform
+
+networks:
+  default:
+    name: erm-platform-network
+
 services:
-  frontend:
+  front:
+    container_name: erm-front
+    image: erm-front:latest
     build:
       context: ..
       dockerfile: docker/Dockerfile.dev

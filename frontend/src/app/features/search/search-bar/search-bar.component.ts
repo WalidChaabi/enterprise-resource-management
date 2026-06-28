@@ -7,10 +7,9 @@ import { SearchService } from '../../../core/services/search.service';
 import { SearchRequest, SearchResult, SearchEntityType } from '../../../core/models/search.model';
 
 @Component({
-  selector: 'app-search-bar',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, TranslatePipe],
-  templateUrl: './search-bar.component.html'
+    selector: 'app-search-bar',
+    imports: [CommonModule, FormsModule, RouterModule, TranslatePipe],
+    templateUrl: './search-bar.component.html'
 })
 export class SearchBarComponent {
   private readonly searchService = inject(SearchService);

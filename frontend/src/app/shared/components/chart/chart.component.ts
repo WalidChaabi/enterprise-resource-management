@@ -5,14 +5,13 @@ import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
 Chart.register(...registerables);
 
 @Component({
-  selector: 'app-chart',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-chart',
+    imports: [CommonModule],
+    template: `
     <div class="relative h-full w-full">
       <canvas #canvas></canvas>
     </div>
-  `,
+  `
 })
 export class ChartComponent implements AfterViewInit, OnDestroy {
   canvas = viewChild<ElementRef<HTMLCanvasElement>>('canvas');

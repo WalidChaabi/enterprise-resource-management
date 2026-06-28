@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: erm-backend
+  namespace: erm
+  labels:
+    app.kubernetes.io/name: erm-backend
+    app.kubernetes.io/part-of: erm-platform
+spec:
+  selector:
+    app.kubernetes.io/name: erm-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: erm-backend
+  namespace: erm
+  labels:
+    app.kubernetes.io/name: erm-backend
+    app.kubernetes.io/part-of: erm-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: erm-backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: erm-backend
+        app.kubernetes.io/part-of: erm-platform
+    spec:
+      containers:
+        - name: erm-backend
+          # Replace with your registry image, e.g. ghcr.io/<owner>/<repo>/erm-backend:latest
+          image: erm-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: erm-config
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: erm-secrets
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: erm-secrets
+                  key: DB_PASS
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: erm-secrets
+                  key: JWT_SECRET
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi

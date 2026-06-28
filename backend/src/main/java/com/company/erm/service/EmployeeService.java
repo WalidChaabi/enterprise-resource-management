@@ -254,7 +254,7 @@ public class EmployeeService {
         Page<User> employees = userRepository
             .findByOrganizationIdAndFilters(organizationId, departmentId, active, pageable);
         
-        return employees.map(employeeMapper::toResponseDTO);
+        return employeeMapper.toResponsePage(employees, organizationId);
     }
 
     /**

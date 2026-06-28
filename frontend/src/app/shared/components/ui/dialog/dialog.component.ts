@@ -3,10 +3,9 @@ import { CommonModule } from '@angular/common';
 import { mergeClasses } from '@/shared/utils/merge-classes';
 
 @Component({
-  selector: 'app-dialog',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-dialog',
+    imports: [CommonModule],
+    template: `
     @if (open()) {
       <div 
         class="fixed inset-0 z-50 flex items-center justify-center"
@@ -40,7 +39,7 @@ import { mergeClasses } from '@/shared/utils/merge-classes';
         </div>
       </div>
     }
-  `,
+  `
 })
 export class DialogComponent {
   open = input<boolean>(false);
@@ -65,20 +64,19 @@ export class DialogComponent {
 }
 
 @Component({
-  selector: 'app-dialog-trigger',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-dialog-trigger',
+    imports: [CommonModule],
+    template: `
     <button
       [type]="type()"
       [class]="mergeClasses('inline-flex items-center justify-center', buttonClass())"
-      (click)="onClick.emit()">
+      (click)="clicked.emit()">
       <ng-content />
     </button>
-  `,
+  `
 })
 export class DialogTriggerComponent {
-  onClick = output<void>();
+  clicked = output<void>();
   type = input<'button' | 'submit' | 'reset'>('button');
   buttonClass = input<string>('');
   mergeClasses = mergeClasses;

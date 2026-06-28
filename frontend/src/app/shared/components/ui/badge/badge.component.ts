@@ -23,14 +23,13 @@ const badgeVariants = cva(
 export type BadgeVariant = VariantProps<typeof badgeVariants>['variant'];
 
 @Component({
-  selector: 'app-badge',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-badge',
+    imports: [CommonModule],
+    template: `
     <div [class]="classes()">
       <ng-content />
     </div>
-  `,
+  `
 })
 export class BadgeComponent {
   variant = input<BadgeVariant>('default');

@@ -4,9 +4,12 @@ import com.company.erm.dto.EmployeeResponseDTO;
 import com.company.erm.entity.User;
 import com.company.erm.entity.UserRole;
 import com.company.erm.repository.UserRoleRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -25,7 +28,31 @@ public class EmployeeMapper {
      * Convert User entity to EmployeeResponseDTO.
      */
     public EmployeeResponseDTO toResponseDTO(User user) {
-        List<UserRole> userRoles = userRoleRepository.findByUser(user);
+        return toResponseDTO(user, userRoleRepository.findByUser(user));
+    }
+
+    /**
+     * Convert a page of users using a single batch query for roles.
+     */
+    public Page<EmployeeResponseDTO> toResponsePage(Page<User> users, UUID organizationId) {
+        List<User> content = users.getContent();
+        if (content.isEmpty()) {
+            return users.map(user -> toResponseDTO(user, List.of()));
+        }
+
+        List<UUID> userIds = content.stream().map(User::getId).toList();
+        Map<UUID, List<UserRole>> rolesByUserId = userRoleRepository
+            .findByUserIdInAndOrganizationId(userIds, organizationId)
+            .stream()
+            .collect(Collectors.groupingBy(ur -> ur.getId().getUserId()));
+
+        return users.map(user -> toResponseDTO(
+            user,
+            rolesByUserId.getOrDefault(user.getId(), List.of())
+        ));
+    }
+
+    private EmployeeResponseDTO toResponseDTO(User user, List<UserRole> userRoles) {
         List<EmployeeResponseDTO.RoleDTO> roles = userRoles.stream()
             .map(this::toRoleDTO)
             .collect(Collectors.toList());
@@ -44,8 +71,8 @@ public class EmployeeMapper {
             roles,
             user.getCreatedAt(),
             user.getUpdatedAt(),
-            null, // createdBy - would need to be tracked separately
-            null  // lastModifiedBy - would need to be tracked separately
+            null,
+            null
         );
     }
     
@@ -58,4 +85,3 @@ public class EmployeeMapper {
         );
     }
 }
-

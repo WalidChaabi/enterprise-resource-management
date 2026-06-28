@@ -1,0 +1,116 @@
+name: erm-platform
+
+networks:
+  default:
+    name: erm-platform-network
+
+volumes:
+  pgdata:
+    name: erm-platform-pgdata-dev
+  pgadmin_data:
+    name: erm-platform-pgadmin-data
+  maven_cache:
+    name: erm-platform-maven-cache
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: erm-db
+    environment:
+      POSTGRES_DB: erm_db
+      POSTGRES_USER: erm_user
+      POSTGRES_PASSWORD: erm_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U erm_user -d erm_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: erm-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ../backend/docker/pgadmin/servers.json:/pgadmin4/servers.json
+      - ../backend/docker/pgadmin/pgpass:/pgpass
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  backend:
+    container_name: erm-backend
+    image: erm-backend:latest
+    build:
+      context: ../backend
+      dockerfile: docker/Dockerfile.dev
+    working_dir: /app
+    entrypoint: []
+    command: ["mvn", "spring-boot:run"]
+    volumes:
+      - ../backend:/app
+      - maven_cache:/root/.m2
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_URL: jdbc:postgresql://db:5432/erm_db
+      DB_USER: erm_user
+      DB_PASS: erm_pass
+      DB_SCHEMA: erm
+      JWT_SECRET: dev-secret-key-minimum-32-characters-long-for-development-only
+      JWT_EXPIRATION: 86400000
+      ERM_DEMO_DATA_ENABLED: "true"
+      FLYWAY_REPAIR_ON_MIGRATE: "true"
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health/liveness || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 15
+      start_period: 180s
+
+  front:
+    container_name: erm-front
+    image: erm-front:latest
+    build:
+      context: ../frontend
+      dockerfile: docker/Dockerfile.dev
+    ports:
+      - "4200:4200"
+    volumes:
+      - ../frontend/src:/app/src
+      - ../frontend/package.json:/app/package.json
+      - ../frontend/package-lock.json:/app/package-lock.json
+      - ../frontend/angular.json:/app/angular.json
+      - ../frontend/tsconfig.json:/app/tsconfig.json
+      - ../frontend/tsconfig.app.json:/app/tsconfig.app.json
+      - ../frontend/tailwind.config.js:/app/tailwind.config.js
+      - ../frontend/postcss.config.js:/app/postcss.config.js
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4200/ > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 120s

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -49,5 +51,18 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, UUID
         @Param("startDate") LocalDate startDate,
         @Param("endDate") LocalDate endDate
     );
+
+    @Query("SELECT lr FROM LeaveRequest lr WHERE lr.employee.organization.id = :orgId AND " +
+           "(LOWER(COALESCE(lr.reason, '')) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(CONCAT(lr.employee.firstName, ' ', lr.employee.lastName)) LIKE LOWER(CONCAT('%', :query, '%')))")
+    Page<LeaveRequest> searchByOrganizationIdAndQuery(
+            @Param("orgId") UUID orgId,
+            @Param("query") String query,
+            Pageable pageable);
+
+    @Query("SELECT COUNT(lr) FROM LeaveRequest lr WHERE lr.employee.organization.id = :orgId AND " +
+           "(LOWER(COALESCE(lr.reason, '')) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(CONCAT(lr.employee.firstName, ' ', lr.employee.lastName)) LIKE LOWER(CONCAT('%', :query, '%')))")
+    long countSearchByOrganizationIdAndQuery(@Param("orgId") UUID orgId, @Param("query") String query);
 }
 

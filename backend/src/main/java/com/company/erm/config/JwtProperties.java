@@ -33,11 +33,18 @@ public class JwtProperties {
 
     /**
      * JWT token expiration time in milliseconds.
-     * Default: 24 hours (86400000 ms)
-     * Minimum: 1 hour (3600000 ms) for security
+     * Default: 15 minutes (900000 ms)
+     * Minimum: 15 minutes (900000 ms) for access tokens
      */
-    @Min(value = 3600000, message = "JWT expiration must be at least 1 hour (3600000 ms) for security")
-    private long expiration = 86400000; // 24 hours default
+    @Min(value = 900000, message = "JWT expiration must be at least 15 minutes (900000 ms) for access tokens")
+    private long expiration = 900000;
+
+    /**
+     * Refresh token expiration in milliseconds.
+     * Default: 7 days
+     */
+    @Min(value = 3600000, message = "JWT refresh expiration must be at least 1 hour")
+    private long refreshExpiration = 604800000L;
 
     public String getSecret() {
         return secret;
@@ -53,5 +60,13 @@ public class JwtProperties {
 
     public void setExpiration(long expiration) {
         this.expiration = expiration;
+    }
+
+    public long getRefreshExpiration() {
+        return refreshExpiration;
+    }
+
+    public void setRefreshExpiration(long refreshExpiration) {
+        this.refreshExpiration = refreshExpiration;
     }
 }

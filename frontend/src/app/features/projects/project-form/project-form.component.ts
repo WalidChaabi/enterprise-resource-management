@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ProjectService } from '../../../core/services/project.service';
 import { EmployeeService } from '../../../core/services/employee.service';
-import { Project, ProjectCreateDTO, ProjectUpdateDTO, ProjectStatus } from '../../../core/models/project.model';
+import { ProjectCreateDTO, ProjectUpdateDTO, ProjectStatus } from '../../../core/models/project.model';
 import { Employee } from '../../../core/models/employee.model';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
@@ -14,22 +14,21 @@ import { AlertComponent } from '../../../shared/components/ui/alert/alert.compon
 import { ToastService } from '../../../shared/components/ui/toast/toast.service';
 
 @Component({
-  selector: 'app-project-form',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule,
-    TranslatePipe,
-    ButtonComponent,
-    CardComponent,
-    CardHeaderComponent,
-    CardTitleComponent,
-    CardContentComponent,
-    InputComponent,
-    AlertComponent
-  ],
-  templateUrl: './project-form.component.html'
+    selector: 'app-project-form',
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterModule,
+        TranslatePipe,
+        ButtonComponent,
+        CardComponent,
+        CardHeaderComponent,
+        CardTitleComponent,
+        CardContentComponent,
+        InputComponent,
+        AlertComponent
+    ],
+    templateUrl: './project-form.component.html'
 })
 export class ProjectFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);

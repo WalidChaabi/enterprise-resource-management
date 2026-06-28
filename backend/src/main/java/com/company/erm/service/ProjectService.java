@@ -2,6 +2,7 @@ package com.company.erm.service;
 
 import jakarta.transaction.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -16,6 +17,8 @@ import com.company.erm.entity.Organization;
 import com.company.erm.entity.Project;
 import com.company.erm.entity.ProjectStatus;
 import com.company.erm.entity.User;
+import org.springframework.http.HttpStatus;
+
 import com.company.erm.exception.BusinessException;
 import com.company.erm.repository.EmployeeRepository;
 import com.company.erm.repository.OrganizationRepository;
@@ -85,16 +88,20 @@ public class ProjectService {
         return projectRepository.save(project);
     }
 
+    public List<Project> listActive(UUID orgId) {
+        return projectRepository.findByOrganizationIdAndArchivedFalse(orgId);
+    }
+
     public Project getById(UUID orgId, UUID projectId) {
         return projectRepository
             .findByIdAndOrganizationId(projectId, orgId)
-            .orElseThrow(() -> new BusinessException("Project not found"));
+            .orElseThrow(() -> new BusinessException("PROJECT_NOT_FOUND", "Project not found", HttpStatus.NOT_FOUND));
     }
 
     public Project update(UUID orgId, UUID projectId, ProjectUpdateDTO dto) {
         Project project = projectRepository
             .findByIdAndOrganizationId(projectId, orgId)
-            .orElseThrow(() -> new BusinessException("Project not found"));
+            .orElseThrow(() -> new BusinessException("PROJECT_NOT_FOUND", "Project not found", HttpStatus.NOT_FOUND));
 
         if (dto.getName() != null) {
             project.setName(dto.getName());
@@ -118,7 +125,7 @@ public class ProjectService {
     public void archive(UUID orgId, UUID projectId) {
         Project project = projectRepository
             .findByIdAndOrganizationId(projectId, orgId)
-            .orElseThrow(() -> new BusinessException("Project not found"));
+            .orElseThrow(() -> new BusinessException("PROJECT_NOT_FOUND", "Project not found", HttpStatus.NOT_FOUND));
 
         project.setArchived(true);
     }

@@ -32,6 +32,17 @@ public interface DepartmentRepository extends JpaRepository<Department, UUID> {
         @Param("parentId") UUID parentId,
         Pageable pageable
     );
+
+    @Query("SELECT d FROM Department d WHERE d.organization.id = :orgId AND " +
+           "LOWER(d.name) LIKE LOWER(CONCAT('%', :query, '%'))")
+    Page<Department> searchByOrganizationIdAndQuery(
+            @Param("orgId") UUID orgId,
+            @Param("query") String query,
+            Pageable pageable);
+
+    @Query("SELECT COUNT(d) FROM Department d WHERE d.organization.id = :orgId AND " +
+           "LOWER(d.name) LIKE LOWER(CONCAT('%', :query, '%'))")
+    long countSearchByOrganizationIdAndQuery(@Param("orgId") UUID orgId, @Param("query") String query);
 }
 
 

@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TaskService } from '../../../core/services/task.service';
 import { EmployeeService } from '../../../core/services/employee.service';
-import { Task, TaskCreateDTO, TaskUpdateDTO, TaskStatus, TaskPriority } from '../../../core/models/task.model';
+import { TaskCreateDTO, TaskUpdateDTO, TaskStatus, TaskPriority } from '../../../core/models/task.model';
 import { Employee } from '../../../core/models/employee.model';
 import { ToastService } from '../../../shared/components/ui/toast/toast.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
@@ -14,22 +14,21 @@ import { InputComponent } from '../../../shared/components/ui/input/input.compon
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
 
 @Component({
-  selector: 'app-task-form',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule,
-    TranslatePipe,
-    ButtonComponent,
-    CardComponent,
-    CardHeaderComponent,
-    CardTitleComponent,
-    CardContentComponent,
-    InputComponent,
-    AlertComponent
-  ],
-  templateUrl: './task-form.component.html'
+    selector: 'app-task-form',
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterModule,
+        TranslatePipe,
+        ButtonComponent,
+        CardComponent,
+        CardHeaderComponent,
+        CardTitleComponent,
+        CardContentComponent,
+        InputComponent,
+        AlertComponent
+    ],
+    templateUrl: './task-form.component.html'
 })
 export class TaskFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);

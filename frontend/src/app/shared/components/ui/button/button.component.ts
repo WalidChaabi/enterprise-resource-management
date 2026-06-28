@@ -34,10 +34,9 @@ export type ButtonVariant = VariantProps<typeof buttonVariants>['variant'];
 export type ButtonSize = VariantProps<typeof buttonVariants>['size'];
 
 @Component({
-  selector: 'app-button, button[app-button]',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
-  template: `
+    selector: 'app-button, button[app-button]',
+    imports: [CommonModule, RouterModule],
+    template: `
     @if (routerLink()) {
       <a
         [routerLink]="routerLink()"
@@ -57,9 +56,9 @@ export type ButtonSize = VariantProps<typeof buttonVariants>['size'];
       </button>
     }
   `,
-  host: {
-    '[class]': 'classes()',
-  },
+    host: {
+        '[class]': 'classes()',
+    }
 })
 export class ButtonComponent {
   variant = input<ButtonVariant>('default');

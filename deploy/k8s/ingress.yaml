@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: erm-ingress
+  namespace: erm
+  labels:
+    app.kubernetes.io/part-of: erm-platform
+  annotations:
+    # For minikube: minikube addons enable ingress
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: erm.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: erm-front
+                port:
+                  number: 80

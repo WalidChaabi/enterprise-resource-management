@@ -1,7 +1,6 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ToastService, Toast, ToastVariant } from './toast.service';
-import { mergeClasses } from '@/shared/utils/merge-classes';
 
 const toastVariants: Record<ToastVariant, string> = {
   default: 'bg-background text-foreground border',
@@ -20,10 +19,9 @@ const iconVariants: Record<ToastVariant, string> = {
 };
 
 @Component({
-  selector: 'app-toast',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-toast',
+    imports: [CommonModule],
+    template: `
     <div 
       class="pointer-events-auto w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border shadow-lg transition-all duration-300 animate-in slide-in-from-top-5"
       [class]="toastVariants[toast().variant]">
@@ -54,9 +52,9 @@ const iconVariants: Record<ToastVariant, string> = {
       </div>
     </div>
   `,
-  host: {
-    '[attr.data-toast-id]': 'toast().id'
-  }
+    host: {
+        '[attr.data-toast-id]': 'toast().id'
+    }
 })
 export class ToastComponent {
   toast = input.required<Toast>();
@@ -71,16 +69,15 @@ export class ToastComponent {
 }
 
 @Component({
-  selector: 'app-toast-container',
-  standalone: true,
-  imports: [CommonModule, ToastComponent],
-  template: `
+    selector: 'app-toast-container',
+    imports: [CommonModule, ToastComponent],
+    template: `
     <div class="pointer-events-none fixed inset-0 z-[100] flex flex-col items-end gap-4 p-4 sm:items-end">
       @for (toast of toasts(); track toast.id) {
         <app-toast [toast]="toast" />
       }
     </div>
-  `,
+  `
 })
 export class ToastContainerComponent {
   toastService = inject(ToastService);

@@ -34,6 +34,22 @@ public interface UserRepository extends JpaRepository<User, UUID> {
         @Param("active") Boolean active,
         Pageable pageable
     );
+
+    @EntityGraph(attributePaths = {"department"})
+    @Query("SELECT u FROM User u WHERE u.organization.id = :orgId AND u.active = true AND " +
+           "(LOWER(u.firstName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(u.lastName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%')))")
+    Page<User> searchActiveByOrganizationIdAndQuery(
+            @Param("orgId") UUID orgId,
+            @Param("query") String query,
+            Pageable pageable);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.organization.id = :orgId AND u.active = true AND " +
+           "(LOWER(u.firstName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(u.lastName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%')))")
+    long countSearchActiveByOrganizationIdAndQuery(@Param("orgId") UUID orgId, @Param("query") String query);
 }
 
 

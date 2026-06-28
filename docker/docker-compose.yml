@@ -1,0 +1,77 @@
+name: erm-platform
+
+networks:
+  default:
+    name: erm-platform-network
+
+volumes:
+  pgdata:
+    name: erm-platform-pgdata-prod
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: erm-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-erm_db}
+      POSTGRES_USER: ${POSTGRES_USER:-erm_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-erm_user} -d ${POSTGRES_DB:-erm_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  backend:
+    container_name: erm-backend
+    image: erm-backend:latest
+    build:
+      context: ../backend
+      dockerfile: docker/Dockerfile.prod
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-erm_db}
+      DB_USER: ${POSTGRES_USER:-erm_user}
+      DB_PASS: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      DB_SCHEMA: ${DB_SCHEMA:-erm}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (min 32 characters)}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      ERM_DEMO_DATA_ENABLED: ${ERM_DEMO_DATA_ENABLED:-false}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health/liveness || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+    restart: unless-stopped
+
+  front:
+    container_name: erm-front
+    image: erm-front:latest
+    build:
+      context: ../frontend
+      dockerfile: docker/Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/health > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped

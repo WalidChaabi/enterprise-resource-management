@@ -20,22 +20,21 @@ import { CardComponent, CardHeaderComponent, CardTitleComponent, CardDescription
  * - Elegance through restraint: Minimal, professional, distraction-free
  */
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule,
-    TranslatePipe,
-    ButtonComponent,
-    CardComponent,
-    CardHeaderComponent,
-    CardTitleComponent,
-    CardDescriptionComponent,
-    CardContentComponent,
-    CardFooterComponent
-  ],
-  templateUrl: './login.component.html'
+    selector: 'app-login',
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterModule,
+        TranslatePipe,
+        ButtonComponent,
+        CardComponent,
+        CardHeaderComponent,
+        CardTitleComponent,
+        CardDescriptionComponent,
+        CardContentComponent,
+        CardFooterComponent
+    ],
+    templateUrl: './login.component.html'
 })
 export class LoginComponent {
   private readonly sanitizer = inject(DomSanitizer);
@@ -99,11 +98,14 @@ export class LoginComponent {
       return;
     }
 
-    // Set loading state
+    const credentials = this.loginForm.value;
+
+    // Set loading state and disable form controls via reactive forms API
     this.loading.set(true);
+    this.loginForm.disable();
 
     // Submit authentication request
-    this.authService.login(this.loginForm.value).subscribe({
+    this.authService.login(credentials).subscribe({
       next: () => {
         // Success: Navigate to return URL or dashboard
         // Enterprise pattern: Respect returnUrl for deep linking
@@ -117,6 +119,7 @@ export class LoginComponent {
         const message = error.details?.[0] || 'auth.login.error.default';
         this.errorMessage.set(message);
         this.loading.set(false);
+        this.loginForm.enable();
 
         // UX enhancement: Focus first invalid field after error
         // This helps keyboard users recover quickly
@@ -152,7 +155,7 @@ export class LoginComponent {
   fillDemoCredentials(): void {
     this.loginForm.patchValue({
       email: 'admin@demo.com',
-      password: 'password'
+      password: 'password123'
     });
     this.showDemoCredentials.set(false);
     // Focus password field for quick submission

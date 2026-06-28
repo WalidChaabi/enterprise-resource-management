@@ -25,6 +25,11 @@ public class PermissionChecker {
         this.userRoleRepository = userRoleRepository;
     }
     
+    public void requireRole(UUID organizationId, String userEmail, RoleCode... roles) {
+        requireRole(organizationId, userEmail,
+                Arrays.stream(roles).map(RoleCode::code).toArray(String[]::new));
+    }
+
     /**
      * Require user to have one of the specified roles in the organization.
      * 
@@ -80,14 +85,15 @@ public class PermissionChecker {
             .orElseThrow(() -> new AccessDeniedException("User not found"));
         
         // HR_ADMIN and ORG_ADMIN have access to all departments
-        boolean isHrAdmin = hasRole(organizationId, userEmail, "HR_ADMIN", "ORG_ADMIN");
+        boolean isHrAdmin = hasRole(organizationId, userEmail,
+                RoleCode.HR_ADMIN.code(), RoleCode.ORG_ADMIN.code());
         if (isHrAdmin) {
             return;
         }
         
         // Department managers can only access their own department
         if (user.getDepartment() != null && user.getDepartment().getId().equals(departmentId)) {
-            boolean isManager = hasRole(organizationId, userEmail, "DEPARTMENT_MANAGER");
+            boolean isManager = hasRole(organizationId, userEmail, RoleCode.DEPARTMENT_MANAGER.code());
             if (isManager) {
                 return;
             }

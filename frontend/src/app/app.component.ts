@@ -5,14 +5,13 @@ import { TranslationService } from './core/services/translation.service';
 import { ToastContainerComponent } from './shared/components/ui/toast/toast.component';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet, ToastContainerComponent],
-  template: `
+    selector: 'app-root',
+    imports: [RouterOutlet, ToastContainerComponent],
+    template: `
     <router-outlet></router-outlet>
     <app-toast-container />
   `,
-  styles: []
+    styles: []
 })
 export class AppComponent {
   title = 'Enterprise Resource Management';

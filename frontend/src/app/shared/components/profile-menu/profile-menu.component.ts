@@ -2,10 +2,9 @@ import { Component, ElementRef, EventEmitter, HostListener, Input, Output, signa
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-profile-menu',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-profile-menu',
+    imports: [CommonModule],
+    template: `
     <div class="relative">
       <button
         type="button"

@@ -8,10 +8,9 @@ import { ButtonComponent } from '../ui/button/button.component';
 import { BadgeComponent } from '../ui/badge/badge.component';
 
 @Component({
-  selector: 'app-role-picker',
-  standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, ButtonComponent, BadgeComponent],
-  templateUrl: './role-picker.component.html'
+    selector: 'app-role-picker',
+    imports: [CommonModule, FormsModule, TranslatePipe, ButtonComponent, BadgeComponent],
+    templateUrl: './role-picker.component.html'
 })
 export class RolePickerComponent implements OnInit {
   private readonly userRoleService = inject(UserRoleService);

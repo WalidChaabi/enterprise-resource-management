@@ -10,10 +10,9 @@ import { BadgeComponent, BadgeVariant } from '../../../shared/components/ui/badg
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
 
 @Component({
-  selector: 'app-task-detail',
-  standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, BadgeComponent, AlertComponent, DatePipe],
-  templateUrl: './task-detail.component.html'
+    selector: 'app-task-detail',
+    imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, BadgeComponent, AlertComponent, DatePipe],
+    templateUrl: './task-detail.component.html'
 })
 export class TaskDetailComponent implements OnInit {
   private readonly taskService = inject(TaskService);

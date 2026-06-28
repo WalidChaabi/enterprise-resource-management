@@ -6,6 +6,9 @@ import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -49,6 +52,24 @@ public class GlobalExceptionHandler {
         String code = exception.getCode() == null ? "BUSINESS_ERROR" : exception.getCode();
         return ResponseEntity.status(status)
                 .body(new ErrorResponse(code, List.of(exception.getMessage())));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("ACCESS_DENIED", List.of(exception.getMessage())));
+    }
+
+    @ExceptionHandler({AuthenticationException.class, AuthenticationCredentialsNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException exception) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("UNAUTHORIZED", List.of("Authentication required")));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException exception) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse("BAD_REQUEST", List.of(exception.getMessage())));
     }
 
     @ExceptionHandler(Exception.class)

@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TimeEntryService } from '../../../core/services/time-entry.service';
 import { ProjectService } from '../../../core/services/project.service';
-import { TimeEntry, TimeEntryCreateDTO, TimeEntryUpdateDTO } from '../../../core/models/time-entry.model';
+import { TimeEntryCreateDTO, TimeEntryUpdateDTO } from '../../../core/models/time-entry.model';
 import { Project } from '../../../core/models/project.model';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
@@ -13,22 +13,21 @@ import { InputComponent } from '../../../shared/components/ui/input/input.compon
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
 
 @Component({
-  selector: 'app-time-entry-form',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule,
-    TranslatePipe,
-    ButtonComponent,
-    CardComponent,
-    CardHeaderComponent,
-    CardTitleComponent,
-    CardContentComponent,
-    InputComponent,
-    AlertComponent
-  ],
-  templateUrl: './time-entry-form.component.html'
+    selector: 'app-time-entry-form',
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterModule,
+        TranslatePipe,
+        ButtonComponent,
+        CardComponent,
+        CardHeaderComponent,
+        CardTitleComponent,
+        CardContentComponent,
+        InputComponent,
+        AlertComponent
+    ],
+    templateUrl: './time-entry-form.component.html'
 })
 export class TimeEntryFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);

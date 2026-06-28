@@ -5,6 +5,7 @@ import com.company.erm.entity.Organization;
 import com.company.erm.entity.Role;
 import com.company.erm.entity.User;
 import com.company.erm.entity.UserRole;
+import com.company.erm.entity.UserRoleId;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -18,11 +19,10 @@ public class TestDataFactory {
 
     public static Organization createOrganization() {
         Organization org = new Organization();
-        org.setId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+        org.setId(UUID.randomUUID());
         org.setName("Test Organization");
         org.setCode("TEST");
         org.setActive(true);
-        // createdAt and updatedAt are set automatically via @PrePersist
         return org;
     }
 
@@ -32,7 +32,6 @@ public class TestDataFactory {
         org.setName(name);
         org.setCode(code);
         org.setActive(true);
-        // createdAt and updatedAt are set automatically via @PrePersist
         return org;
     }
 
@@ -43,7 +42,6 @@ public class TestDataFactory {
         dept.setName("Test Department");
         dept.setCode("TEST_DEPT");
         dept.setActive(true);
-        // createdAt and updatedAt are set automatically via @PrePersist
         return dept;
     }
 
@@ -54,7 +52,6 @@ public class TestDataFactory {
         dept.setName(name);
         dept.setCode(code);
         dept.setActive(true);
-        // createdAt and updatedAt are set automatically via @PrePersist
         return dept;
     }
 
@@ -66,7 +63,6 @@ public class TestDataFactory {
         role.setName(name);
         role.setDescription("Test role");
         role.setScope("ORG");
-        // createdAt and updatedAt are set automatically via @PrePersist
         return role;
     }
 
@@ -89,7 +85,6 @@ public class TestDataFactory {
         user.setFirstName("Test");
         user.setLastName("User");
         user.setActive(true);
-        // createdAt and updatedAt are set automatically via @PrePersist
         return user;
     }
 
@@ -101,6 +96,12 @@ public class TestDataFactory {
 
     public static UserRole createUserRole(User user, Role role) {
         UserRole userRole = new UserRole();
+        UserRoleId id = new UserRoleId(
+            user.getId(),
+            role.getId(),
+            user.getOrganization().getId()
+        );
+        userRole.setId(id);
         userRole.setUser(user);
         userRole.setRole(role);
         userRole.setOrganization(user.getOrganization());

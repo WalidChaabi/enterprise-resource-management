@@ -81,7 +81,7 @@
                 [ngClass]="{
                   'border-input hover:border-input/80': !email?.invalid || !email?.touched,
                   'border-destructive focus-visible:ring-destructive/20': email?.invalid && email?.touched
-                }" [disabled]="loading()" />
+                }" />
             </div>
             @if (email?.invalid && email?.touched) {
             <p id="email-error" class="text-sm text-destructive flex items-start gap-1.5" role="alert">
@@ -112,7 +112,7 @@
                 [ngClass]="{
                   'border-input hover:border-input/80': !password?.invalid || !password?.touched,
                   'border-destructive focus-visible:ring-destructive/20': password?.invalid && password?.touched
-                }" [disabled]="loading()" />
+                }" />
 
               <!-- Password Visibility Toggle -->
               <!-- Enterprise pattern: Accessible, keyboard-friendly, clear icon states -->
@@ -234,7 +234,7 @@
             </div>
             <div class="flex items-center justify-between">
               <span class="font-medium">{{ 'auth.login.password' | translate }}:</span>
-              <code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">password</code>
+              <code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">password123</code>
             </div>
           </div>
           <button type="button" (click)="fillDemoCredentials()"

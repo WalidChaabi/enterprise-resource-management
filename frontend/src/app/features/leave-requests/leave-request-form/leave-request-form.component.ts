@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { LeaveRequestService } from '../../../core/services/leave-request.service';
-import { LeaveRequest, LeaveRequestCreateDTO, LeaveRequestUpdateDTO, LeaveType } from '../../../core/models/leave-request.model';
+import { LeaveRequestCreateDTO, LeaveRequestUpdateDTO, LeaveType } from '../../../core/models/leave-request.model';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
@@ -11,22 +11,21 @@ import { InputComponent } from '../../../shared/components/ui/input/input.compon
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
 
 @Component({
-  selector: 'app-leave-request-form',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule,
-    TranslatePipe,
-    ButtonComponent,
-    CardComponent,
-    CardHeaderComponent,
-    CardTitleComponent,
-    CardContentComponent,
-    InputComponent,
-    AlertComponent
-  ],
-  templateUrl: './leave-request-form.component.html'
+    selector: 'app-leave-request-form',
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterModule,
+        TranslatePipe,
+        ButtonComponent,
+        CardComponent,
+        CardHeaderComponent,
+        CardTitleComponent,
+        CardContentComponent,
+        InputComponent,
+        AlertComponent
+    ],
+    templateUrl: './leave-request-form.component.html'
 })
 export class LeaveRequestFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);

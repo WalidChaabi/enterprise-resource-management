@@ -11,10 +11,9 @@ import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.com
 import { TaskFormComponent } from '../task-form/task-form.component';
 
 @Component({
-  selector: 'app-task-list',
-  standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, BadgeComponent, AlertComponent, DatePipe, DialogComponent, TaskFormComponent],
-  templateUrl: './task-list.component.html'
+    selector: 'app-task-list',
+    imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, BadgeComponent, AlertComponent, DatePipe, DialogComponent, TaskFormComponent],
+    templateUrl: './task-list.component.html'
 })
 export class TaskListComponent implements OnInit {
   private readonly taskService = inject(TaskService);

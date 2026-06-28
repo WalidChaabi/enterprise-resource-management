@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -41,5 +43,20 @@ public interface TimeEntryRepository extends JpaRepository<TimeEntry, UUID> {
 
     @Query("SELECT te FROM TimeEntry te WHERE te.employee.id = :employeeId AND te.entryDate = :entryDate")
     List<TimeEntry> findByEmployeeIdAndEntryDate(@Param("employeeId") UUID employeeId, @Param("entryDate") LocalDate entryDate);
+
+    @Query("SELECT te FROM TimeEntry te WHERE te.employee.organization.id = :orgId AND " +
+           "(LOWER(COALESCE(te.description, '')) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(te.project.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(COALESCE(te.task.title, '')) LIKE LOWER(CONCAT('%', :query, '%')))")
+    Page<TimeEntry> searchByOrganizationIdAndQuery(
+            @Param("orgId") UUID orgId,
+            @Param("query") String query,
+            Pageable pageable);
+
+    @Query("SELECT COUNT(te) FROM TimeEntry te WHERE te.employee.organization.id = :orgId AND " +
+           "(LOWER(COALESCE(te.description, '')) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(te.project.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(COALESCE(te.task.title, '')) LIKE LOWER(CONCAT('%', :query, '%')))")
+    long countSearchByOrganizationIdAndQuery(@Param("orgId") UUID orgId, @Param("query") String query);
 }
 

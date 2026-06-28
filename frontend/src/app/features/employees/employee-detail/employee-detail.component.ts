@@ -17,10 +17,9 @@ import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.com
 import { EmployeeFormComponent } from '../employee-form/employee-form.component';
 
 @Component({
-  selector: 'app-employee-detail',
-  standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, BadgeComponent, AlertComponent, RolePickerComponent, DialogComponent, EmployeeFormComponent],
-  templateUrl: './employee-detail.component.html'
+    selector: 'app-employee-detail',
+    imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, BadgeComponent, AlertComponent, RolePickerComponent, DialogComponent, EmployeeFormComponent],
+    templateUrl: './employee-detail.component.html'
 })
 export class EmployeeDetailComponent implements OnInit {
   private readonly employeeService = inject(EmployeeService);
