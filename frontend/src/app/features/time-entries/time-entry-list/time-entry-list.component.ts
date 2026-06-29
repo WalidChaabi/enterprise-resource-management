@@ -1,7 +1,7 @@
+import { LucideAngularModule } from 'lucide-angular';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule, DatePipe } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TimeEntryService } from '../../../core/services/time-entry.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -9,16 +9,28 @@ import { TimeEntry, TimeEntryStatus } from '../../../core/models/time-entry.mode
 import { ROLES } from '../../../core/utils/constants';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
-import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
-import { BadgeComponent, BadgeVariant } from '../../../shared/components/ui/badge/badge.component';
+import { CardComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
 import { SkeletonTableComponent } from '../../../shared/components/ui/skeleton/skeleton.component';
-import { InputComponent } from '../../../shared/components/ui/input/input.component';
 import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.component';
 import { TimeEntryFormComponent } from '../time-entry-form/time-entry-form.component';
+import { TimeEntryDataTableComponent } from './time-entry-data-table.component';
 
 @Component({
     selector: 'app-time-entry-list',
-    imports: [CommonModule, RouterModule, FormsModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, BadgeComponent, SkeletonTableComponent, DatePipe, InputComponent, DialogComponent, TimeEntryFormComponent],
+    imports: [
+        CommonModule,
+        FormsModule,
+        DecimalPipe,
+        TranslatePipe,
+        LucideAngularModule,
+        ButtonComponent,
+        CardComponent,
+        CardContentComponent,
+        SkeletonTableComponent,
+        DialogComponent,
+        TimeEntryFormComponent,
+        TimeEntryDataTableComponent
+    ],
     templateUrl: './time-entry-list.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -31,7 +43,7 @@ export class TimeEntryListComponent {
   readonly loading = signal<boolean>(false);
   readonly error = signal<string>('');
   readonly processing = signal<string | null>(null);
-  readonly rejectingEntryId = signal<string | null>(null);
+  readonly rejectingEntry = signal<TimeEntry | null>(null);
   readonly rejectionReason = signal<string>('');
   readonly showCreateModal = signal<boolean>(false);
 
@@ -39,7 +51,6 @@ export class TimeEntryListComponent {
     return this.authService.hasAnyRole(ROLES.PROJECT_MANAGER, ROLES.ORG_ADMIN, ROLES.HR_ADMIN);
   });
 
-  // Summary statistics
   readonly totalHours = computed(() => {
     return this.timeEntries().reduce((sum, entry) => sum + entry.hours, 0);
   });
@@ -74,56 +85,15 @@ export class TimeEntryListComponent {
 
     this.timeEntryService.getTimeEntries().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (timeEntries) => {
-        // Handle both array and paginated response
         const entries = Array.isArray(timeEntries) ? timeEntries : (timeEntries.content || []);
         this.timeEntries.set(entries);
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Error loading time entries:', err);
-        let errorMessage = 'Failed to load time entries';
-        
-        if (err?.details && Array.isArray(err.details) && err.details.length > 0) {
-          errorMessage = err.details[0];
-        } else if (err?.message) {
-          errorMessage = err.message;
-        } else if (typeof err === 'string') {
-          errorMessage = err;
-        } else if (err?.error?.message) {
-          errorMessage = err.error.message;
-        } else if (err?.error?.details && Array.isArray(err.error.details) && err.error.details.length > 0) {
-          errorMessage = err.error.details[0];
-        }
-        
-        this.error.set(errorMessage);
+        this.error.set(err?.details?.[0] || err?.error?.details?.[0] || err?.message || 'Failed to load time entries');
         this.loading.set(false);
       }
     });
-  }
-
-  getStatusVariant(status: TimeEntryStatus): BadgeVariant {
-    switch (status) {
-      case TimeEntryStatus.APPROVED:
-        return 'default';
-      case TimeEntryStatus.SUBMITTED:
-        return 'secondary';
-      case TimeEntryStatus.REJECTED:
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  }
-
-  canSubmitEntry(entry: TimeEntry): boolean {
-    return entry.status === TimeEntryStatus.DRAFT;
-  }
-
-  canApproveEntry(entry: TimeEntry): boolean {
-    return this.canApprove() && entry.status === TimeEntryStatus.SUBMITTED;
-  }
-
-  canEditEntry(entry: TimeEntry): boolean {
-    return entry.status === TimeEntryStatus.DRAFT || entry.status === TimeEntryStatus.REJECTED;
   }
 
   submitEntry(entry: TimeEntry): void {
@@ -138,16 +108,7 @@ export class TimeEntryListComponent {
         this.processing.set(null);
       },
       error: (err) => {
-        console.error('Error submitting time entry:', err);
-        let errorMessage = 'Failed to submit time entry';
-        
-        if (err?.details && Array.isArray(err.details) && err.details.length > 0) {
-          errorMessage = err.details[0];
-        } else if (err?.message) {
-          errorMessage = err.message;
-        }
-        
-        this.error.set(errorMessage);
+        this.error.set(err?.details?.[0] || err?.message || 'Failed to submit time entry');
         this.processing.set(null);
       }
     });
@@ -165,33 +126,25 @@ export class TimeEntryListComponent {
         this.processing.set(null);
       },
       error: (err) => {
-        console.error('Error approving time entry:', err);
-        let errorMessage = 'Failed to approve time entry';
-        
-        if (err?.details && Array.isArray(err.details) && err.details.length > 0) {
-          errorMessage = err.details[0];
-        } else if (err?.message) {
-          errorMessage = err.message;
-        }
-        
-        this.error.set(errorMessage);
+        this.error.set(err?.details?.[0] || err?.message || 'Failed to approve time entry');
         this.processing.set(null);
       }
     });
   }
 
   startRejectEntry(entry: TimeEntry): void {
-    this.rejectingEntryId.set(entry.id);
+    this.rejectingEntry.set(entry);
     this.rejectionReason.set('');
   }
 
-  cancelReject(): void {
-    this.rejectingEntryId.set(null);
+  closeRejectDialog(): void {
+    this.rejectingEntry.set(null);
     this.rejectionReason.set('');
   }
 
-  confirmReject(entry: TimeEntry): void {
-    if (this.processing()) return;
+  confirmReject(): void {
+    const entry = this.rejectingEntry();
+    if (!entry || this.processing()) return;
 
     this.processing.set(entry.id);
     this.error.set('');
@@ -200,22 +153,12 @@ export class TimeEntryListComponent {
 
     this.timeEntryService.rejectTimeEntry(entry.id, reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
-        this.rejectingEntryId.set(null);
-        this.rejectionReason.set('');
+        this.closeRejectDialog();
         this.loadTimeEntries();
         this.processing.set(null);
       },
       error: (err) => {
-        console.error('Error rejecting time entry:', err);
-        let errorMessage = 'Failed to reject time entry';
-        
-        if (err?.details && Array.isArray(err.details) && err.details.length > 0) {
-          errorMessage = err.details[0];
-        } else if (err?.message) {
-          errorMessage = err.message;
-        }
-        
-        this.error.set(errorMessage);
+        this.error.set(err?.details?.[0] || err?.message || 'Failed to reject time entry');
         this.processing.set(null);
       }
     });

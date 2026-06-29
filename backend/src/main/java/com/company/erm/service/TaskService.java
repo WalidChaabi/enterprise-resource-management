@@ -40,6 +40,7 @@ public class TaskService {
     private final TaskDomainService taskDomainService;
     private final PermissionChecker permissionChecker;
     private final TaskMapper taskMapper;
+    private final NotificationService notificationService;
 
     public TaskService(
             TaskRepository taskRepository,
@@ -47,13 +48,15 @@ public class TaskService {
             UserRepository userRepository,
             TaskDomainService taskDomainService,
             PermissionChecker permissionChecker,
-            TaskMapper taskMapper) {
+            TaskMapper taskMapper,
+            NotificationService notificationService) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
         this.taskDomainService = taskDomainService;
         this.permissionChecker = permissionChecker;
         this.taskMapper = taskMapper;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -107,6 +110,14 @@ public class TaskService {
         
         // 6. Save task
         Task savedTask = taskRepository.save(task);
+
+        if (savedTask.getAssignedTo() != null) {
+            notificationService.createInAppNotification(
+                savedTask.getAssignedTo(),
+                "Task assigned",
+                String.format("You were assigned to task \"%s\" on project %s.",
+                    savedTask.getTitle(), project.getName()));
+        }
         
         // 7. Map to DTO
         return taskMapper.toResponseDTO(savedTask);
@@ -147,6 +158,7 @@ public class TaskService {
         
         // 3. Track old status for validation
         TaskStatus oldStatus = task.getStatus();
+        User previousAssignee = task.getAssignedTo();
         
         // 4. Apply updates
         updateDTO.getTitle().ifPresent(task::setTitle);
@@ -183,6 +195,16 @@ public class TaskService {
         
         // 8. Save
         Task updated = taskRepository.save(task);
+
+        User newAssignee = updated.getAssignedTo();
+        if (newAssignee != null
+                && (previousAssignee == null || !newAssignee.getId().equals(previousAssignee.getId()))) {
+            notificationService.createInAppNotification(
+                newAssignee,
+                "Task assigned",
+                String.format("You were assigned to task \"%s\" on project %s.",
+                    updated.getTitle(), updated.getProject().getName()));
+        }
         
         // 9. Map to DTO
         return taskMapper.toResponseDTO(updated);

@@ -1,84 +1,70 @@
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-semibold text-foreground">{{ 'projects.title' | translate }}</h1>
+      <h1 class="page-title text-2xl">{{ 'projects.title' | translate }}</h1>
+      @if (projects().length > 0) {
+        <p class="page-description mt-1">
+          {{ projects().length }} {{ projects().length === 1 ? 'project' : 'projects' }}
+        </p>
+      }
     </div>
     @if (canCreateProject()) {
-      <app-button (click)="openCreateModal()">
+      <app-button (click)="openCreateModal()" class="shadow-sm">
+        <lucide-icon name="plus" [size]="16" />
         {{ 'projects.newProject' | translate }}
       </app-button>
     }
   </div>
 
   @if (loading()) {
-    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      @for (i of [1,2,3]; track i) {
-        <app-card>
-          <app-card-content class="p-6">
-            <app-skeleton [width]="'100%'" [height]="'h-6'" [className]="'mb-3'"></app-skeleton>
-            <app-skeleton [width]="'80%'" [height]="'h-4'"></app-skeleton>
-          </app-card-content>
-        </app-card>
-      }
-    </div>
+    <app-card>
+      <app-card-content class="p-6">
+        <app-skeleton-table [rows]="5" [columns]="[
+          { width: '28%' },
+          { width: '14%' },
+          { width: '10%' },
+          { width: '14%' },
+          { width: '14%' },
+          { width: '12%' },
+          { width: '8%' }
+        ]" />
+      </app-card-content>
+    </app-card>
   } @else if (error()) {
     <div class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-      <svg class="h-5 w-5 flex-shrink-0 text-destructive mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+      <lucide-icon name="alert-circle" [size]="20" class="flex-shrink-0 text-destructive mt-0.5" />
       <div class="flex-1 min-w-0">
         <p class="text-sm font-medium text-foreground">{{ error() }}</p>
       </div>
     </div>
-  } @else if (projects().length === 0) {
-    <app-card>
-      <app-card-content>
-        <div class="flex flex-col items-center justify-center py-12 text-center">
-          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-            <svg class="h-6 w-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-          </div>
-          <h3 class="text-base font-semibold text-foreground mb-1">No projects yet</h3>
-          @if (canCreateProject()) {
-            <p class="text-sm text-muted-foreground mb-6 max-w-sm">Create your first project to start tracking work and resources.</p>
-            <app-button (click)="openCreateModal()">
-              {{ 'projects.newProject' | translate }}
-            </app-button>
-          } @else {
-            <p class="text-sm text-muted-foreground max-w-sm">Project creation is restricted to organization administrators and project managers.</p>
-          }
-        </div>
-      </app-card-content>
-    </app-card>
   } @else {
-    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      @for (project of projects(); track project.id) {
-        <app-card 
-          [routerLink]="['/projects', project.id]"
-          class="cursor-pointer transition-all duration-150 hover:shadow">
-          <app-card-header>
-            <app-card-title>{{ project.name }}</app-card-title>
-          </app-card-header>
-          <app-card-content>
-            <p class="text-sm text-muted-foreground line-clamp-2 mb-4">
-              {{ project.description || ('common.noDescription' | translate) }}
-            </p>
-            <div class="flex items-center justify-between text-xs">
-              <app-badge [variant]="getStatusVariant(project.status)">
-                {{ 'projects.status.' + project.status.toLowerCase().replace('_', '-') | translate }}
-              </app-badge>
-              <span class="text-muted-foreground">{{ project.membersCount }} {{ 'common.members' | translate }}</span>
-            </div>
-          </app-card-content>
-        </app-card>
-      }
-    </div>
+    <app-project-data-table
+      [data]="projects()"
+      [canCreate]="canCreateProject()"
+      [canArchive]="canArchiveProject()"
+      (createRequested)="openCreateModal()"
+      (archiveRequested)="startArchive($event)" />
   }
 
-  <!-- Create Project Modal -->
-  <app-dialog 
-    [open]="showCreateModal()" 
+  <app-dialog
+    [open]="archivingProjectId() !== null"
+    [title]="'projects.archive' | translate"
+    (closed)="closeArchiveDialog()">
+    <div class="space-y-4">
+      <p class="text-sm text-muted-foreground">{{ 'projects.archiveConfirm' | translate }}</p>
+      <div class="flex justify-end gap-2">
+        <app-button variant="outline" (click)="closeArchiveDialog()" [disabled]="processing()">
+          {{ 'common.cancel' | translate }}
+        </app-button>
+        <app-button variant="destructive" (click)="confirmArchive()" [disabled]="processing()">
+          {{ 'projects.confirmArchive' | translate }}
+        </app-button>
+      </div>
+    </div>
+  </app-dialog>
+
+  <app-dialog
+    [open]="showCreateModal()"
     [title]="'projects.newProject' | translate"
     (closed)="closeCreateModal()">
     <app-project-form [modalMode]="true" (saved)="onProjectCreated()" (cancelled)="closeCreateModal()"></app-project-form>

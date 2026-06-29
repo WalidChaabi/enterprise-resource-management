@@ -1,3 +1,4 @@
+import { LucideAngularModule } from 'lucide-angular';
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SettingsService } from '../../../core/services/settings.service';
@@ -14,6 +15,7 @@ import { SkeletonComponent } from '../../../shared/components/ui/skeleton/skelet
     imports: [
         CommonModule,
         TranslatePipe,
+        LucideAngularModule,
         CardComponent,
         CardHeaderComponent,
         CardTitleComponent,
@@ -38,9 +40,7 @@ import { SkeletonComponent } from '../../../shared/components/ui/skeleton/skelet
 
       @if (error()) {
         <div class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-          <svg class="h-5 w-5 flex-shrink-0 text-destructive mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <lucide-icon name="alert-circle" [size]="20" class="flex-shrink-0 text-destructive mt-0.5" />
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-foreground">{{ error() }}</p>
           </div>
@@ -63,9 +63,7 @@ import { SkeletonComponent } from '../../../shared/components/ui/skeleton/skelet
           <app-card>
             <app-card-content class="flex flex-col items-center justify-center py-12">
               <div class="rounded-full bg-muted p-3 mb-4">
-                <svg class="h-6 w-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
+                <lucide-icon name="users" [size]="24" class="text-muted-foreground" />
               </div>
               <h3 class="text-base font-semibold text-foreground mb-1">No roles configured</h3>
               @if (canManageRoles()) {
@@ -82,10 +80,8 @@ import { SkeletonComponent } from '../../../shared/components/ui/skeleton/skelet
                 <app-card-content class="p-6">
                   <div class="flex items-start justify-between mb-4">
                     <div class="flex items-center gap-3">
-                      <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
+                      <div class="icon-container h-10 w-10">
+                        <lucide-icon name="shield-check" [size]="20" />
                       </div>
                       <div class="flex-1 min-w-0">
                         <h3 class="text-base font-semibold text-foreground truncate">{{ role.name }}</h3>
@@ -101,9 +97,7 @@ import { SkeletonComponent } from '../../../shared/components/ui/skeleton/skelet
                   <div class="mt-4 pt-4 border-t border-border">
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-2 text-xs text-muted-foreground">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
+                        <lucide-icon name="building-2" [size]="16" />
                         <span>Organization Role</span>
                       </div>
                       @if (currentUserRoles().includes(role.code)) {

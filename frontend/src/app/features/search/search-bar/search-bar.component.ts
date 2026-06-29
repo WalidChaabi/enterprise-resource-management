@@ -1,3 +1,4 @@
+import { LucideAngularModule } from 'lucide-angular';
 import { Component, EventEmitter, Output, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +9,8 @@ import { SearchRequest, SearchResult, SearchEntityType } from '../../../core/mod
 
 @Component({
     selector: 'app-search-bar',
-    imports: [CommonModule, FormsModule, RouterModule, TranslatePipe],
+    imports: [CommonModule, FormsModule, RouterModule, TranslatePipe, LucideAngularModule],
+    host: { class: 'block w-full min-w-0' },
     templateUrl: './search-bar.component.html'
 })
 export class SearchBarComponent {

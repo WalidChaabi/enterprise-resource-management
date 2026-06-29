@@ -1,9 +1,15 @@
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-semibold text-foreground">{{ 'departments.title' | translate }}</h1>
+      <h1 class="page-title text-2xl">{{ 'departments.title' | translate }}</h1>
+      @if (departments().length > 0) {
+        <p class="page-description mt-1">
+          {{ departments().length }} {{ departments().length === 1 ? 'department' : 'departments' }}
+        </p>
+      }
     </div>
-    <app-button (click)="openCreateModal()">
+    <app-button (click)="openCreateModal()" class="shadow-sm">
+      <lucide-icon name="plus" [size]="16" />
       {{ 'departments.newDepartment' | translate }}
     </app-button>
   </div>
@@ -22,9 +28,7 @@
     </app-card>
   } @else if (error()) {
     <div class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-      <svg class="h-5 w-5 flex-shrink-0 text-destructive mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+      <lucide-icon name="alert-circle" [size]="20" class="flex-shrink-0 text-destructive mt-0.5" />
       <div class="flex-1 min-w-0">
         <p class="text-sm font-medium text-foreground">{{ error() }}</p>
       </div>
@@ -34,9 +38,7 @@
       <app-card-content>
         <div class="flex flex-col items-center justify-center py-12 text-center">
           <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-            <svg class="h-6 w-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" />
-            </svg>
+            <lucide-icon name="layout-grid" [size]="24" class="text-muted-foreground" />
           </div>
           <h3 class="text-base font-semibold text-foreground mb-1">No departments yet</h3>
           <p class="text-sm text-muted-foreground mb-6 max-w-sm">{{ 'departments.emptyState' | translate }}</p>
@@ -47,45 +49,11 @@
       </app-card-content>
     </app-card>
   } @else {
-    <app-card>
-      <div class="table-wrapper">
-        <table class="table-enhanced">
-          <thead>
-            <tr>
-              <th>{{ 'departments.table.name' | translate }}</th>
-              <th>{{ 'departments.table.description' | translate }}</th>
-              <th>{{ 'departments.table.manager' | translate }}</th>
-              <th>{{ 'departments.table.employees' | translate }}</th>
-              <th>{{ 'departments.table.actions' | translate }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (department of departmentList(); track department.id) {
-              <tr [routerLink]="['/departments', department.id]">
-                <td class="font-medium">{{ department.name }}</td>
-                <td class="text-muted-foreground">{{ department.description || '-' }}</td>
-                <td class="text-muted-foreground">{{ department.managerName || '-' }}</td>
-                <td class="text-muted-foreground">{{ department.employeeCount || 0 }}</td>
-                <td>
-                  <app-button 
-                    variant="ghost" 
-                    size="sm" 
-                    [routerLink]="['/departments', department.id, 'edit']"
-                    (click)="$event.stopPropagation()">
-                    {{ 'common.edit' | translate }}
-                  </app-button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </app-card>
+    <app-department-data-table [data]="departments()" />
   }
 
-  <!-- Create Department Modal -->
-  <app-dialog 
-    [open]="showCreateModal()" 
+  <app-dialog
+    [open]="showCreateModal()"
     [title]="'departments.newDepartment' | translate"
     (closed)="closeCreateModal()">
     <app-department-form [modalMode]="true" (saved)="onDepartmentCreated()" (cancelled)="closeCreateModal()"></app-department-form>

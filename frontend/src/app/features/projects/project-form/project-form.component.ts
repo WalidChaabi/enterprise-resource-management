@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject, input, output } from '@angular/core';
+import { Component, OnInit, signal, inject, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -12,6 +12,9 @@ import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComp
 import { InputComponent } from '../../../shared/components/ui/input/input.component';
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
 import { ToastService } from '../../../shared/components/ui/toast/toast.service';
+import { FormSelectComponent, FormSelectOption } from '../../../shared/components/ui/form-select/form-select.component';
+import { DatePickerComponent } from '../../../shared/components/ui/date-picker/date-picker.component';
+import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
     selector: 'app-project-form',
@@ -26,7 +29,9 @@ import { ToastService } from '../../../shared/components/ui/toast/toast.service'
         CardTitleComponent,
         CardContentComponent,
         InputComponent,
-        AlertComponent
+        AlertComponent,
+        FormSelectComponent,
+        DatePickerComponent
     ],
     templateUrl: './project-form.component.html'
 })
@@ -37,6 +42,7 @@ export class ProjectFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
+  private readonly translationService = inject(TranslationService);
 
   // Inputs for modal usage
   modalMode = input<boolean>(false);
@@ -61,6 +67,24 @@ export class ProjectFormComponent implements OnInit {
     { value: ProjectStatus.COMPLETED, label: 'projects.status.completed' },
     { value: ProjectStatus.CANCELLED, label: 'projects.status.cancelled' }
   ];
+
+  readonly statusSelectOptions = computed((): FormSelectOption[] => {
+    this.translationService.languageTick();
+    return this.projectStatuses.map((status) => ({
+      value: status.value,
+      label: this.translationService.translate(status.label),
+    }));
+  });
+
+  readonly managerSelectOptions = computed((): FormSelectOption[] => {
+    return this.employees().map((employee) => {
+      const emailSuffix = employee.email ? ` (${employee.email})` : '';
+      return {
+        value: employee.id,
+        label: `${employee.firstName} ${employee.lastName}${emailSuffix}`,
+      };
+    });
+  });
 
   constructor() {
     this.form = this.fb.group({

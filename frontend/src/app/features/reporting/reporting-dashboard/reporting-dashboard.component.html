@@ -1,321 +1,381 @@
-<div class="space-y-6">
-  <div class="flex items-start justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-semibold text-foreground">{{ 'nav.reports' | translate }}</h1>
-      <p class="text-sm text-muted-foreground mt-1">Performance overview and operational health</p>
-    </div>
+<div class="space-y-8">
+  <div class="page-header">
+    <h1 class="page-title">{{ 'reporting.title' | translate }}</h1>
+    <p class="page-description">{{ 'reporting.subtitle' | translate }}</p>
   </div>
 
-  @if (loading()) {
-    <app-card>
-      <app-card-content class="p-12">
-        <div class="flex flex-col items-center justify-center gap-3 text-muted-foreground">
-          <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p>Loading reports...</p>
-        </div>
-      </app-card-content>
-    </app-card>
-  } @else if (error()) {
+  <div class="flex flex-wrap gap-2 border-b border-border pb-1">
+    @for (tab of tabs; track tab.id) {
+      <button
+        type="button"
+        class="rounded-md px-4 py-2 text-sm font-medium transition-colors"
+        [class.bg-primary]="activeTab() === tab.id"
+        [class.text-primary-foreground]="activeTab() === tab.id"
+        [class.text-muted-foreground]="activeTab() !== tab.id"
+        [class.hover:bg-muted]="activeTab() !== tab.id"
+        (click)="setTab(tab.id)">
+        {{ tab.labelKey | translate }}
+      </button>
+    }
+  </div>
+
+  @if (error()) {
     <app-alert variant="destructive">{{ error() }}</app-alert>
   }
 
-  @if (!loading() && dashboard()) {
-    <!-- Key Metrics Grid -->
-    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <app-card class="group hover:shadow-md transition-shadow duration-200 h-full flex flex-col">
-        <app-card-content class="p-6 flex flex-col flex-1">
-          <div class="flex items-start justify-between flex-1">
-            <div class="flex-1">
-              <p class="text-sm font-medium text-muted-foreground mb-1">Active Projects</p>
-              <p class="text-3xl font-bold text-foreground mb-1">{{ dashboard()!.activeProjects }}</p>
-              <p class="text-xs text-muted-foreground">{{ dashboard()!.totalProjects }} total projects</p>
-            </div>
-            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
-              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
+  @if (activeTab() === 'overview') {
+    @if (loading()) {
+      <app-card>
+        <app-card-content class="p-12">
+          <div class="flex flex-col items-center justify-center gap-3 text-muted-foreground">
+            <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            <p>{{ 'reporting.loading' | translate }}</p>
           </div>
         </app-card-content>
       </app-card>
+    } @else if (dashboard()) {
+      <div class="grid-stats">
+        <app-card class="h-full flex flex-col">
+          <app-card-content class="p-6 flex flex-col flex-1">
+            <p class="text-sm font-medium text-muted-foreground mb-1">{{ 'reporting.metrics.activeProjects' | translate }}</p>
+            <p class="stat-value mb-1">{{ dashboard()!.activeProjects }}</p>
+            <p class="text-xs text-muted-foreground">{{ dashboard()!.totalProjects }} {{ 'reporting.metrics.totalProjects' | translate }}</p>
+          </app-card-content>
+        </app-card>
+        <app-card class="h-full flex flex-col">
+          <app-card-content class="p-6 flex flex-col flex-1">
+            <p class="text-sm font-medium text-muted-foreground mb-1">{{ 'reporting.metrics.activeEmployees' | translate }}</p>
+            <p class="stat-value mb-1">{{ dashboard()!.activeEmployees }}</p>
+            <p class="text-xs text-muted-foreground">{{ dashboard()!.totalEmployees }} {{ 'reporting.metrics.totalEmployees' | translate }}</p>
+          </app-card-content>
+        </app-card>
+        <app-card class="h-full flex flex-col">
+          <app-card-content class="p-6 flex flex-col flex-1">
+            <p class="text-sm font-medium text-muted-foreground mb-1">{{ 'reporting.metrics.hoursThisWeek' | translate }}</p>
+            <p class="stat-value mb-1">{{ dashboard()!.totalHoursThisWeek | number:'1.0-1' }}</p>
+            <p class="text-xs text-muted-foreground">{{ dashboard()!.totalHoursThisMonth | number:'1.0-1' }}h {{ 'reporting.metrics.thisMonth' | translate }}</p>
+          </app-card-content>
+        </app-card>
+        <app-card class="h-full flex flex-col">
+          <app-card-content class="p-6 flex flex-col flex-1">
+            <p class="text-sm font-medium text-muted-foreground mb-1">{{ 'reporting.metrics.budgetUtilization' | translate }}</p>
+            <p class="stat-value mb-1">{{ dashboard()!.budgetUtilization | number:'1.0-0' }}%</p>
+            <p class="text-xs text-muted-foreground">${{ dashboard()!.totalCost | number:'1.0-0' }} / ${{ dashboard()!.totalBudget | number:'1.0-0' }}</p>
+            <div class="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
+              <div class="h-full rounded-full bg-primary transition-all duration-200" [style.width.%]="dashboard()!.budgetUtilization"></div>
+            </div>
+          </app-card-content>
+        </app-card>
+      </div>
 
-      <app-card class="group hover:shadow-md transition-shadow duration-200 h-full flex flex-col">
-        <app-card-content class="p-6 flex flex-col flex-1">
-          <div class="flex items-start justify-between flex-1">
-            <div class="flex-1">
-              <p class="text-sm font-medium text-muted-foreground mb-1">Active Employees</p>
-              <p class="text-3xl font-bold text-foreground mb-1">{{ dashboard()!.activeEmployees }}</p>
-              <p class="text-xs text-muted-foreground">{{ dashboard()!.totalEmployees }} total employees</p>
+      <div class="grid gap-6 grid-cols-1 xl:grid-cols-[2fr_1fr]">
+        <app-card>
+          <app-card-header>
+            <app-card-title>{{ 'reporting.operationalSummary.title' | translate }}</app-card-title>
+            <app-card-description>{{ 'reporting.operationalSummary.subtitle' | translate }}</app-card-description>
+          </app-card-header>
+          <app-card-content>
+            <div class="grid gap-4 sm:grid-cols-3">
+              <div class="rounded-lg border border-border bg-muted/30 p-5">
+                <p class="text-xs font-medium text-muted-foreground mb-2">{{ 'reporting.operationalSummary.pendingTime' | translate }}</p>
+                <p class="text-2xl font-bold">{{ dashboard()!.pendingTimeEntries }}</p>
+                <p class="text-xs text-muted-foreground">{{ dashboard()!.approvedTimeEntries }} {{ 'reporting.operationalSummary.approved' | translate }}</p>
+              </div>
+              <div class="rounded-lg border border-border bg-muted/30 p-5">
+                <p class="text-xs font-medium text-muted-foreground mb-2">{{ 'reporting.operationalSummary.pendingLeave' | translate }}</p>
+                <p class="text-2xl font-bold">{{ dashboard()!.pendingLeaveRequests }}</p>
+                <p class="text-xs text-muted-foreground">{{ dashboard()!.upcomingLeaveRequests }} {{ 'reporting.operationalSummary.upcoming' | translate }}</p>
+              </div>
+              <div class="rounded-lg border border-border bg-muted/30 p-5">
+                <p class="text-xs font-medium text-muted-foreground mb-2">{{ 'reporting.operationalSummary.onHold' | translate }}</p>
+                <p class="text-2xl font-bold">{{ dashboard()!.projectsOnHold }}</p>
+                <p class="text-xs text-muted-foreground">{{ dashboard()!.completedProjects }} {{ 'reporting.operationalSummary.completed' | translate }}</p>
+              </div>
             </div>
-            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-green-500/10 text-green-500">
-              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-          </div>
-        </app-card-content>
-      </app-card>
+          </app-card-content>
+        </app-card>
 
-      <app-card class="group hover:shadow-md transition-shadow duration-200 h-full flex flex-col">
-        <app-card-content class="p-6 flex flex-col flex-1">
-          <div class="flex items-start justify-between flex-1">
-            <div class="flex-1">
-              <p class="text-sm font-medium text-muted-foreground mb-1">Hours This Week</p>
-              <p class="text-3xl font-bold text-foreground mb-1">{{ dashboard()!.totalHoursThisWeek | number:'1.0-1' }}</p>
-              <p class="text-xs text-muted-foreground">{{ dashboard()!.totalHoursThisMonth | number:'1.0-1' }}h this month</p>
+        <app-card>
+          <app-card-header>
+            <app-card-title>{{ 'reporting.allocation.title' | translate }}</app-card-title>
+            <app-card-description>{{ 'reporting.allocation.subtitle' | translate }}</app-card-description>
+          </app-card-header>
+          <app-card-content class="space-y-3">
+            <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
+              <span class="text-sm text-muted-foreground">{{ 'reporting.allocation.available' | translate }}</span>
+              <span class="text-sm font-semibold">{{ allocation()?.availableEmployees ?? 0 }}</span>
             </div>
-            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-500/10 text-orange-500">
-              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+            <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
+              <span class="text-sm text-muted-foreground">{{ 'reporting.allocation.overallocated' | translate }}</span>
+              <span class="text-sm font-semibold">{{ allocation()?.overallocatedEmployees ?? 0 }}</span>
             </div>
-          </div>
-        </app-card-content>
-      </app-card>
+            <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
+              <span class="text-sm text-muted-foreground">{{ 'reporting.allocation.underutilized' | translate }}</span>
+              <span class="text-sm font-semibold">{{ allocation()?.underutilizedEmployees ?? 0 }}</span>
+            </div>
+            <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
+              <span class="text-sm text-muted-foreground">{{ 'reporting.allocation.understaffedProjects' | translate }}</span>
+              <span class="text-sm font-semibold">{{ allocation()?.understaffedProjects ?? 0 }}</span>
+            </div>
+          </app-card-content>
+        </app-card>
+      </div>
 
-      <app-card class="group hover:shadow-md transition-shadow duration-200 h-full flex flex-col">
-        <app-card-content class="p-6 flex flex-col flex-1">
-          <div class="flex items-start justify-between flex-1 mb-4">
-            <div class="flex-1">
-              <p class="text-sm font-medium text-muted-foreground mb-1">Budget Utilization</p>
-              <p class="text-3xl font-bold text-foreground mb-1">{{ dashboard()!.budgetUtilization | number:'1.0-0' }}%</p>
-              <p class="text-xs text-muted-foreground">${{ dashboard()!.totalCost | number:'1.0-0' }} / ${{ dashboard()!.totalBudget | number:'1.0-0' }}</p>
-            </div>
-            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-500/10 text-purple-500">
-              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-          <div class="h-2 w-full overflow-hidden rounded-full bg-muted">
-            <div 
-              class="h-full rounded-full bg-purple-500 transition-all duration-500"
-              [style.width.%]="dashboard()!.budgetUtilization">
-            </div>
-          </div>
-        </app-card-content>
-      </app-card>
-    </div>
+      <div class="grid gap-6 lg:grid-cols-2">
+        <app-card>
+          <app-card-header>
+            <app-card-title>{{ 'reporting.overallocated.title' | translate }}</app-card-title>
+            <app-card-description>{{ 'reporting.overallocated.subtitle' | translate }}</app-card-description>
+          </app-card-header>
+          <app-card-content>
+            @if (topOverallocatedEmployees().length === 0) {
+              <p class="text-sm text-muted-foreground py-6 text-center">{{ 'reporting.overallocated.empty' | translate }}</p>
+            } @else {
+              <div class="space-y-3">
+                @for (employee of topOverallocatedEmployees(); track employee.employeeId) {
+                  <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-4">
+                    <div>
+                      <p class="text-sm font-medium">{{ employee.employeeName }}</p>
+                      <p class="text-xs text-muted-foreground">{{ employee.jobTitle || '—' }}</p>
+                    </div>
+                    <p class="text-lg font-bold text-red-500">{{ employee.utilizationPercentage | number:'1.0-0' }}%</p>
+                  </div>
+                }
+              </div>
+            }
+          </app-card-content>
+        </app-card>
 
-    <div class="grid gap-6 lg:grid-cols-3">
-      <!-- Operational Summary Card -->
-      <app-card class="lg:col-span-2 group hover:shadow-md transition-shadow duration-200">
-        <app-card-header>
-          <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+        <app-card>
+          <app-card-header>
+            <app-card-title>{{ 'reporting.understaffed.title' | translate }}</app-card-title>
+            <app-card-description>{{ 'reporting.understaffed.subtitle' | translate }}</app-card-description>
+          </app-card-header>
+          <app-card-content>
+            @if (topUnderstaffedProjects().length === 0) {
+              <p class="text-sm text-muted-foreground py-6 text-center">{{ 'reporting.understaffed.empty' | translate }}</p>
+            } @else {
+              <div class="space-y-3">
+                @for (project of topUnderstaffedProjects(); track project.projectId) {
+                  <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-4">
+                    <div>
+                      <p class="text-sm font-medium">{{ project.projectName }}</p>
+                      <p class="text-xs text-muted-foreground">{{ project.assignedMembersCount }} {{ 'reporting.understaffed.members' | translate }}</p>
+                    </div>
+                    <p class="text-lg font-bold text-orange-500">{{ project.gapHours | number:'1.0-0' }}h</p>
+                  </div>
+                }
+              </div>
+            }
+          </app-card-content>
+        </app-card>
+      </div>
+    }
+  }
+
+  @if (activeTab() === 'time') {
+    <div class="space-y-6">
+      <app-card>
+        <app-card-content class="p-6">
+          <div class="flex flex-wrap items-end gap-4">
+            <div>
+              <label class="text-sm font-medium">{{ 'reporting.time.startDate' | translate }}</label>
+              <input type="date" class="mt-1 flex h-10 rounded-md border border-input bg-background px-3 text-sm"
+                [ngModel]="startDate()" (ngModelChange)="startDate.set($event)" />
             </div>
             <div>
-              <app-card-title>Operational Summary</app-card-title>
-              <app-card-description>Key indicators across time, leave, and projects</app-card-description>
+              <label class="text-sm font-medium">{{ 'reporting.time.endDate' | translate }}</label>
+              <input type="date" class="mt-1 flex h-10 rounded-md border border-input bg-background px-3 text-sm"
+                [ngModel]="endDate()" (ngModelChange)="endDate.set($event)" />
             </div>
+            <app-button (click)="applyTimeFilter()" [disabled]="timeLoading()">
+              {{ 'reporting.time.applyFilter' | translate }}
+            </app-button>
           </div>
-        </app-card-header>
-        <app-card-content>
+        </app-card-content>
+      </app-card>
+
+      @if (timeLoading()) {
+        <app-card>
+          <app-card-content class="p-12 text-center text-muted-foreground">{{ 'reporting.loading' | translate }}</app-card-content>
+        </app-card>
+      } @else {
+        @if (timeSummary(); as summary) {
           <div class="grid gap-4 sm:grid-cols-3">
-            <div class="rounded-lg border border-border bg-muted/30 p-5 transition-colors hover:bg-muted/50">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-500/10 text-yellow-500">
-                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <p class="text-xs font-medium text-muted-foreground">Pending Time Entries</p>
-              </div>
-              <p class="text-2xl font-bold text-foreground mb-1">{{ dashboard()!.pendingTimeEntries }}</p>
-              <p class="text-xs text-muted-foreground">{{ dashboard()!.approvedTimeEntries }} approved</p>
-            </div>
-            <div class="rounded-lg border border-border bg-muted/30 p-5 transition-colors hover:bg-muted/50">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-pink-500/10 text-pink-500">
-                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <p class="text-xs font-medium text-muted-foreground">Pending Leave</p>
-              </div>
-              <p class="text-2xl font-bold text-foreground mb-1">{{ dashboard()!.pendingLeaveRequests }}</p>
-              <p class="text-xs text-muted-foreground">{{ dashboard()!.upcomingLeaveRequests }} upcoming</p>
-            </div>
-            <div class="rounded-lg border border-border bg-muted/30 p-5 transition-colors hover:bg-muted/50">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-500">
-                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <p class="text-xs font-medium text-muted-foreground">Projects On Hold</p>
-              </div>
-              <p class="text-2xl font-bold text-foreground mb-1">{{ dashboard()!.projectsOnHold }}</p>
-              <p class="text-xs text-muted-foreground">{{ dashboard()!.completedProjects }} completed</p>
-            </div>
+            <app-card>
+              <app-card-content class="p-6">
+                <p class="text-sm text-muted-foreground">{{ 'reporting.time.totalHours' | translate }}</p>
+                <p class="text-2xl font-bold">{{ summary.totalHours | number:'1.1-1' }}h</p>
+              </app-card-content>
+            </app-card>
+            <app-card>
+              <app-card-content class="p-6">
+                <p class="text-sm text-muted-foreground">{{ 'reporting.time.entriesCount' | translate }}</p>
+                <p class="text-2xl font-bold">{{ summary.entriesCount }}</p>
+              </app-card-content>
+            </app-card>
+            <app-card>
+              <app-card-content class="p-6">
+                <p class="text-sm text-muted-foreground">{{ 'reporting.time.avgPerEntry' | translate }}</p>
+                <p class="text-2xl font-bold">{{ summary.averageHoursPerEntry | number:'1.1-1' }}h</p>
+              </app-card-content>
+            </app-card>
           </div>
-        </app-card-content>
-      </app-card>
+        }
 
-      <!-- Resource Allocation Card -->
-      <app-card class="group hover:shadow-md transition-shadow duration-200">
-        <app-card-header>
-          <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-500/10 text-teal-500">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <div>
-              <app-card-title>Resource Allocation</app-card-title>
-              <app-card-description>Workload distribution</app-card-description>
-            </div>
-          </div>
-        </app-card-header>
-        <app-card-content class="space-y-4">
-          <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
-            <div class="flex items-center gap-2">
-              <div class="h-2 w-2 rounded-full bg-green-500"></div>
-              <span class="text-sm text-muted-foreground">Available</span>
-            </div>
-            <span class="text-sm font-semibold text-foreground">{{ allocation()?.availableEmployees ?? 0 }}</span>
-          </div>
-          <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
-            <div class="flex items-center gap-2">
-              <div class="h-2 w-2 rounded-full bg-red-500"></div>
-              <span class="text-sm text-muted-foreground">Overallocated</span>
-            </div>
-            <span class="text-sm font-semibold text-foreground">{{ allocation()?.overallocatedEmployees ?? 0 }}</span>
-          </div>
-          <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
-            <div class="flex items-center gap-2">
-              <div class="h-2 w-2 rounded-full bg-yellow-500"></div>
-              <span class="text-sm text-muted-foreground">Underutilized</span>
-            </div>
-            <span class="text-sm font-semibold text-foreground">{{ allocation()?.underutilizedEmployees ?? 0 }}</span>
-          </div>
-          <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
-            <div class="flex items-center gap-2">
-              <div class="h-2 w-2 rounded-full bg-orange-500"></div>
-              <span class="text-sm text-muted-foreground">Understaffed Projects</span>
-            </div>
-            <span class="text-sm font-semibold text-foreground">{{ allocation()?.understaffedProjects ?? 0 }}</span>
-          </div>
-          <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
-            <div class="flex items-center gap-2">
-              <div class="h-2 w-2 rounded-full bg-gray-500"></div>
-              <span class="text-sm text-muted-foreground">No Resources</span>
-            </div>
-            <span class="text-sm font-semibold text-foreground">{{ allocation()?.projectsWithoutResources ?? 0 }}</span>
-          </div>
-        </app-card-content>
-      </app-card>
-    </div>
-
-    <div class="grid gap-6 lg:grid-cols-2">
-      <!-- Overallocated Employees Card -->
-      <app-card class="group hover:shadow-md transition-shadow duration-200">
-        <app-card-header>
-          <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10 text-red-500">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div>
-              <app-card-title>Overallocated Employees</app-card-title>
-              <app-card-description>Highest utilization this week</app-card-description>
-            </div>
-          </div>
-        </app-card-header>
-        <app-card-content>
-          @if (topOverallocatedEmployees().length === 0) {
-            <div class="flex flex-col items-center justify-center py-8 text-center">
-              <div class="rounded-full bg-muted p-3 mb-3">
-                <svg class="h-6 w-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <p class="text-sm font-medium text-foreground">All good!</p>
-              <p class="text-xs text-muted-foreground">No overallocated employees</p>
-            </div>
-          } @else {
-            <div class="space-y-3">
-              @for (employee of topOverallocatedEmployees(); track employee.employeeId) {
-                <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-4 transition-colors hover:bg-muted/50">
-                  <div class="flex items-center gap-3 flex-1">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10 text-red-500">
-                      <span class="text-sm font-semibold">{{ employee.employeeName.charAt(0) }}</span>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-foreground truncate">{{ employee.employeeName }}</p>
-                      <p class="text-xs text-muted-foreground truncate">{{ employee.jobTitle || 'Role not set' }}</p>
-                    </div>
-                  </div>
-                  <div class="text-right ml-4">
-                    <div class="flex items-center gap-2 mb-1">
-                      <p class="text-lg font-bold text-red-500">{{ employee.utilizationPercentage | number:'1.0-0' }}%</p>
-                    </div>
-                    <p class="text-xs text-muted-foreground">{{ employee.currentProjectsCount }} projects</p>
-                  </div>
+        <div class="grid gap-6 lg:grid-cols-2">
+          <app-card>
+            <app-card-header>
+              <app-card-title>{{ 'reporting.time.byProject' | translate }}</app-card-title>
+            </app-card-header>
+            <app-card-content class="p-0">
+              @if (timeByProject().length === 0) {
+                <p class="p-6 text-sm text-muted-foreground text-center">{{ 'reporting.time.noData' | translate }}</p>
+              } @else {
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm">
+                    <thead>
+                      <tr class="border-b text-left text-muted-foreground">
+                        <th class="px-4 py-3">{{ 'reporting.time.project' | translate }}</th>
+                        <th class="px-4 py-3">{{ 'reporting.time.hours' | translate }}</th>
+                        <th class="px-4 py-3">{{ 'reporting.time.entries' | translate }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of timeByProject(); track row.id) {
+                        <tr class="border-b">
+                          <td class="px-4 py-3 font-medium">{{ row.name }}</td>
+                          <td class="px-4 py-3">{{ row.totalHours | number:'1.1-1' }}h</td>
+                          <td class="px-4 py-3">{{ row.entriesCount }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
                 </div>
               }
-            </div>
-          }
-        </app-card-content>
-      </app-card>
+            </app-card-content>
+          </app-card>
 
-      <!-- Understaffed Projects Card -->
-      <app-card class="group hover:shadow-md transition-shadow duration-200">
-        <app-card-header>
-          <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/10 text-orange-500">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <app-card-title>Understaffed Projects</app-card-title>
-              <app-card-description>Largest staffing gaps</app-card-description>
-            </div>
-          </div>
-        </app-card-header>
-        <app-card-content>
-          @if (topUnderstaffedProjects().length === 0) {
-            <div class="flex flex-col items-center justify-center py-8 text-center">
-              <div class="rounded-full bg-muted p-3 mb-3">
-                <svg class="h-6 w-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <p class="text-sm font-medium text-foreground">All good!</p>
-              <p class="text-xs text-muted-foreground">No understaffed projects</p>
-            </div>
-          } @else {
-            <div class="space-y-3">
-              @for (project of topUnderstaffedProjects(); track project.projectId) {
-                <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-4 transition-colors hover:bg-muted/50">
-                  <div class="flex items-center gap-3 flex-1">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/10 text-orange-500">
-                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-foreground truncate">{{ project.projectName }}</p>
-                      <p class="text-xs text-muted-foreground">{{ project.assignedMembersCount }} members assigned</p>
-                    </div>
-                  </div>
-                  <div class="text-right ml-4">
-                    <div class="flex items-center gap-2 mb-1">
-                      <p class="text-lg font-bold text-orange-500">{{ project.gapHours | number:'1.0-0' }}h</p>
-                    </div>
-                    <p class="text-xs text-muted-foreground">{{ project.requiredHoursPerWeek | number:'1.0-0' }}h required</p>
-                  </div>
+          <app-card>
+            <app-card-header>
+              <app-card-title>{{ 'reporting.time.byEmployee' | translate }}</app-card-title>
+            </app-card-header>
+            <app-card-content class="p-0">
+              @if (timeByEmployee().length === 0) {
+                <p class="p-6 text-sm text-muted-foreground text-center">{{ 'reporting.time.noData' | translate }}</p>
+              } @else {
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm">
+                    <thead>
+                      <tr class="border-b text-left text-muted-foreground">
+                        <th class="px-4 py-3">{{ 'reporting.time.employee' | translate }}</th>
+                        <th class="px-4 py-3">{{ 'reporting.time.hours' | translate }}</th>
+                        <th class="px-4 py-3">{{ 'reporting.time.entries' | translate }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of timeByEmployee(); track row.id) {
+                        <tr class="border-b">
+                          <td class="px-4 py-3 font-medium">{{ row.name }}</td>
+                          <td class="px-4 py-3">{{ row.totalHours | number:'1.1-1' }}h</td>
+                          <td class="px-4 py-3">{{ row.entriesCount }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
                 </div>
               }
-            </div>
-          }
-        </app-card-content>
-      </app-card>
+            </app-card-content>
+          </app-card>
+        </div>
+      }
     </div>
+  }
+
+  @if (activeTab() === 'leave') {
+    @if (leaveLoading()) {
+      <app-card>
+        <app-card-content class="p-12 text-center text-muted-foreground">{{ 'reporting.loading' | translate }}</app-card-content>
+      </app-card>
+    } @else {
+      <div class="grid gap-6 lg:grid-cols-2">
+        <app-card>
+          <app-card-header>
+            <app-card-title>{{ 'reporting.leave.balanceTitle' | translate }}</app-card-title>
+            <app-card-description>{{ 'reporting.leave.balanceSubtitle' | translate }}</app-card-description>
+          </app-card-header>
+          <app-card-content class="p-0">
+            @if (leaveBalances().length === 0) {
+              <p class="p-6 text-sm text-muted-foreground text-center">{{ 'reporting.leave.noBalance' | translate }}</p>
+            } @else {
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b text-left text-muted-foreground">
+                      <th class="px-4 py-3">{{ 'reporting.leave.employee' | translate }}</th>
+                      <th class="px-4 py-3">{{ 'reporting.leave.approved' | translate }}</th>
+                      <th class="px-4 py-3">{{ 'reporting.leave.pending' | translate }}</th>
+                      <th class="px-4 py-3">{{ 'reporting.leave.thisYear' | translate }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of leaveBalances(); track row.employeeId) {
+                      <tr class="border-b">
+                        <td class="px-4 py-3">
+                          <p class="font-medium">{{ row.employeeName }}</p>
+                          <p class="text-xs text-muted-foreground">{{ row.employeeEmail }}</p>
+                        </td>
+                        <td class="px-4 py-3">{{ row.totalDaysApproved }}</td>
+                        <td class="px-4 py-3">{{ row.totalDaysPending }}</td>
+                        <td class="px-4 py-3">{{ row.totalDaysThisYear }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </app-card-content>
+        </app-card>
+
+        <app-card>
+          <app-card-header>
+            <app-card-title>{{ 'reporting.leave.upcomingTitle' | translate }}</app-card-title>
+            <app-card-description>{{ 'reporting.leave.upcomingSubtitle' | translate }}</app-card-description>
+          </app-card-header>
+          <app-card-content class="p-0">
+            @if (upcomingLeave().length === 0) {
+              <p class="p-6 text-sm text-muted-foreground text-center">{{ 'reporting.leave.noUpcoming' | translate }}</p>
+            } @else {
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b text-left text-muted-foreground">
+                      <th class="px-4 py-3">{{ 'reporting.leave.employee' | translate }}</th>
+                      <th class="px-4 py-3">{{ 'reporting.leave.dates' | translate }}</th>
+                      <th class="px-4 py-3">{{ 'reporting.leave.days' | translate }}</th>
+                      <th class="px-4 py-3">{{ 'reporting.leave.status' | translate }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of upcomingLeave(); track row.leaveRequestId) {
+                      <tr class="border-b">
+                        <td class="px-4 py-3 font-medium">{{ row.employeeName }}</td>
+                        <td class="px-4 py-3 text-muted-foreground">
+                          {{ row.startDate | date:'mediumDate' }} – {{ row.endDate | date:'mediumDate' }}
+                        </td>
+                        <td class="px-4 py-3">{{ row.totalDays }}</td>
+                        <td class="px-4 py-3">
+                          <app-badge variant="secondary">{{ row.status }}</app-badge>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </app-card-content>
+        </app-card>
+      </div>
+    }
   }
 </div>

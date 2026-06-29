@@ -36,6 +36,14 @@ export class AuthService {
     );
   }
 
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${this.apiBase}/auth/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(`${this.apiBase}/auth/reset-password`, { token, newPassword });
+  }
+
   refreshSession(): Observable<void> {
     return this.http.post<void>(`${this.apiBase}/auth/refresh`, {}, {
       withCredentials: true

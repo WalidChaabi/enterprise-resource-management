@@ -1,0 +1,159 @@
+<div class="w-full">
+  <div class="flex items-center py-4">
+    <input
+      type="text"
+      class="flex h-9 w-full max-w-sm rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+      [placeholder]="'projects.table.filter' | translate"
+      [ngModel]="filterValue()"
+      (ngModelChange)="onFilterChange($event)" />
+    <app-data-table-view-options [table]="table" />
+  </div>
+
+  <div class="overflow-hidden rounded-md border">
+    <div class="relative w-full overflow-auto">
+      <table class="w-full caption-bottom text-sm">
+        <thead class="[&_tr]:border-b">
+          @for (headerGroup of table.getHeaderGroups(); track headerGroup.id) {
+            <tr class="border-b transition-colors">
+              @for (header of headerGroup.headers; track header.id) {
+                <th
+                  class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0"
+                  [class.text-right]="header.column.id === 'budget' || header.column.id === 'actions'">
+                  @if (!header.isPlaceholder) {
+                    <ng-container *flexRender="header.column.columnDef.header; props: header.getContext()" />
+                  }
+                </th>
+              }
+            </tr>
+          }
+        </thead>
+        <tbody class="[&_tr:last-child]:border-0">
+          @if (table.getRowModel().rows.length) {
+            @for (row of table.getRowModel().rows; track row.id) {
+              <tr
+                class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                [attr.data-state]="row.getIsSelected() ? 'selected' : null">
+                @for (cell of row.getVisibleCells(); track cell.id) {
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0"
+                    [class.text-right]="cell.column.id === 'budget' || cell.column.id === 'actions'">
+                    <ng-container *flexRender="cell.column.columnDef.cell; props: cell.getContext()" />
+                  </td>
+                }
+              </tr>
+            }
+          } @else {
+            <tr class="border-b transition-colors">
+              <td
+                class="h-24 p-2 text-center align-middle text-muted-foreground"
+                [attr.colspan]="table.getAllColumns().length">
+                No results.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="py-4">
+    <app-data-table-pagination [table]="table" />
+  </div>
+</div>
+
+<ng-template #nameHeader let-context>
+  <app-data-table-column-header
+    variant="menu"
+    [column]="context.column"
+    [title]="'projects.table.name' | translate" />
+</ng-template>
+
+<ng-template #statusHeader let-context>
+  <app-data-table-column-header
+    variant="menu"
+    [column]="context.column"
+    [title]="'projects.table.status' | translate" />
+</ng-template>
+
+<ng-template #membersHeader let-context>
+  <app-data-table-column-header
+    variant="menu"
+    [column]="context.column"
+    [title]="'projects.table.members' | translate" />
+</ng-template>
+
+<ng-template #startDateHeader let-context>
+  <app-data-table-column-header
+    variant="menu"
+    [column]="context.column"
+    [title]="'projects.table.startDate' | translate" />
+</ng-template>
+
+<ng-template #deadlineHeader let-context>
+  <app-data-table-column-header
+    variant="menu"
+    [column]="context.column"
+    [title]="'projects.table.deadline' | translate" />
+</ng-template>
+
+<ng-template #budgetHeader let-context>
+  <app-data-table-column-header
+    variant="menu"
+    [column]="context.column"
+    [title]="'projects.table.budget' | translate"
+    class="justify-end" />
+</ng-template>
+
+<ng-template #actionsHeader>
+  <span class="sr-only">{{ 'common.actions' | translate }}</span>
+</ng-template>
+
+<ng-template #nameCell let-context>
+  <div class="font-medium">{{ context.row.original.name }}</div>
+</ng-template>
+
+<ng-template #statusCell let-context>
+  <app-badge [variant]="getStatusVariant(context.row.original.status)" class="capitalize">
+    {{ ('projects.status.' + statusKey(context.row.original.status)) | translate }}
+  </app-badge>
+</ng-template>
+
+<ng-template #membersCell let-context>
+  <span class="tabular-nums">{{ context.row.original.membersCount }}</span>
+</ng-template>
+
+<ng-template #startDateCell let-context>
+  @if (context.row.original.startDate) {
+    {{ context.row.original.startDate | date: 'mediumDate' }}
+  } @else {
+    <span class="text-muted-foreground">—</span>
+  }
+</ng-template>
+
+<ng-template #deadlineCell let-context>
+  @if (context.row.original.deadline) {
+    {{ context.row.original.deadline | date: 'mediumDate' }}
+  } @else {
+    <span class="text-muted-foreground">—</span>
+  }
+</ng-template>
+
+<ng-template #budgetCell let-context>
+  <div class="text-right font-medium tabular-nums">
+    @if (context.row.original.budget != null) {
+      {{ context.row.original.budget | currency: 'USD' : 'symbol' : '1.0-0' }}
+    } @else {
+      <span class="text-muted-foreground">—</span>
+    }
+  </div>
+</ng-template>
+
+<ng-template #actionsCell let-context>
+  <app-project-row-actions
+    [projectId]="context.row.original.id"
+    [viewLabel]="'common.view' | translate"
+    [editLabel]="'common.edit' | translate"
+    [archiveLabel]="'projects.archive' | translate"
+    [showArchive]="canArchive()"
+    (archive)="archiveRequested.emit($event)" />
+</ng-template>

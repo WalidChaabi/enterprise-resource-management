@@ -38,18 +38,21 @@ public class LeaveRequestService {
     private final LeaveRequestDomainService leaveRequestDomainService;
     private final PermissionChecker permissionChecker;
     private final LeaveRequestMapper leaveRequestMapper;
+    private final NotificationService notificationService;
 
     public LeaveRequestService(
             LeaveRequestRepository leaveRequestRepository,
             UserRepository userRepository,
             LeaveRequestDomainService leaveRequestDomainService,
             PermissionChecker permissionChecker,
-            LeaveRequestMapper leaveRequestMapper) {
+            LeaveRequestMapper leaveRequestMapper,
+            NotificationService notificationService) {
         this.leaveRequestRepository = leaveRequestRepository;
         this.userRepository = userRepository;
         this.leaveRequestDomainService = leaveRequestDomainService;
         this.permissionChecker = permissionChecker;
         this.leaveRequestMapper = leaveRequestMapper;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -294,6 +297,11 @@ public class LeaveRequestService {
         leaveRequest.setRejectionReason(null);
         
         LeaveRequest updated = leaveRequestRepository.save(leaveRequest);
+        notificationService.createInAppNotification(
+            updated.getEmployee(),
+            "Leave request approved",
+            String.format("Your %s leave from %s to %s was approved.",
+                updated.getLeaveType(), updated.getStartDate(), updated.getEndDate()));
         return leaveRequestMapper.toResponseDTO(updated);
     }
 
@@ -337,6 +345,12 @@ public class LeaveRequestService {
         leaveRequest.setApprovedAt(null);
         
         LeaveRequest updated = leaveRequestRepository.save(leaveRequest);
+        String description = rejectionReason != null && !rejectionReason.isBlank()
+            ? String.format("Your leave request from %s to %s was rejected: %s",
+                updated.getStartDate(), updated.getEndDate(), rejectionReason)
+            : String.format("Your leave request from %s to %s was rejected.",
+                updated.getStartDate(), updated.getEndDate());
+        notificationService.createInAppNotification(updated.getEmployee(), "Leave request rejected", description);
         return leaveRequestMapper.toResponseDTO(updated);
     }
 

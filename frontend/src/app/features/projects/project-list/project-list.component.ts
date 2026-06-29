@@ -1,25 +1,36 @@
+import { LucideAngularModule } from 'lucide-angular';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
 import { ProjectService } from '../../../core/services/project.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Project, ProjectStatus } from '../../../core/models/project.model';
+import { Project } from '../../../core/models/project.model';
 import { ROLES } from '../../../core/utils/constants';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
-import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
-import { BadgeComponent, BadgeVariant } from '../../../shared/components/ui/badge/badge.component';
-import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
-import { SkeletonComponent } from '../../../shared/components/ui/skeleton/skeleton.component';
+import { CardComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
+import { SkeletonComponent, SkeletonTableComponent } from '../../../shared/components/ui/skeleton/skeleton.component';
 import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.component';
 import { ProjectFormComponent } from '../project-form/project-form.component';
+import { ProjectDataTableComponent } from './project-data-table.component';
 
 @Component({
-    selector: 'app-project-list',
-    imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, BadgeComponent, AlertComponent, SkeletonComponent, DialogComponent, ProjectFormComponent],
-    templateUrl: './project-list.component.html',
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-project-list',
+  imports: [
+    CommonModule,
+    TranslatePipe,
+    LucideAngularModule,
+    ButtonComponent,
+    CardComponent,
+    CardContentComponent,
+    SkeletonComponent,
+    SkeletonTableComponent,
+    DialogComponent,
+    ProjectFormComponent,
+    ProjectDataTableComponent,
+  ],
+  templateUrl: './project-list.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectListComponent {
   private readonly projectService = inject(ProjectService);
@@ -30,9 +41,15 @@ export class ProjectListComponent {
   readonly loading = signal<boolean>(false);
   readonly error = signal<string>('');
   readonly showCreateModal = signal<boolean>(false);
+  readonly archivingProjectId = signal<string | null>(null);
+  readonly processing = signal(false);
 
   readonly canCreateProject = computed(() => {
     return this.authService.hasAnyRole(ROLES.ORG_ADMIN, ROLES.PROJECT_MANAGER);
+  });
+
+  readonly canArchiveProject = computed(() => {
+    return this.authService.hasAnyRole(ROLES.ORG_ADMIN);
   });
 
   constructor() {
@@ -50,9 +67,8 @@ export class ProjectListComponent {
       },
       error: (err) => {
         console.error('Error loading projects:', err);
-        // Handle different error formats
         let errorMessage = 'Failed to load projects';
-        
+
         if (err?.details && Array.isArray(err.details) && err.details.length > 0) {
           errorMessage = err.details[0];
         } else if (err?.message) {
@@ -64,25 +80,11 @@ export class ProjectListComponent {
         } else if (err?.error?.details && Array.isArray(err.error.details) && err.error.details.length > 0) {
           errorMessage = err.error.details[0];
         }
-        
+
         this.error.set(errorMessage);
         this.loading.set(false);
-      }
+      },
     });
-  }
-
-  getStatusVariant(status: ProjectStatus): BadgeVariant {
-    switch (status) {
-      case ProjectStatus.ACTIVE:
-        return 'default';
-      case ProjectStatus.COMPLETED:
-        return 'secondary';
-      case ProjectStatus.CANCELLED:
-      case ProjectStatus.ON_HOLD:
-        return 'destructive';
-      default:
-        return 'outline';
-    }
   }
 
   openCreateModal(): void {
@@ -96,5 +98,31 @@ export class ProjectListComponent {
   onProjectCreated(): void {
     this.closeCreateModal();
     this.loadProjects();
+  }
+
+  startArchive(projectId: string): void {
+    this.archivingProjectId.set(projectId);
+  }
+
+  closeArchiveDialog(): void {
+    this.archivingProjectId.set(null);
+  }
+
+  confirmArchive(): void {
+    const projectId = this.archivingProjectId();
+    if (!projectId || this.processing()) return;
+
+    this.processing.set(true);
+    this.projectService.archiveProject(projectId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.closeArchiveDialog();
+        this.loadProjects();
+        this.processing.set(false);
+      },
+      error: (err) => {
+        this.error.set(err?.details?.[0] || err?.message || 'Failed to archive project');
+        this.processing.set(false);
+      }
+    });
   }
 }

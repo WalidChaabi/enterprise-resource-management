@@ -44,6 +44,7 @@ public class TimeEntryService {
     private final TimeEntryDomainService timeEntryDomainService;
     private final PermissionChecker permissionChecker;
     private final TimeEntryMapper timeEntryMapper;
+    private final NotificationService notificationService;
 
     public TimeEntryService(
             TimeEntryRepository timeEntryRepository,
@@ -52,7 +53,8 @@ public class TimeEntryService {
             UserRepository userRepository,
             TimeEntryDomainService timeEntryDomainService,
             PermissionChecker permissionChecker,
-            TimeEntryMapper timeEntryMapper) {
+            TimeEntryMapper timeEntryMapper,
+            NotificationService notificationService) {
         this.timeEntryRepository = timeEntryRepository;
         this.projectRepository = projectRepository;
         this.taskRepository = taskRepository;
@@ -60,6 +62,7 @@ public class TimeEntryService {
         this.timeEntryDomainService = timeEntryDomainService;
         this.permissionChecker = permissionChecker;
         this.timeEntryMapper = timeEntryMapper;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -360,6 +363,11 @@ public class TimeEntryService {
         timeEntry.setRejectionReason(null);
         
         TimeEntry updated = timeEntryRepository.save(timeEntry);
+        notificationService.createInAppNotification(
+            updated.getEmployee(),
+            "Time entry approved",
+            String.format("Your time entry for %s on %s was approved.",
+                updated.getProject().getName(), updated.getEntryDate()));
         return timeEntryMapper.toResponseDTO(updated);
     }
 
@@ -389,6 +397,12 @@ public class TimeEntryService {
         timeEntry.setApprovedAt(null);
         
         TimeEntry updated = timeEntryRepository.save(timeEntry);
+        String description = rejectionReason != null && !rejectionReason.isBlank()
+            ? String.format("Your time entry for %s on %s was rejected: %s",
+                updated.getProject().getName(), updated.getEntryDate(), rejectionReason)
+            : String.format("Your time entry for %s on %s was rejected.",
+                updated.getProject().getName(), updated.getEntryDate());
+        notificationService.createInAppNotification(updated.getEmployee(), "Time entry rejected", description);
         return timeEntryMapper.toResponseDTO(updated);
     }
 

@@ -120,7 +120,7 @@ class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andExpect(jsonPath("$.email").value("test@example.com"))
                 .andExpect(jsonPath("$.roles").isArray())
-                .andExpect(jsonPath("$.roles[0]").value("HR Administrator"));
+                .andExpect(jsonPath("$.roles[0]").value("HR_ADMIN"));
     }
 
     @Test
@@ -219,6 +219,29 @@ class AuthControllerIntegrationTest {
     void refresh_shouldReturn401_whenRefreshCookieMissing() throws Exception {
         mockMvc.perform(post("/auth/refresh"))
                 .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTH_ERROR"));
+    }
+
+    @Test
+    @DisplayName("POST /auth/forgot-password should return 204")
+    void forgotPassword_shouldReturn204() throws Exception {
+        String requestBody = "{\"email\":\"test@example.com\"}";
+
+        mockMvc.perform(post("/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("POST /auth/reset-password should return 400 for invalid token")
+    void resetPassword_shouldReturn400_whenTokenInvalid() throws Exception {
+        String requestBody = "{\"token\":\"invalid-token\",\"newPassword\":\"newpassword123\"}";
+
+        mockMvc.perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("AUTH_ERROR"));
     }
 

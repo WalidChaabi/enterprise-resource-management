@@ -1,3 +1,4 @@
+import { LucideAngularModule } from 'lucide-angular';
 import { Component, OnInit, signal, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -19,6 +20,7 @@ import { AlertComponent } from '../../../shared/components/ui/alert/alert.compon
         ReactiveFormsModule,
         RouterModule,
         TranslatePipe,
+        LucideAngularModule,
         ButtonComponent,
         CardComponent,
         CardHeaderComponent,

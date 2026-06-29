@@ -7,6 +7,7 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "edit": "Edit",
+    "view": "View",
     "create": "Create",
     "update": "Update",
     "search": "Search",
@@ -31,6 +32,9 @@
     "title": "Enterprise Resource Management",
     "logo": "ERM"
   },
+  "a11y": {
+    "skipToContent": "Skip to main content"
+  },
   "auth": {
     "login": {
       "title": "Enterprise Resource Management",
@@ -52,7 +56,29 @@
       "useDemoCredentials": "Use Demo Credentials",
       "error": {
         "default": "Login failed. Please check your credentials and try again."
-      }
+      },
+      "forgotPassword": "Forgot password?"
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "subtitle": "Enter your email and we'll send reset instructions if an account exists.",
+      "submit": "Send reset link",
+      "sending": "Sending...",
+      "success": "If an account exists for that email, reset instructions have been sent. In development, check the backend logs for the reset token.",
+      "backToLogin": "Back to sign in",
+      "error": "Unable to process request. Please try again."
+    },
+    "resetPassword": {
+      "title": "Choose a new password",
+      "subtitle": "Enter a new password for your account.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "submit": "Reset password",
+      "saving": "Saving...",
+      "success": "Your password has been reset. You can sign in now.",
+      "invalidToken": "This reset link is invalid or missing.",
+      "passwordMismatch": "Passwords do not match.",
+      "error": "Unable to reset password. The link may have expired."
     },
     "logout": "Logout"
   },
@@ -68,6 +94,12 @@
       "core": "Core",
       "people": "People",
       "insights": "Insights"
+    },
+    "userMenu": {
+      "open": "Open user menu",
+      "account": "Account",
+      "billing": "Billing",
+      "notifications": "Notifications"
     }
   },
   "search": {
@@ -121,7 +153,8 @@
       "jobTitle": "Job Title",
       "department": "Department",
       "status": "Status",
-      "actions": "Actions"
+      "actions": "Actions",
+      "filter": "Filter employees..."
     },
     "form": {
       "details": "Employee Details",
@@ -172,7 +205,8 @@
       "description": "Description",
       "manager": "Manager",
       "employees": "Employees",
-      "actions": "Actions"
+      "actions": "Actions",
+      "filter": "Filter departments..."
     },
     "form": {
       "details": "Department Details",
@@ -195,6 +229,9 @@
   "projects": {
     "title": "Projects",
     "newProject": "New Project",
+    "archive": "Archive",
+    "archiveConfirm": "Archive this project? It will be hidden from active lists but data is retained.",
+    "confirmArchive": "Archive project",
     "editTitle": "Edit Project",
     "emptyState": "No projects found. Create your first project!",
     "table": {
@@ -204,7 +241,8 @@
       "members": "Members",
       "startDate": "Start Date",
       "deadline": "Deadline",
-      "budget": "Budget"
+      "budget": "Budget",
+      "filter": "Filter projects..."
     },
     "status": {
       "planning": "Planning",
@@ -301,12 +339,23 @@
     "newTimeEntry": "New Time Entry",
     "editTitle": "Edit Time Entry",
     "emptyState": "No time entries found. Create your first time entry!",
+    "emptyTitle": "No time entries recorded",
+    "emptyDescription": "Start tracking your work hours by creating your first time entry.",
     "table": {
       "date": "Date",
       "project": "Project",
       "hours": "Hours",
       "status": "Status",
-      "actions": "Actions"
+      "actions": "Actions",
+      "filter": "Filter by project...",
+      "noResults": "No matching time entries."
+    },
+    "stats": {
+      "totalHours": "Total Hours",
+      "approved": "Approved",
+      "pending": "Pending",
+      "draft": "Draft",
+      "entries": "entries"
     },
     "form": {
       "details": "Time Entry Details",
@@ -330,6 +379,8 @@
     "newLeaveRequest": "New Leave Request",
     "editTitle": "Edit Leave Request",
     "emptyState": "No leave requests found. Create your first leave request!",
+    "emptyTitle": "No leave requests",
+    "emptyDescription": "Submit a leave request to request time off from work.",
     "table": {
       "employee": "Employee",
       "type": "Type",
@@ -337,7 +388,9 @@
       "endDate": "End Date",
       "days": "Days",
       "status": "Status",
-      "actions": "Actions"
+      "actions": "Actions",
+      "filter": "Filter by employee...",
+      "noResults": "No matching leave requests."
     },
     "types": {
       "vacation": "Vacation",
@@ -362,7 +415,107 @@
     "cancel": "Cancel",
     "rejectionReason": "Rejection Reason",
     "rejectionReasonPlaceholder": "Optional: Provide a reason for rejection...",
-    "confirmReject": "Confirm Reject"
+    "confirmReject": "Confirm Reject",
+    "cancelConfirm": "Are you sure you want to cancel this leave request?",
+    "confirmCancel": "Confirm Cancel",
+    "balance": {
+      "approved": "Approved days",
+      "pending": "Pending days",
+      "thisYear": "Days this year"
+    }
+  },
+  "reporting": {
+    "title": "Reports",
+    "subtitle": "Performance overview and operational health",
+    "loading": "Loading reports...",
+    "tabs": {
+      "overview": "Overview",
+      "time": "Time",
+      "leave": "Leave"
+    },
+    "metrics": {
+      "activeProjects": "Active Projects",
+      "totalProjects": "total projects",
+      "activeEmployees": "Active Employees",
+      "totalEmployees": "total employees",
+      "hoursThisWeek": "Hours This Week",
+      "thisMonth": "this month",
+      "budgetUtilization": "Budget Utilization"
+    },
+    "operationalSummary": {
+      "title": "Operational Summary",
+      "subtitle": "Key indicators across time, leave, and projects",
+      "pendingTime": "Pending Time Entries",
+      "pendingLeave": "Pending Leave",
+      "onHold": "Projects On Hold",
+      "approved": "approved",
+      "upcoming": "upcoming",
+      "completed": "completed"
+    },
+    "allocation": {
+      "title": "Resource Allocation",
+      "subtitle": "Workload distribution",
+      "available": "Available",
+      "overallocated": "Overallocated",
+      "underutilized": "Underutilized",
+      "understaffedProjects": "Understaffed Projects"
+    },
+    "overallocated": {
+      "title": "Overallocated Employees",
+      "subtitle": "Highest utilization this week",
+      "empty": "No overallocated employees"
+    },
+    "understaffed": {
+      "title": "Understaffed Projects",
+      "subtitle": "Largest staffing gaps",
+      "empty": "No understaffed projects",
+      "members": "members assigned"
+    },
+    "time": {
+      "startDate": "Start date",
+      "endDate": "End date",
+      "applyFilter": "Apply",
+      "totalHours": "Total hours",
+      "entriesCount": "Entries",
+      "avgPerEntry": "Avg per entry",
+      "byProject": "Hours by project",
+      "byEmployee": "Hours by employee",
+      "project": "Project",
+      "employee": "Employee",
+      "hours": "Hours",
+      "entries": "Entries",
+      "noData": "No time entries in this period"
+    },
+    "leave": {
+      "balanceTitle": "Leave balance",
+      "balanceSubtitle": "Approved, pending, and year-to-date usage",
+      "upcomingTitle": "Upcoming leave",
+      "upcomingSubtitle": "Approved and pending requests ahead",
+      "employee": "Employee",
+      "approved": "Approved",
+      "pending": "Pending",
+      "thisYear": "This year",
+      "dates": "Dates",
+      "days": "Days",
+      "status": "Status",
+      "noBalance": "No leave balance data",
+      "noUpcoming": "No upcoming leave"
+    }
+  },
+  "settings": {
+    "notifications": {
+      "title": "Notification Preferences",
+      "subtitle": "Choose how you receive updates and alerts.",
+      "channels": "Notification channels",
+      "emailEnabled": "Email notifications",
+      "emailEnabledHint": "Receive approval and assignment updates by email.",
+      "inAppEnabled": "In-app notifications",
+      "inAppEnabledHint": "Show notifications in the inbox while you use the app."
+    },
+    "billing": {
+      "noPlan": "No Plan",
+      "unknown": "Unknown"
+    }
   },
   "errors": {
     "generic": "An error occurred",

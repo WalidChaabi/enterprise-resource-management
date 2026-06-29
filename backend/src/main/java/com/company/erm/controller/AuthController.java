@@ -2,9 +2,12 @@ package com.company.erm.controller;
 
 import com.company.erm.dto.AuthRequest;
 import com.company.erm.dto.AuthResponse;
+import com.company.erm.dto.ForgotPasswordRequestDTO;
+import com.company.erm.dto.ResetPasswordRequestDTO;
 import com.company.erm.security.AuthCookieService;
 import com.company.erm.service.AuthService;
 import com.company.erm.service.AuthService.AuthSession;
+import com.company.erm.service.PasswordResetService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,10 +24,15 @@ public class AuthController {
 
     private final AuthService authService;
     private final AuthCookieService authCookieService;
+    private final PasswordResetService passwordResetService;
 
-    public AuthController(AuthService authService, AuthCookieService authCookieService) {
+    public AuthController(
+            AuthService authService,
+            AuthCookieService authCookieService,
+            PasswordResetService passwordResetService) {
         this.authService = authService;
         this.authCookieService = authCookieService;
+        this.passwordResetService = passwordResetService;
     }
 
     @PostMapping("/login")
@@ -48,6 +56,18 @@ public class AuthController {
     public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
         authService.logout(authCookieService.readRefreshToken(request));
         authCookieService.clearAuthCookies(response);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO request) {
+        passwordResetService.requestPasswordReset(request.getEmail());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequestDTO request) {
+        passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.noContent().build();
     }
 }

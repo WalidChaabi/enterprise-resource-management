@@ -22,137 +22,7 @@
             <app-alert variant="destructive" class="mb-4">{{ error() }}</app-alert>
           }
 
-          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
-          <!-- Project Name -->
-          <div class="space-y-2">
-            <label for="name" class="text-sm font-medium">
-              {{ 'projects.form.name' | translate }} <span class="text-destructive">*</span>
-            </label>
-            <input
-              id="name"
-              type="text"
-              formControlName="name"
-              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              [placeholder]="'projects.form.namePlaceholder' | translate" />
-            @if (getFieldError('name')) {
-              <p class="text-sm text-destructive">{{ getFieldError('name') }}</p>
-            }
-          </div>
-
-          <!-- Description -->
-          <div class="space-y-2">
-            <label for="description" class="text-sm font-medium">
-              {{ 'projects.form.description' | translate }}
-            </label>
-            <textarea
-              id="description"
-              formControlName="description"
-              rows="4"
-              class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              [placeholder]="'projects.form.descriptionPlaceholder' | translate"></textarea>
-          </div>
-
-          <!-- Status -->
-          <div class="space-y-2">
-            <label for="status" class="text-sm font-medium">
-              {{ 'projects.form.status' | translate }}
-            </label>
-            <select
-              id="status"
-              formControlName="status"
-              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-              @for (status of projectStatuses; track status.value) {
-                <option [value]="status.value">{{ status.label | translate }}</option>
-              }
-            </select>
-          </div>
-
-          <!-- Dates and Budget -->
-          <div class="grid gap-4 md:grid-cols-2">
-            <!-- Start Date -->
-            <div class="space-y-2">
-              <label for="startDate" class="text-sm font-medium">
-                {{ 'projects.form.startDate' | translate }}
-              </label>
-              <input
-                id="startDate"
-                type="date"
-                formControlName="startDate"
-                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-            </div>
-
-            <!-- Deadline -->
-            <div class="space-y-2">
-              <label for="deadline" class="text-sm font-medium">
-                {{ 'projects.form.deadline' | translate }}
-              </label>
-              <input
-                id="deadline"
-                type="date"
-                formControlName="deadline"
-                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-            </div>
-          </div>
-
-          <!-- Budget and Manager -->
-          <div class="grid gap-4 md:grid-cols-2">
-            <!-- Budget -->
-            <div class="space-y-2">
-              <label for="budget" class="text-sm font-medium">
-                {{ 'projects.form.budget' | translate }}
-              </label>
-              <input
-                id="budget"
-                type="number"
-                formControlName="budget"
-                step="0.01"
-                min="0"
-                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-              @if (getFieldError('budget')) {
-                <p class="text-sm text-destructive">{{ getFieldError('budget') }}</p>
-              }
-            </div>
-
-            <!-- Manager (only for create) -->
-            @if (!isEditMode()) {
-              <div class="space-y-2">
-                <label for="managerId" class="text-sm font-medium">
-                  {{ 'projects.form.manager' | translate }}
-                </label>
-                <select
-                  id="managerId"
-                  formControlName="managerId"
-                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                  <option value="">{{ 'projects.form.selectManager' | translate }}</option>
-                  @for (employee of employees(); track employee.id) {
-                    <option [value]="employee.id">
-                      {{ employee.firstName }} {{ employee.lastName }} {{ employee.email ? '(' + employee.email + ')' : '' }}
-                    </option>
-                  }
-                </select>
-              </div>
-            }
-          </div>
-
-          <!-- Form Actions -->
-          <div class="flex justify-end gap-2 pt-4">
-            <app-button
-              type="button"
-              variant="outline"
-              (click)="onCancel()"
-              [disabled]="saving()">
-              {{ 'common.cancel' | translate }}
-            </app-button>
-            <app-button
-              type="submit"
-              [disabled]="form.invalid || saving()">
-              @if (saving()) {
-                <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-              }
-              {{ isEditMode() ? ('common.update' | translate) : ('common.create' | translate) }}
-            </app-button>
-          </div>
-          </form>
+          <ng-container *ngTemplateOutlet="projectForm" />
         </app-card-content>
       </app-card>
     } @else {
@@ -160,137 +30,120 @@
         <app-alert variant="destructive" class="mb-4">{{ error() }}</app-alert>
       }
 
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
-        <!-- Project Name -->
-        <div class="space-y-2">
-          <label for="name-modal" class="text-sm font-medium">
-            {{ 'projects.form.name' | translate }} <span class="text-destructive">*</span>
-          </label>
-          <input
-            id="name-modal"
-            type="text"
-            formControlName="name"
-            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            [placeholder]="'projects.form.namePlaceholder' | translate" />
-          @if (getFieldError('name')) {
-            <p class="text-sm text-destructive">{{ getFieldError('name') }}</p>
-          }
-        </div>
-
-        <!-- Description -->
-        <div class="space-y-2">
-          <label for="description-modal" class="text-sm font-medium">
-            {{ 'projects.form.description' | translate }}
-          </label>
-          <textarea
-            id="description-modal"
-            formControlName="description"
-            rows="4"
-            class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            [placeholder]="'projects.form.descriptionPlaceholder' | translate"></textarea>
-        </div>
-
-        <!-- Status -->
-        <div class="space-y-2">
-          <label for="status-modal" class="text-sm font-medium">
-            {{ 'projects.form.status' | translate }}
-          </label>
-          <select
-            id="status-modal"
-            formControlName="status"
-            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-            @for (status of projectStatuses; track status.value) {
-              <option [value]="status.value">{{ status.label | translate }}</option>
-            }
-          </select>
-        </div>
-
-        <!-- Dates and Budget -->
-        <div class="grid gap-4 md:grid-cols-2">
-          <!-- Start Date -->
-          <div class="space-y-2">
-            <label for="startDate-modal" class="text-sm font-medium">
-              {{ 'projects.form.startDate' | translate }}
-            </label>
-            <input
-              id="startDate-modal"
-              type="date"
-              formControlName="startDate"
-              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-          </div>
-
-          <!-- Deadline -->
-          <div class="space-y-2">
-            <label for="deadline-modal" class="text-sm font-medium">
-              {{ 'projects.form.deadline' | translate }}
-            </label>
-            <input
-              id="deadline-modal"
-              type="date"
-              formControlName="deadline"
-              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-          </div>
-        </div>
-
-        <!-- Budget and Manager -->
-        <div class="grid gap-4 md:grid-cols-2">
-          <!-- Budget -->
-          <div class="space-y-2">
-            <label for="budget-modal" class="text-sm font-medium">
-              {{ 'projects.form.budget' | translate }}
-            </label>
-            <input
-              id="budget-modal"
-              type="number"
-              formControlName="budget"
-              step="0.01"
-              min="0"
-              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-            @if (getFieldError('budget')) {
-              <p class="text-sm text-destructive">{{ getFieldError('budget') }}</p>
-            }
-          </div>
-
-          <!-- Manager (only for create) -->
-          @if (!isEditMode()) {
-            <div class="space-y-2">
-              <label for="managerId-modal" class="text-sm font-medium">
-                {{ 'projects.form.manager' | translate }}
-              </label>
-              <select
-                id="managerId-modal"
-                formControlName="managerId"
-                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                <option value="">{{ 'projects.form.selectManager' | translate }}</option>
-                @for (employee of employees(); track employee.id) {
-                  <option [value]="employee.id">
-                    {{ employee.firstName }} {{ employee.lastName }} {{ employee.email ? '(' + employee.email + ')' : '' }}
-                  </option>
-                }
-              </select>
-            </div>
-          }
-        </div>
-
-        <!-- Form Actions -->
-        <div class="flex justify-end gap-2 pt-4">
-          <app-button
-            type="button"
-            variant="outline"
-            (click)="onCancel()"
-            [disabled]="saving()">
-            {{ 'common.cancel' | translate }}
-          </app-button>
-          <app-button
-            type="submit"
-            [disabled]="form.invalid || saving()">
-            @if (saving()) {
-              <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-            }
-            {{ isEditMode() ? ('common.update' | translate) : ('common.create' | translate) }}
-          </app-button>
-        </div>
-      </form>
+      <ng-container *ngTemplateOutlet="projectForm" />
     }
   }
 </div>
+
+<ng-template #projectForm>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
+    <div class="space-y-2">
+      <label for="name" class="text-sm font-medium">
+        {{ 'projects.form.name' | translate }} <span class="text-destructive">*</span>
+      </label>
+      <input
+        id="name"
+        type="text"
+        formControlName="name"
+        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        [placeholder]="'projects.form.namePlaceholder' | translate" />
+      @if (getFieldError('name')) {
+        <p class="text-sm text-destructive">{{ getFieldError('name') }}</p>
+      }
+    </div>
+
+    <div class="space-y-2">
+      <label for="description" class="text-sm font-medium">
+        {{ 'projects.form.description' | translate }}
+      </label>
+      <textarea
+        id="description"
+        formControlName="description"
+        [rows]="modalMode() ? 3 : 4"
+        class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        [placeholder]="'projects.form.descriptionPlaceholder' | translate"></textarea>
+    </div>
+
+    <div class="space-y-2">
+      <label for="status" class="text-sm font-medium">
+        {{ 'projects.form.status' | translate }}
+      </label>
+      <app-form-select
+        id="status"
+        formControlName="status"
+        [options]="statusSelectOptions()"
+        class="w-full" />
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2">
+      <div class="space-y-2">
+        <label for="startDate" class="text-sm font-medium">
+          {{ 'projects.form.startDate' | translate }}
+        </label>
+        <app-date-picker
+          id="startDate"
+          formControlName="startDate"
+          [placeholder]="'projects.form.startDate' | translate" />
+      </div>
+
+      <div class="space-y-2">
+        <label for="deadline" class="text-sm font-medium">
+          {{ 'projects.form.deadline' | translate }}
+        </label>
+        <app-date-picker
+          id="deadline"
+          formControlName="deadline"
+          [placeholder]="'projects.form.deadline' | translate" />
+      </div>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2">
+      <div class="space-y-2">
+        <label for="budget" class="text-sm font-medium">
+          {{ 'projects.form.budget' | translate }}
+        </label>
+        <input
+          id="budget"
+          type="number"
+          formControlName="budget"
+          step="0.01"
+          min="0"
+          class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+        @if (getFieldError('budget')) {
+          <p class="text-sm text-destructive">{{ getFieldError('budget') }}</p>
+        }
+      </div>
+
+      @if (!isEditMode()) {
+        <div class="space-y-2">
+          <label for="managerId" class="text-sm font-medium">
+            {{ 'projects.form.manager' | translate }}
+          </label>
+          <app-form-select
+            id="managerId"
+            formControlName="managerId"
+            [options]="managerSelectOptions()"
+            [placeholder]="'projects.form.selectManager' | translate" />
+        </div>
+      }
+    </div>
+
+    <div class="flex justify-end gap-2 border-t pt-4">
+      <app-button
+        type="button"
+        variant="outline"
+        (click)="onCancel()"
+        [disabled]="saving()">
+        {{ 'common.cancel' | translate }}
+      </app-button>
+      <app-button
+        type="submit"
+        [disabled]="form.invalid || saving()">
+        @if (saving()) {
+          <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+        }
+        {{ isEditMode() ? ('common.update' | translate) : ('common.create' | translate) }}
+      </app-button>
+    </div>
+  </form>
+</ng-template>

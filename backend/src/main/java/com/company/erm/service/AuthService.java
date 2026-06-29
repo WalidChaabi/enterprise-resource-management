@@ -93,8 +93,8 @@ public class AuthService {
 
     private AuthSession buildSessionWithTokens(User user, UUID organizationId, String refreshToken) {
         List<UserRole> userRoles = userRoleRepository.findByUser(user);
-        List<String> roleNames = userRoles.stream()
-                .map(ur -> ur.getRole().getName())
+        List<String> roleCodes = userRoles.stream()
+                .map(ur -> ur.getRole().getCode())
                 .toList();
 
         String accessToken = tokenProvider.generateToken(user.getId(), user.getEmail(), organizationId);
@@ -107,7 +107,7 @@ public class AuthService {
                 user.getFirstName(),
                 user.getLastName(),
                 organizationId,
-                roleNames
+                roleCodes
         );
 
         return new AuthSession(response, accessToken, refreshToken);

@@ -20,9 +20,7 @@
         <app-card-content>
           @if (error()) {
             <div class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4 mb-4">
-              <svg class="h-5 w-5 flex-shrink-0 text-destructive mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <lucide-icon name="alert-circle" [size]="20" class="flex-shrink-0 text-destructive mt-0.5" />
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-foreground">{{ error() }}</p>
               </div>
@@ -141,9 +139,7 @@
     } @else {
       @if (error()) {
         <div class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4 mb-4">
-          <svg class="h-5 w-5 flex-shrink-0 text-destructive mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <lucide-icon name="alert-circle" [size]="20" class="flex-shrink-0 text-destructive mt-0.5" />
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-foreground">{{ error() }}</p>
           </div>

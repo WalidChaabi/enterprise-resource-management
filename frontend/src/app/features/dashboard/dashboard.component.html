@@ -1,326 +1,202 @@
-<div class="space-y-6">
-  <!-- Header -->
-  <div>
-    <h1 class="text-2xl font-semibold text-foreground">{{ 'dashboard.title' | translate }}</h1>
+<div class="flex flex-1 flex-col gap-8">
+  <!-- Page header -->
+  <div class="page-header">
+    <h1 class="page-title">{{ 'dashboard.title' | translate }}</h1>
     @if (dashboard() && isLowDataState()) {
-      <p class="text-sm text-muted-foreground mt-1">Welcome, {{ currentUser()?.firstName || '' }}. Let's get your organization set up.</p>
+      <p class="page-description">
+        Welcome, {{ currentUser()?.firstName || '' }}. Let's get your organization set up.
+      </p>
     } @else {
-      <p class="text-sm text-muted-foreground mt-1">{{ 'dashboard.welcome' | translate:{ name: currentUser()?.firstName || '' } }}</p>
+      <p class="page-description">
+        {{ 'dashboard.welcome' | translate:{ name: currentUser()?.firstName || '' } }}
+      </p>
     }
   </div>
 
-  <!-- Loading State -->
+  <!-- Loading -->
   @if (loading()) {
-    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      @for (i of [1,2,3,4]; track i) {
+    <div class="grid-stats">
+      @for (i of [1, 2, 3, 4]; track i) {
         <app-card>
-          <app-card-content class="p-6">
-            <app-skeleton [width]="'100%'" [height]="'h-8'" [className]="'mb-2'"></app-skeleton>
-            <app-skeleton [width]="'60%'" [height]="'h-4'"></app-skeleton>
+          <app-card-header class="pb-2">
+            <app-skeleton [width]="'40%'" [height]="'h-4'"></app-skeleton>
+          </app-card-header>
+          <app-card-content>
+            <app-skeleton [width]="'30%'" [height]="'h-8'" [className]="'mb-2'"></app-skeleton>
+            <app-skeleton [width]="'60%'" [height]="'h-3'"></app-skeleton>
           </app-card-content>
         </app-card>
       }
     </div>
   }
 
-  <!-- Error State - Enterprise Pattern -->
+  <!-- Error -->
   @if (error() && !loading()) {
-    <div class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-      <svg class="h-5 w-5 flex-shrink-0 text-destructive mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-foreground">{{ error() }}</p>
-      </div>
-    </div>
+    <app-alert variant="destructive">
+      <lucide-icon [img]="AlertTriangle" [size]="16" />
+      <app-alert-title>Unable to load dashboard</app-alert-title>
+      <app-alert-description>{{ error() }}</app-alert-description>
+    </app-alert>
   }
 
-  <!-- Dashboard Content -->
   @if (dashboard() && !loading()) {
-    <!-- Next Actions - Priority Section -->
-    @if (nextActions().length > 0) {
-      <div class="space-y-2">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-sm font-semibold text-foreground">Next actions</h2>
-            <p class="text-xs text-muted-foreground mt-0.5">Prioritized tasks requiring your attention</p>
-          </div>
-        </div>
-        <div class="space-y-1.5">
-          @for (action of nextActions(); track action.label) {
-            <a
-              [routerLink]="action.route"
-              class="flex items-start gap-3 rounded-lg border p-3 transition-all duration-150 hover:shadow-sm hover:border-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              [ngClass]="{
-                'border-destructive/20 bg-destructive/5': action.priority === 'high',
-                'border-yellow-500/20 bg-yellow-500/5': action.priority === 'medium',
-                'border-border bg-muted/30': action.priority === 'low'
-              }">
-              <div class="flex-shrink-0 mt-0.5">
-                @if (action.priority === 'high') {
-                  <div class="h-2 w-2 rounded-full bg-destructive"></div>
-                } @else if (action.priority === 'medium') {
-                  <div class="h-2 w-2 rounded-full bg-yellow-500"></div>
-                } @else {
-                  <div class="h-2 w-2 rounded-full bg-muted-foreground/40"></div>
-                }
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between gap-2">
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-foreground">{{ action.label }}</p>
-                    <p class="text-xs text-muted-foreground mt-0.5">{{ action.description }}</p>
-                  </div>
-                  @if (action.count !== undefined) {
-                    <span class="text-xs font-medium px-2 py-0.5 rounded border border-border bg-background shrink-0">
-                      {{ action.count }}
-                    </span>
-                  }
+    <!-- Metric cards -->
+    <div class="grid-stats">
+      @for (metric of metricCards(); track metric.title) {
+        <a [routerLink]="metric.route" class="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+          <app-card class="h-full transition-[box-shadow] duration-150">
+            <app-card-content class="p-6">
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium text-muted-foreground">{{ metric.title }}</p>
+                  <div class="stat-value mt-2">{{ metric.value }}</div>
+                  <p class="text-sm text-muted-foreground mt-1.5">{{ metric.hint }}</p>
+                </div>
+                <div class="icon-container h-8 w-8 shrink-0">
+                  <lucide-icon [img]="metric.icon" [size]="16" />
                 </div>
               </div>
-            </a>
-          }
-        </div>
-      </div>
-    }
-
-    <!-- Intelligent Alerts - Refined Pattern -->
-    @if (dashboard()!.alerts && dashboard()!.alerts.length > 0) {
-      <div class="space-y-2">
-        @for (alert of dashboard()!.alerts; track alert.type + alert.projectId + alert.employeeId) {
-          <div class="flex items-start gap-3 rounded-lg border p-3.5 transition-all duration-150 hover:shadow-sm"
-               [ngClass]="{
-                 'border-destructive/15 bg-destructive/3': alert.severity === 'HIGH',
-                 'border-yellow-500/15 bg-yellow-500/3': alert.severity === 'MEDIUM',
-                 'border-blue-500/15 bg-blue-500/3': alert.severity === 'LOW'
-               }">
-            <span [innerHTML]="getAlertIcon(alert.type)" 
-                  class="flex-shrink-0 mt-0.5 h-4 w-4"
-                  [ngClass]="{
-                    'text-destructive/80': alert.severity === 'HIGH',
-                    'text-yellow-600/80 dark:text-yellow-500/80': alert.severity === 'MEDIUM',
-                    'text-blue-600/80 dark:text-blue-500/80': alert.severity === 'LOW'
-                  }"></span>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-start justify-between gap-3">
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-foreground leading-snug">{{ alert.message }}</p>
-                  @if (alert.details) {
-                    <p class="text-xs text-muted-foreground mt-1 leading-relaxed">{{ alert.details }}</p>
-                  }
-                  <div class="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                    @if (alert.projectName) {
-                      <span class="flex items-center gap-1">
-                        <span class="text-muted-foreground/70">Project:</span>
-                        <span class="font-medium text-foreground">{{ alert.projectName }}</span>
-                      </span>
-                    }
-                    @if (alert.employeeName) {
-                      <span class="flex items-center gap-1">
-                        <span class="text-muted-foreground/70">Employee:</span>
-                        <span class="font-medium text-foreground">{{ alert.employeeName }}</span>
-                      </span>
-                    }
-                  </div>
-                </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <span class="text-xs font-medium px-2 py-0.5 rounded border whitespace-nowrap"
-                        [ngClass]="{
-                          'border-destructive/20 text-destructive/90 bg-destructive/5': alert.severity === 'HIGH',
-                          'border-yellow-500/20 text-yellow-600/90 dark:text-yellow-500/90 bg-yellow-500/5': alert.severity === 'MEDIUM',
-                          'border-blue-500/20 text-blue-600/90 dark:text-blue-500/90 bg-blue-500/5': alert.severity === 'LOW'
-                        }">
-                    {{ alert.severity }}
-                  </span>
-                  @if (alert.projectId) {
-                    <a
-                      [routerLink]="['/projects', alert.projectId]"
-                      class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium h-9 px-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                      View
-                    </a>
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
-        }
-      </div>
-    }
-
-    <!-- Key Metrics -->
-    <div class="space-y-2">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-sm font-semibold text-foreground">Overview</h2>
-          <p class="text-xs text-muted-foreground mt-0.5">Key metrics at a glance</p>
-        </div>
-      </div>
-      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <a [routerLink]="['/projects']" class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg">
-        <app-card class="group transition-all duration-150 hover:shadow-sm active:scale-[0.99]">
-        <app-card-content class="p-6 pt-6">
-          <div class="flex items-start justify-between">
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-muted-foreground mb-1.5">Active Projects</p>
-              <p class="text-3xl font-semibold text-foreground mb-1">{{ dashboard()!.activeProjects }}</p>
-              @if (dashboard()!.activeProjects === 0 && dashboard()!.totalProjects === 0) {
-                <p class="text-xs text-muted-foreground">Get started by creating your first project</p>
-              } @else if (dashboard()!.activeProjects === 0) {
-                <p class="text-xs text-muted-foreground">All {{ dashboard()!.totalProjects }} projects are inactive</p>
-              } @else {
-                <p class="text-xs text-muted-foreground">of {{ dashboard()!.totalProjects }} total</p>
-              }
-            </div>
-            <div class="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center transition-colors duration-150 group-hover:bg-muted">
-              <svg class="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-          </div>
-        </app-card-content>
-        </app-card>
-      </a>
-      <a [routerLink]="['/employees']" class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg">
-        <app-card class="group transition-all duration-150 hover:shadow-sm active:scale-[0.99]">
-        <app-card-content class="p-6 pt-6">
-          <div class="flex items-start justify-between">
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-muted-foreground mb-1.5">Active Employees</p>
-              <p class="text-3xl font-semibold text-foreground mb-1">{{ dashboard()!.activeEmployees }}</p>
-              @if (dashboard()!.activeEmployees === 0 && dashboard()!.totalEmployees === 0) {
-                <p class="text-xs text-muted-foreground">Add employees to get started</p>
-              } @else if (dashboard()!.activeEmployees === 0) {
-                <p class="text-xs text-muted-foreground">All {{ dashboard()!.totalEmployees }} employees are inactive</p>
-              } @else {
-                <p class="text-xs text-muted-foreground">of {{ dashboard()!.totalEmployees }} total</p>
-              }
-            </div>
-            <div class="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center transition-colors duration-150 group-hover:bg-muted">
-              <svg class="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-          </div>
-        </app-card-content>
-        </app-card>
-      </a>
-      <a [routerLink]="['/reports']" class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg">
-        <app-card class="group transition-all duration-150 hover:shadow-sm active:scale-[0.99]">
-        <app-card-content class="p-6 pt-6">
-          <div class="flex items-start justify-between">
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-muted-foreground mb-1.5">Hours This Week</p>
-              <p class="text-3xl font-semibold text-foreground mb-1">{{ dashboard()!.totalHoursThisWeek | number:'1.0-1' }}</p>
-              @if (dashboard()!.totalHoursThisWeek === 0 && dashboard()!.totalHoursThisMonth === 0) {
-                <p class="text-xs text-muted-foreground">No time entries recorded yet</p>
-              } @else if (dashboard()!.totalHoursThisWeek === 0) {
-                <p class="text-xs text-muted-foreground">{{ dashboard()!.totalHoursThisMonth | number:'1.0-1' }}h this month</p>
-              } @else {
-                <p class="text-xs text-muted-foreground">{{ dashboard()!.totalHoursThisMonth | number:'1.0-1' }}h this month</p>
-              }
-            </div>
-            <div class="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center transition-colors duration-150 group-hover:bg-muted">
-              <svg class="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-        </app-card-content>
-        </app-card>
-      </a>
-      <a [routerLink]="['/leave-requests']" class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg">
-        <app-card class="group transition-all duration-150 hover:shadow-sm active:scale-[0.99]">
-        <app-card-content class="p-6 pt-6">
-          <div class="flex items-start justify-between">
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-muted-foreground mb-1.5">Pending Leave</p>
-              <p class="text-3xl font-semibold text-foreground mb-1">{{ dashboard()!.pendingLeaveRequests }}</p>
-              @if (dashboard()!.pendingLeaveRequests === 0) {
-                <p class="text-xs text-muted-foreground">All requests processed</p>
-              } @else {
-                <p class="text-xs text-muted-foreground">requires attention</p>
-              }
-            </div>
-            <div class="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center transition-colors duration-150 group-hover:bg-muted">
-              <svg class="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          </div>
-        </app-card-content>
-        </app-card>
-      </a>
-      </div>
+            </app-card-content>
+          </app-card>
+        </a>
+      }
     </div>
 
-    <!-- Charts Section - Temporarily disabled to prevent crashes -->
-    <!--
-    <div class="grid gap-4 md:grid-cols-2 mb-6">
-      <app-card class="card-animate">
+    <div class="grid gap-5 grid-cols-1 xl:grid-cols-[1.6fr_1fr]">
+      <!-- Next actions -->
+      @if (nextActions().length > 0) {
+        <app-card>
+          <app-card-header>
+            <app-card-title>Next actions</app-card-title>
+            <app-card-description>Prioritized tasks requiring your attention</app-card-description>
+          </app-card-header>
+          <app-card-content class="space-y-2">
+            @for (action of nextActions(); track action.label) {
+              <a
+                [routerLink]="action.route"
+                class="flex items-center justify-between gap-3 rounded-[10px] p-3 transition-colors duration-150 hover:bg-accent/60">
+                <div class="flex min-w-0 flex-1 items-start gap-3">
+                  <app-badge [variant]="priorityBadgeVariant(action.priority)">
+                    {{ action.priority }}
+                  </app-badge>
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium leading-snug text-foreground">{{ action.label }}</p>
+                    <p class="text-sm text-muted-foreground mt-1">{{ action.description }}</p>
+                  </div>
+                </div>
+                <div class="flex shrink-0 items-center gap-2">
+                  @if (action.count !== undefined) {
+                    <app-badge variant="outline">{{ action.count }}</app-badge>
+                  }
+                  <lucide-icon [img]="ArrowRight" [size]="16" class="text-muted-foreground" />
+                </div>
+              </a>
+            }
+          </app-card-content>
+        </app-card>
+      }
+
+      <!-- Recent activity -->
+      @if (recentActivity().length > 0 && !isLowDataState()) {
+        <app-card [class]="nextActions().length === 0 ? 'xl:col-span-2' : ''">
+          <app-card-header>
+            <app-card-title>Recent activity</app-card-title>
+            <app-card-description>Latest updates and changes</app-card-description>
+          </app-card-header>
+          <app-card-content class="space-y-4">
+            @for (activity of recentActivity(); track activity.message) {
+              <div class="flex items-start gap-3">
+                <div class="icon-container mt-0.5 h-8 w-8 shrink-0 rounded-full">
+                  <lucide-icon [img]="CheckCircle2" [size]="14" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  @if (activity.route) {
+                    <a
+                      [routerLink]="activity.route"
+                      class="text-sm font-medium leading-snug text-foreground hover:text-primary transition-colors duration-150">
+                      {{ activity.message }}
+                    </a>
+                  } @else {
+                    <p class="text-sm font-medium leading-snug text-foreground">{{ activity.message }}</p>
+                  }
+                </div>
+              </div>
+            }
+          </app-card-content>
+        </app-card>
+      }
+    </div>
+
+    <!-- Alerts -->
+    @if (dashboard()!.alerts && dashboard()!.alerts.length > 0) {
+      <app-card>
         <app-card-header>
-          <app-card-title>Weekly Hours</app-card-title>
+          <app-card-title>Alerts</app-card-title>
+          <app-card-description>Issues that may need your attention</app-card-description>
+        </app-card-header>
+        <app-card-content class="space-y-2">
+          @for (alert of dashboard()!.alerts; track alert.type + alert.projectId + alert.employeeId) {
+            <div class="flex items-start gap-4 rounded-[10px] p-4 transition-colors duration-150 hover:bg-accent/40">
+              <div class="icon-container h-9 w-9 shrink-0">
+                <lucide-icon [img]="alertIcon(alert.type)" [size]="18" />
+              </div>
+              <div class="min-w-0 flex-1 space-y-2">
+                <div class="flex flex-wrap items-start justify-between gap-2">
+                  <p class="text-sm font-medium leading-snug text-foreground">{{ alert.message }}</p>
+                  <app-badge [variant]="severityBadgeVariant(alert.severity)">{{ alert.severity }}</app-badge>
+                </div>
+                @if (alert.details) {
+                  <p class="text-sm text-muted-foreground">{{ alert.details }}</p>
+                }
+                <div class="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  @if (alert.projectName) {
+                    <span><span class="opacity-70">Project:</span> {{ alert.projectName }}</span>
+                  }
+                  @if (alert.employeeName) {
+                    <span><span class="opacity-70">Employee:</span> {{ alert.employeeName }}</span>
+                  }
+                </div>
+              </div>
+              @if (alert.projectId) {
+                <app-button variant="outline" size="sm" [routerLink]="['/projects', alert.projectId]">
+                  View
+                </app-button>
+              }
+            </div>
+          }
+        </app-card-content>
+      </app-card>
+    }
+
+    <!-- Charts -->
+    <div class="grid gap-5 grid-cols-1 lg:grid-cols-2">
+      <app-card>
+        <app-card-header>
+          <app-card-title>Weekly hours</app-card-title>
           <app-card-description>Hours tracked this week</app-card-description>
         </app-card-header>
         <app-card-content>
-          <div class="h-[300px]">
-            <app-chart 
-              [type]="'bar'"
-              [data]="weeklyHoursChartData()"
-              [options]="chartOptions()" />
+          <div class="h-[300px] pt-2">
+            <app-chart type="bar" [data]="weeklyHoursChartData()" [options]="barChartOptions()" />
           </div>
         </app-card-content>
       </app-card>
-      <app-card class="card-animate">
+
+      <app-card>
         <app-card-header>
-          <app-card-title>Project Status</app-card-title>
+          <app-card-title>Project status</app-card-title>
           <app-card-description>Distribution of projects by status</app-card-description>
         </app-card-header>
         <app-card-content>
-          <div class="h-[300px]">
-            <app-chart 
-              [type]="'doughnut'"
-              [data]="projectStatusChartData()"
-              [options]="chartOptions()" />
+          <div class="h-[300px] pt-2">
+            <app-chart type="doughnut" [data]="projectStatusChartData()" [options]="doughnutChartOptions()" />
           </div>
         </app-card-content>
       </app-card>
     </div>
-    -->
 
-    <!-- Recent Activity - Lightweight Timeline -->
-    @if (recentActivity().length > 0 && !isLowDataState()) {
-      <div class="mt-6 space-y-2">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-sm font-semibold text-foreground">Recent activity</h2>
-            <p class="text-xs text-muted-foreground mt-0.5">Latest updates and changes</p>
-          </div>
-        </div>
-        <div class="space-y-1">
-          @for (activity of recentActivity(); track activity.message) {
-            <div class="flex items-start gap-3 text-sm">
-              <div class="flex-shrink-0 mt-0.5">
-                <div class="h-1.5 w-1.5 rounded-full bg-muted-foreground/40"></div>
-              </div>
-              <div class="flex-1 min-w-0">
-                @if (activity.route) {
-                  <a
-                    [routerLink]="activity.route"
-                    class="text-muted-foreground hover:text-foreground transition-colors">
-                    {{ activity.message }}
-                  </a>
-                } @else {
-                  <span class="text-muted-foreground">{{ activity.message }}</span>
-                }
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-    }
-
-    <!-- Quick Actions / Getting Started -->
-    <app-card class="mt-6">
+    <!-- Quick links -->
+    <app-card>
       <app-card-header>
         <app-card-title>{{ 'dashboard.welcomeCard.title' | translate }}</app-card-title>
         <app-card-description>
@@ -332,10 +208,13 @@
         </app-card-description>
       </app-card-header>
       <app-card-content>
-        <div class="grid gap-4 md:grid-cols-3">
-          <a routerLink="/projects" class="group block rounded-lg border p-6 transition-all duration-150 hover:border-foreground/20 hover:shadow-sm hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-            <h3 class="mb-2 text-base font-semibold text-foreground group-hover:text-foreground/90 transition-colors">{{ 'dashboard.welcomeCard.projects.title' | translate }}</h3>
-            <p class="text-sm text-muted-foreground group-hover:text-muted-foreground/90 transition-colors">
+        <div class="grid-cards-auto">
+          <a routerLink="/projects" class="group block rounded-[10px] p-4 transition-colors duration-150 hover:bg-accent/50">
+            <div class="icon-container mb-3 h-9 w-9">
+              <lucide-icon [img]="FolderKanban" [size]="18" />
+            </div>
+            <h3 class="mb-1.5 text-sm font-medium text-foreground">{{ 'dashboard.welcomeCard.projects.title' | translate }}</h3>
+            <p class="text-sm text-muted-foreground">
               @if (isLowDataState() && dashboard()!.totalProjects === 0) {
                 Create and manage your projects
               } @else {
@@ -343,9 +222,13 @@
               }
             </p>
           </a>
-          <a routerLink="/employees" class="group block rounded-lg border p-6 transition-all duration-150 hover:border-foreground/20 hover:shadow-sm hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-            <h3 class="mb-2 text-base font-semibold text-foreground group-hover:text-foreground/90 transition-colors">{{ 'dashboard.welcomeCard.employees.title' | translate }}</h3>
-            <p class="text-sm text-muted-foreground group-hover:text-muted-foreground/90 transition-colors">
+
+          <a routerLink="/employees" class="group block rounded-[10px] p-4 transition-colors duration-150 hover:bg-accent/50">
+            <div class="icon-container mb-3 h-9 w-9">
+              <lucide-icon [img]="Users" [size]="18" />
+            </div>
+            <h3 class="mb-1.5 text-sm font-medium text-foreground">{{ 'dashboard.welcomeCard.employees.title' | translate }}</h3>
+            <p class="text-sm text-muted-foreground">
               @if (isLowDataState() && dashboard()!.totalEmployees === 0) {
                 Add team members to your organization
               } @else {
@@ -353,9 +236,13 @@
               }
             </p>
           </a>
-          <a routerLink="/reports" class="group block rounded-lg border p-6 transition-all duration-150 hover:border-foreground/20 hover:shadow-sm hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-            <h3 class="mb-2 text-base font-semibold text-foreground group-hover:text-foreground/90 transition-colors">{{ 'dashboard.welcomeCard.reports.title' | translate }}</h3>
-            <p class="text-sm text-muted-foreground group-hover:text-muted-foreground/90 transition-colors">
+
+          <a routerLink="/reports" class="group block rounded-[10px] p-4 transition-colors duration-150 hover:bg-accent/50">
+            <div class="icon-container mb-3 h-9 w-9">
+              <lucide-icon [img]="Clock" [size]="18" />
+            </div>
+            <h3 class="mb-1.5 text-sm font-medium text-foreground">{{ 'dashboard.welcomeCard.reports.title' | translate }}</h3>
+            <p class="text-sm text-muted-foreground">
               @if (isLowDataState() && dashboard()!.totalHoursThisWeek === 0) {
                 View analytics and insights
               } @else {
@@ -365,6 +252,13 @@
           </a>
         </div>
       </app-card-content>
+      <app-card-footer class="justify-between">
+        <p class="text-xs text-muted-foreground">Enterprise Resource Management</p>
+        <app-button variant="ghost" size="sm" [routerLink]="['/reports']">
+          View reports
+          <lucide-icon [img]="ArrowRight" [size]="14" class="ml-1" />
+        </app-button>
+      </app-card-footer>
     </app-card>
   }
 </div>

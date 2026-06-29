@@ -94,7 +94,7 @@ class AuthServiceTest {
         assertThat(response.accessToken()).isEqualTo("test-jwt-token");
         assertThat(response.tokenType()).isEqualTo("Bearer");
         assertThat(response.email()).isEqualTo("test@example.com");
-        assertThat(response.roles()).contains("HR Administrator");
+        assertThat(response.roles()).contains("HR_ADMIN");
 
         verify(userRepository).findByEmail("test@example.com");
         verify(userRoleRepository).findByUser(testUser);
@@ -178,6 +178,6 @@ class AuthServiceTest {
 
         // Then
         assertThat(response.roles()).hasSize(2);
-        assertThat(response.roles()).contains("HR Administrator", "Organization Administrator");
+        assertThat(response.roles()).contains("HR_ADMIN", "ORG_ADMIN");
     }
 }

@@ -1,37 +1,53 @@
+import { LucideAngularModule } from 'lucide-angular';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule, DatePipe } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LeaveRequestService } from '../../../core/services/leave-request.service';
+import { ReportingService } from '../../../core/services/reporting.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { LeaveRequest, LeaveRequestStatus } from '../../../core/models/leave-request.model';
+import { LeaveRequest } from '../../../core/models/leave-request.model';
+import { LeaveBalance } from '../../../core/models/report.model';
 import { ROLES } from '../../../core/utils/constants';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { CardComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
-import { BadgeComponent, BadgeVariant } from '../../../shared/components/ui/badge/badge.component';
 import { SkeletonTableComponent } from '../../../shared/components/ui/skeleton/skeleton.component';
-import { InputComponent } from '../../../shared/components/ui/input/input.component';
 import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.component';
 import { LeaveRequestFormComponent } from '../leave-request-form/leave-request-form.component';
+import { LeaveRequestDataTableComponent } from './leave-request-data-table.component';
 
 @Component({
     selector: 'app-leave-request-list',
-    imports: [CommonModule, RouterModule, FormsModule, TranslatePipe, ButtonComponent, CardComponent, CardContentComponent, BadgeComponent, SkeletonTableComponent, DatePipe, InputComponent, DialogComponent, LeaveRequestFormComponent],
+    imports: [
+        CommonModule,
+        FormsModule,
+        TranslatePipe,
+        LucideAngularModule,
+        ButtonComponent,
+        CardComponent,
+        CardContentComponent,
+        SkeletonTableComponent,
+        DialogComponent,
+        LeaveRequestFormComponent,
+        LeaveRequestDataTableComponent
+    ],
     templateUrl: './leave-request-list.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LeaveRequestListComponent {
   private readonly leaveRequestService = inject(LeaveRequestService);
+  private readonly reportingService = inject(ReportingService);
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly leaveRequests = signal<LeaveRequest[]>([]);
+  readonly myLeaveBalance = signal<LeaveBalance | null>(null);
   readonly loading = signal<boolean>(false);
   readonly error = signal<string>('');
   readonly processing = signal<string | null>(null);
-  readonly rejectingRequestId = signal<string | null>(null);
+  readonly rejectingRequest = signal<LeaveRequest | null>(null);
+  readonly cancellingRequest = signal<LeaveRequest | null>(null);
   readonly rejectionReason = signal<string>('');
   readonly showCreateModal = signal<boolean>(false);
 
@@ -41,6 +57,20 @@ export class LeaveRequestListComponent {
 
   constructor() {
     this.loadLeaveRequests();
+    this.loadLeaveBalance();
+  }
+
+  loadLeaveBalance(): void {
+    this.reportingService.getLeaveBalance().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (balances) => {
+        const email = this.authService.getCurrentUser()?.email;
+        const mine = balances.find((b) => b.employeeEmail === email) ?? null;
+        this.myLeaveBalance.set(mine);
+      },
+      error: () => {
+        this.myLeaveBalance.set(null);
+      }
+    });
   }
 
   loadLeaveRequests(): void {
@@ -49,53 +79,15 @@ export class LeaveRequestListComponent {
 
     this.leaveRequestService.getLeaveRequests().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (leaveRequests) => {
-        // Handle both array and paginated response
         const requests = Array.isArray(leaveRequests) ? leaveRequests : (leaveRequests.content || []);
         this.leaveRequests.set(requests);
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Error loading leave requests:', err);
-        let errorMessage = 'Failed to load leave requests';
-        
-        if (err?.details && Array.isArray(err.details) && err.details.length > 0) {
-          errorMessage = err.details[0];
-        } else if (err?.message) {
-          errorMessage = err.message;
-        } else if (typeof err === 'string') {
-          errorMessage = err;
-        } else if (err?.error?.message) {
-          errorMessage = err.error.message;
-        } else if (err?.error?.details && Array.isArray(err.error.details) && err.error.details.length > 0) {
-          errorMessage = err.error.details[0];
-        }
-        
-        this.error.set(errorMessage);
+        this.error.set(err?.details?.[0] || err?.error?.details?.[0] || err?.message || 'Failed to load leave requests');
         this.loading.set(false);
       }
     });
-  }
-
-  getStatusVariant(status: LeaveRequestStatus): BadgeVariant {
-    switch (status) {
-      case LeaveRequestStatus.APPROVED:
-        return 'default';
-      case LeaveRequestStatus.PENDING:
-        return 'secondary';
-      case LeaveRequestStatus.REJECTED:
-      case LeaveRequestStatus.CANCELLED:
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  }
-
-  canApproveRequest(request: LeaveRequest): boolean {
-    return this.canApprove() && request.status === LeaveRequestStatus.PENDING;
-  }
-
-  canCancelRequest(request: LeaveRequest): boolean {
-    return request.status === LeaveRequestStatus.PENDING;
   }
 
   approveRequest(request: LeaveRequest): void {
@@ -110,33 +102,25 @@ export class LeaveRequestListComponent {
         this.processing.set(null);
       },
       error: (err) => {
-        console.error('Error approving leave request:', err);
-        let errorMessage = 'Failed to approve leave request';
-        
-        if (err?.details && Array.isArray(err.details) && err.details.length > 0) {
-          errorMessage = err.details[0];
-        } else if (err?.message) {
-          errorMessage = err.message;
-        }
-        
-        this.error.set(errorMessage);
+        this.error.set(err?.details?.[0] || err?.message || 'Failed to approve leave request');
         this.processing.set(null);
       }
     });
   }
 
   startRejectRequest(request: LeaveRequest): void {
-    this.rejectingRequestId.set(request.id);
+    this.rejectingRequest.set(request);
     this.rejectionReason.set('');
   }
 
-  cancelReject(): void {
-    this.rejectingRequestId.set(null);
+  closeRejectDialog(): void {
+    this.rejectingRequest.set(null);
     this.rejectionReason.set('');
   }
 
-  confirmReject(request: LeaveRequest): void {
-    if (this.processing()) return;
+  confirmReject(): void {
+    const request = this.rejectingRequest();
+    if (!request || this.processing()) return;
 
     this.processing.set(request.id);
     this.error.set('');
@@ -145,53 +129,40 @@ export class LeaveRequestListComponent {
 
     this.leaveRequestService.rejectLeaveRequest(request.id, reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
-        this.rejectingRequestId.set(null);
-        this.rejectionReason.set('');
+        this.closeRejectDialog();
         this.loadLeaveRequests();
         this.processing.set(null);
       },
       error: (err) => {
-        console.error('Error rejecting leave request:', err);
-        let errorMessage = 'Failed to reject leave request';
-        
-        if (err?.details && Array.isArray(err.details) && err.details.length > 0) {
-          errorMessage = err.details[0];
-        } else if (err?.message) {
-          errorMessage = err.message;
-        }
-        
-        this.error.set(errorMessage);
+        this.error.set(err?.details?.[0] || err?.message || 'Failed to reject leave request');
         this.processing.set(null);
       }
     });
   }
 
-  cancelRequest(request: LeaveRequest): void {
-    if (this.processing()) return;
+  startCancelRequest(request: LeaveRequest): void {
+    this.cancellingRequest.set(request);
+  }
 
-    if (!confirm('Are you sure you want to cancel this leave request?')) {
-      return;
-    }
+  closeCancelDialog(): void {
+    this.cancellingRequest.set(null);
+  }
+
+  confirmCancel(): void {
+    const request = this.cancellingRequest();
+    if (!request || this.processing()) return;
 
     this.processing.set(request.id);
     this.error.set('');
 
     this.leaveRequestService.cancelLeaveRequest(request.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
+        this.closeCancelDialog();
         this.loadLeaveRequests();
         this.processing.set(null);
       },
       error: (err) => {
-        console.error('Error cancelling leave request:', err);
-        let errorMessage = 'Failed to cancel leave request';
-        
-        if (err?.details && Array.isArray(err.details) && err.details.length > 0) {
-          errorMessage = err.details[0];
-        } else if (err?.message) {
-          errorMessage = err.message;
-        }
-        
-        this.error.set(errorMessage);
+        this.error.set(err?.details?.[0] || err?.message || 'Failed to cancel leave request');
         this.processing.set(null);
       }
     });

@@ -7,6 +7,7 @@
     "cancel": "Annuler",
     "delete": "Supprimer",
     "edit": "Modifier",
+    "view": "Voir",
     "create": "Créer",
     "update": "Mettre à jour",
     "search": "Rechercher",
@@ -31,6 +32,9 @@
     "title": "Gestion des Ressources d'Entreprise",
     "logo": "GRE"
   },
+  "a11y": {
+    "skipToContent": "Aller au contenu principal"
+  },
   "auth": {
     "login": {
       "title": "Gestion des Ressources d'Entreprise",
@@ -52,7 +56,29 @@
       "useDemoCredentials": "Utiliser les identifiants de démonstration",
       "error": {
         "default": "Échec de la connexion. Veuillez vérifier vos identifiants et réessayer."
-      }
+      },
+      "forgotPassword": "Mot de passe oublié ?"
+    },
+    "forgotPassword": {
+      "title": "Réinitialiser votre mot de passe",
+      "subtitle": "Entrez votre e-mail. Si un compte existe, vous recevrez les instructions.",
+      "submit": "Envoyer le lien",
+      "sending": "Envoi...",
+      "success": "Si un compte existe, les instructions ont été envoyées. En développement, consultez les logs backend pour le jeton.",
+      "backToLogin": "Retour à la connexion",
+      "error": "Impossible de traiter la demande. Réessayez."
+    },
+    "resetPassword": {
+      "title": "Nouveau mot de passe",
+      "subtitle": "Choisissez un nouveau mot de passe pour votre compte.",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "submit": "Réinitialiser",
+      "saving": "Enregistrement...",
+      "success": "Votre mot de passe a été réinitialisé. Vous pouvez vous connecter.",
+      "invalidToken": "Ce lien de réinitialisation est invalide ou manquant.",
+      "passwordMismatch": "Les mots de passe ne correspondent pas.",
+      "error": "Impossible de réinitialiser. Le lien a peut-être expiré."
     },
     "logout": "Déconnexion"
   },
@@ -68,6 +94,12 @@
       "core": "Principal",
       "people": "Personnel",
       "insights": "Analyses"
+    },
+    "userMenu": {
+      "open": "Ouvrir le menu utilisateur",
+      "account": "Compte",
+      "billing": "Facturation",
+      "notifications": "Notifications"
     }
   },
   "search": {
@@ -121,7 +153,8 @@
       "jobTitle": "Poste",
       "department": "Département",
       "status": "Statut",
-      "actions": "Actions"
+      "actions": "Actions",
+      "filter": "Filtrer les employés..."
     },
     "form": {
       "details": "Détails de l'employé",
@@ -172,7 +205,8 @@
       "description": "Description",
       "manager": "Manager",
       "employees": "Employés",
-      "actions": "Actions"
+      "actions": "Actions",
+      "filter": "Filtrer les départements..."
     },
     "form": {
       "details": "Détails du département",
@@ -195,6 +229,9 @@
   "projects": {
     "title": "Projets",
     "newProject": "Nouveau projet",
+    "archive": "Archiver",
+    "archiveConfirm": "Archiver ce projet ? Il sera masqué des listes actives mais les données seront conservées.",
+    "confirmArchive": "Archiver le projet",
     "editTitle": "Modifier le projet",
     "emptyState": "Aucun projet trouvé. Créez votre premier projet !",
     "table": {
@@ -204,7 +241,8 @@
       "members": "Membres",
       "startDate": "Date de début",
       "deadline": "Date limite",
-      "budget": "Budget"
+      "budget": "Budget",
+      "filter": "Filtrer les projets..."
     },
     "status": {
       "planning": "Planification",
@@ -301,12 +339,23 @@
     "newTimeEntry": "Nouvelle entrée de temps",
     "editTitle": "Modifier l'entrée de temps",
     "emptyState": "Aucune entrée de temps trouvée. Créez votre première entrée de temps !",
+    "emptyTitle": "Aucune saisie de temps",
+    "emptyDescription": "Commencez à suivre vos heures de travail en créant votre première saisie.",
     "table": {
       "date": "Date",
       "project": "Projet",
       "hours": "Heures",
       "status": "Statut",
-      "actions": "Actions"
+      "actions": "Actions",
+      "filter": "Filtrer par projet...",
+      "noResults": "Aucune saisie correspondante."
+    },
+    "stats": {
+      "totalHours": "Heures totales",
+      "approved": "Approuvées",
+      "pending": "En attente",
+      "draft": "Brouillon",
+      "entries": "saisies"
     },
     "form": {
       "details": "Détails de l'entrée de temps",
@@ -330,6 +379,8 @@
     "newLeaveRequest": "Nouvelle demande de congé",
     "editTitle": "Modifier la demande de congé",
     "emptyState": "Aucune demande de congé trouvée. Créez votre première demande de congé !",
+    "emptyTitle": "Aucune demande de congé",
+    "emptyDescription": "Soumettez une demande de congé pour demander un temps libre.",
     "table": {
       "employee": "Employé",
       "type": "Type",
@@ -337,7 +388,9 @@
       "endDate": "Date de fin",
       "days": "Jours",
       "status": "Statut",
-      "actions": "Actions"
+      "actions": "Actions",
+      "filter": "Filtrer par employé...",
+      "noResults": "Aucune demande correspondante."
     },
     "types": {
       "vacation": "Vacances",
@@ -362,7 +415,107 @@
     "cancel": "Annuler",
     "rejectionReason": "Raison du rejet",
     "rejectionReasonPlaceholder": "Optionnel : Fournissez une raison pour le rejet...",
-    "confirmReject": "Confirmer le rejet"
+    "confirmReject": "Confirmer le rejet",
+    "cancelConfirm": "Êtes-vous sûr de vouloir annuler cette demande de congé ?",
+    "confirmCancel": "Confirmer l'annulation",
+    "balance": {
+      "approved": "Jours approuvés",
+      "pending": "Jours en attente",
+      "thisYear": "Jours cette année"
+    }
+  },
+  "reporting": {
+    "title": "Rapports",
+    "subtitle": "Vue d'ensemble des performances et de la santé opérationnelle",
+    "loading": "Chargement des rapports...",
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "time": "Temps",
+      "leave": "Congés"
+    },
+    "metrics": {
+      "activeProjects": "Projets actifs",
+      "totalProjects": "projets au total",
+      "activeEmployees": "Employés actifs",
+      "totalEmployees": "employés au total",
+      "hoursThisWeek": "Heures cette semaine",
+      "thisMonth": "ce mois",
+      "budgetUtilization": "Utilisation du budget"
+    },
+    "operationalSummary": {
+      "title": "Résumé opérationnel",
+      "subtitle": "Indicateurs clés sur le temps, les congés et les projets",
+      "pendingTime": "Saisies en attente",
+      "pendingLeave": "Congés en attente",
+      "onHold": "Projets en pause",
+      "approved": "approuvées",
+      "upcoming": "à venir",
+      "completed": "terminés"
+    },
+    "allocation": {
+      "title": "Allocation des ressources",
+      "subtitle": "Répartition de la charge",
+      "available": "Disponibles",
+      "overallocated": "Sur-alloués",
+      "underutilized": "Sous-utilisés",
+      "understaffedProjects": "Projets sous-effectifs"
+    },
+    "overallocated": {
+      "title": "Employés sur-alloués",
+      "subtitle": "Utilisation la plus élevée cette semaine",
+      "empty": "Aucun employé sur-alloué"
+    },
+    "understaffed": {
+      "title": "Projets sous-effectifs",
+      "subtitle": "Plus grands écarts de staffing",
+      "empty": "Aucun projet sous-effectif",
+      "members": "membres assignés"
+    },
+    "time": {
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "applyFilter": "Appliquer",
+      "totalHours": "Heures totales",
+      "entriesCount": "Saisies",
+      "avgPerEntry": "Moy. par saisie",
+      "byProject": "Heures par projet",
+      "byEmployee": "Heures par employé",
+      "project": "Projet",
+      "employee": "Employé",
+      "hours": "Heures",
+      "entries": "Saisies",
+      "noData": "Aucune saisie sur cette période"
+    },
+    "leave": {
+      "balanceTitle": "Solde de congés",
+      "balanceSubtitle": "Usage approuvé, en attente et cumul annuel",
+      "upcomingTitle": "Congés à venir",
+      "upcomingSubtitle": "Demandes approuvées et en attente",
+      "employee": "Employé",
+      "approved": "Approuvés",
+      "pending": "En attente",
+      "thisYear": "Cette année",
+      "dates": "Dates",
+      "days": "Jours",
+      "status": "Statut",
+      "noBalance": "Aucune donnée de solde",
+      "noUpcoming": "Aucun congé à venir"
+    }
+  },
+  "settings": {
+    "notifications": {
+      "title": "Préférences de notification",
+      "subtitle": "Choisissez comment vous recevez les mises à jour et alertes.",
+      "channels": "Canaux de notification",
+      "emailEnabled": "Notifications par e-mail",
+      "emailEnabledHint": "Recevoir les validations et affectations par e-mail.",
+      "inAppEnabled": "Notifications dans l'application",
+      "inAppEnabledHint": "Afficher les notifications dans la boîte de réception."
+    },
+    "billing": {
+      "noPlan": "Aucun forfait",
+      "unknown": "Inconnu"
+    }
   },
   "errors": {
     "generic": "Une erreur s'est produite",

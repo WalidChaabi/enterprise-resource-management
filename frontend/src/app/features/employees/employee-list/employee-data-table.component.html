@@ -1,0 +1,149 @@
+<div class="w-full">
+  <div class="flex items-center py-4">
+    <input
+      type="text"
+      class="flex h-9 w-full max-w-sm rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+      [placeholder]="'employees.table.filter' | translate"
+      [ngModel]="filterValue()"
+      (ngModelChange)="onFilterChange($event)" />
+    <app-data-table-view-options [table]="table" />
+  </div>
+
+  <div class="overflow-hidden rounded-md border">
+    <div class="relative w-full overflow-auto">
+      <table class="w-full caption-bottom text-sm">
+        <thead class="[&_tr]:border-b">
+          @for (headerGroup of table.getHeaderGroups(); track headerGroup.id) {
+            <tr class="border-b transition-colors">
+              @for (header of headerGroup.headers; track header.id) {
+                <th
+                  class="h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0"
+                  [class.text-right]="header.column.id === 'actions'">
+                  @if (!header.isPlaceholder) {
+                    <ng-container *flexRender="header.column.columnDef.header; props: header.getContext()" />
+                  }
+                </th>
+              }
+            </tr>
+          }
+        </thead>
+        <tbody class="[&_tr:last-child]:border-0">
+          @if (table.getRowModel().rows.length) {
+            @for (row of table.getRowModel().rows; track row.id) {
+              <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                @for (cell of row.getVisibleCells(); track cell.id) {
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0"
+                    [class.text-right]="cell.column.id === 'actions'">
+                    <ng-container *flexRender="cell.column.columnDef.cell; props: cell.getContext()" />
+                  </td>
+                }
+              </tr>
+            }
+          } @else {
+            <tr class="border-b transition-colors">
+              <td
+                class="h-24 p-2 text-center align-middle text-muted-foreground"
+                [attr.colspan]="table.getAllColumns().length">
+                No results.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="py-4">
+    <app-data-table-pagination [table]="table" />
+  </div>
+</div>
+
+<ng-template #nameHeader let-context>
+  <app-data-table-column-header
+    variant="menu"
+    [column]="context.column"
+    [title]="'employees.table.name' | translate" />
+</ng-template>
+
+<ng-template #emailHeader let-context>
+  <app-data-table-column-header
+    variant="menu"
+    [column]="context.column"
+    [title]="'employees.table.email' | translate" />
+</ng-template>
+
+<ng-template #jobTitleHeader let-context>
+  <app-data-table-column-header
+    variant="menu"
+    [column]="context.column"
+    [title]="'employees.table.jobTitle' | translate" />
+</ng-template>
+
+<ng-template #departmentHeader let-context>
+  <app-data-table-column-header
+    variant="menu"
+    [column]="context.column"
+    [title]="'employees.table.department' | translate" />
+</ng-template>
+
+<ng-template #statusHeader let-context>
+  <app-data-table-column-header
+    variant="menu"
+    [column]="context.column"
+    [title]="'employees.table.status' | translate" />
+</ng-template>
+
+<ng-template #actionsHeader>
+  <span class="sr-only">{{ 'common.actions' | translate }}</span>
+</ng-template>
+
+<ng-template #nameCell let-context>
+  <div class="flex items-center gap-3">
+    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
+      {{ initials(context.row.original) }}
+    </div>
+    <div class="min-w-0">
+      <a class="font-medium hover:underline" [routerLink]="['/employees', context.row.original.id]">
+        {{ context.row.original.firstName }} {{ context.row.original.lastName }}
+      </a>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #emailCell let-context>
+  @if (context.row.original.email) {
+    <span class="text-muted-foreground">{{ context.row.original.email }}</span>
+  } @else {
+    <span class="text-muted-foreground">—</span>
+  }
+</ng-template>
+
+<ng-template #jobTitleCell let-context>
+  @if (context.row.original.jobTitle) {
+    <span class="text-muted-foreground">{{ context.row.original.jobTitle }}</span>
+  } @else {
+    <span class="text-muted-foreground">—</span>
+  }
+</ng-template>
+
+<ng-template #departmentCell let-context>
+  @if (context.row.original.departmentName) {
+    <span class="text-muted-foreground">{{ context.row.original.departmentName }}</span>
+  } @else {
+    <span class="text-muted-foreground">—</span>
+  }
+</ng-template>
+
+<ng-template #statusCell let-context>
+  <app-badge [variant]="context.row.original.active ? 'default' : 'secondary'">
+    {{ context.row.original.active ? ('common.active' | translate) : ('common.inactive' | translate) }}
+  </app-badge>
+</ng-template>
+
+<ng-template #actionsCell let-context>
+  <app-employee-row-actions
+    [employeeId]="context.row.original.id"
+    [viewLabel]="'common.view' | translate"
+    [editLabel]="'common.edit' | translate" />
+</ng-template>

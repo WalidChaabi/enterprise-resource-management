@@ -25,21 +25,19 @@ export interface OrganizationSettingsUpdate {
 }
 
 export interface NotificationPreferences {
-  emailNotifications: boolean;
-  pushNotifications: boolean;
-  projectUpdates: boolean;
-  taskAssignments: boolean;
+  emailEnabled: boolean;
+  inAppEnabled: boolean;
 }
 
 export interface NotificationPreferencesUpdate {
-  emailNotifications?: boolean;
-  pushNotifications?: boolean;
-  projectUpdates?: boolean;
-  taskAssignments?: boolean;
+  emailEnabled?: boolean;
+  inAppEnabled?: boolean;
 }
 
 export interface BillingSettings {
-  plan: string;
+  planName: string;
   status: string;
   nextBillingDate?: string;
+  amount?: number;
+  currency?: string;
 }
