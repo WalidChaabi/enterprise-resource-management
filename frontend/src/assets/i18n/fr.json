@@ -462,6 +462,11 @@
       "time": "Temps",
       "leave": "Congés"
     },
+    "upgrade": {
+      "title": "Les rapports avancés nécessitent un forfait payant",
+      "description": "Passez à Starter ou Pro pour débloquer les rapports temps, congés et allocation des ressources.",
+      "cta": "Voir les forfaits"
+    },
     "metrics": {
       "activeProjects": "Projets actifs",
       "totalProjects": "projets au total",

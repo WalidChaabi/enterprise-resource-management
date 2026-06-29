@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, EventEmitter, Input, Output, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
+import { EntitlementService } from '../../core/services/entitlement.service';
 import { ReportingService } from '../../core/services/reporting.service';
 import { Dashboard } from '../../core/models/dashboard.model';
 import { AlertType } from '../../core/models/alert.model';
@@ -23,6 +24,7 @@ import { SidebarNavComponent } from './sidebar-nav.component';
 })
 export class SidebarComponent {
   private readonly authService = inject(AuthService);
+  private readonly entitlementService = inject(EntitlementService);
   private readonly reportingService = inject(ReportingService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -45,6 +47,12 @@ export class SidebarComponent {
     }
 
     const visibleItems = SIDEBAR_NAV_ITEMS.filter((item) => {
+      if (item.requiredEntitlements?.length) {
+        const hasEntitlement = item.requiredEntitlements.some((e) => this.entitlementService.has(e));
+        if (!hasEntitlement) {
+          return false;
+        }
+      }
       if (!item.requiredRoles) {
         return true;
       }

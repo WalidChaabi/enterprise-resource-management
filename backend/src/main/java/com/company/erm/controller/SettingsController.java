@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.company.erm.dto.RoleResponseDTO;
 import com.company.erm.dto.settings.BillingPortalResponseDTO;
 import com.company.erm.dto.settings.BillingSettingsResponseDTO;
+import com.company.erm.dto.settings.EntitlementsResponseDTO;
 import com.company.erm.dto.settings.NotificationPreferencesResponseDTO;
 import com.company.erm.dto.settings.NotificationPreferencesUpdateDTO;
 import com.company.erm.dto.settings.OrganizationSettingsResponseDTO;
@@ -92,6 +93,12 @@ public class SettingsController {
     public ResponseEntity<BillingPortalResponseDTO> createBillingCheckoutSession(Authentication authentication) {
         String currentUserEmail = authentication.getName();
         return ResponseEntity.ok(settingsService.createBillingCheckoutSession(currentUserEmail));
+    }
+
+    @GetMapping("/entitlements")
+    public ResponseEntity<EntitlementsResponseDTO> getEntitlements(Authentication authentication) {
+        String currentUserEmail = authentication.getName();
+        return ResponseEntity.ok(settingsService.getEntitlements(currentUserEmail));
     }
 
     @GetMapping("/notification-preferences")

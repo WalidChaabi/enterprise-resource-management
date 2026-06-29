@@ -11,6 +11,7 @@ import { TranslationService } from '../../core/services/translation.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { OrganizationSwitcherService } from '../../core/services/organization-switcher.service';
 import { UiConfigService } from '../../core/services/ui-config.service';
+import { EntitlementService } from '../../core/services/entitlement.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { Notification } from '../../core/models/notification.model';
 import { OrganizationSummary } from '../../core/models/organization.model';
@@ -62,6 +63,7 @@ export class MainLayoutComponent {
   private readonly notificationService = inject(NotificationService);
   private readonly orgSwitcherService = inject(OrganizationSwitcherService);
   private readonly uiConfigService = inject(UiConfigService);
+  private readonly entitlementService = inject(EntitlementService);
   private readonly settingsService = inject(SettingsService);
   readonly themeService = inject(ThemeService);
   readonly translationService = inject(TranslationService);
@@ -109,6 +111,7 @@ export class MainLayoutComponent {
     this.loadOrganizations();
     this.loadUiConfig();
     this.loadShortcuts();
+    this.entitlementService.load();
   }
 
   toggleTheme(): void {

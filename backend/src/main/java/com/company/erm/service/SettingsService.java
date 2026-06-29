@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.company.erm.dto.RoleResponseDTO;
 import com.company.erm.dto.settings.BillingPortalResponseDTO;
 import com.company.erm.dto.settings.BillingSettingsResponseDTO;
+import com.company.erm.dto.settings.EntitlementsResponseDTO;
 import com.company.erm.dto.settings.NotificationPreferencesResponseDTO;
 import com.company.erm.dto.settings.NotificationPreferencesUpdateDTO;
 import com.company.erm.dto.settings.OrganizationSettingsResponseDTO;
@@ -41,6 +42,7 @@ public class SettingsService {
     private final SettingsShortcutsProperties shortcutsProperties;
     private final StripeBillingService stripeBillingService;
     private final PermissionChecker permissionChecker;
+    private final EntitlementService entitlementService;
 
     public SettingsService(
             UserRepository userRepository,
@@ -50,7 +52,8 @@ public class SettingsService {
             UserNotificationPreferencesRepository notificationPreferencesRepository,
             SettingsShortcutsProperties shortcutsProperties,
             StripeBillingService stripeBillingService,
-            PermissionChecker permissionChecker) {
+            PermissionChecker permissionChecker,
+            EntitlementService entitlementService) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.roleRepository = roleRepository;
@@ -59,6 +62,7 @@ public class SettingsService {
         this.shortcutsProperties = shortcutsProperties;
         this.stripeBillingService = stripeBillingService;
         this.permissionChecker = permissionChecker;
+        this.entitlementService = entitlementService;
     }
 
     @Transactional(readOnly = true)
@@ -146,6 +150,12 @@ public class SettingsService {
         permissionChecker.requireRole(org.getId(), currentUserEmail, RoleCode.ORG_ADMIN);
         long seatCount = userRepository.countByOrganizationIdAndActiveTrue(org.getId());
         return stripeBillingService.createCheckoutSession(org, seatCount);
+    }
+
+    @Transactional(readOnly = true)
+    public EntitlementsResponseDTO getEntitlements(String currentUserEmail) {
+        User user = getUserByEmail(currentUserEmail);
+        return entitlementService.getEntitlements(user.getOrganization());
     }
 
     @Transactional(readOnly = true)

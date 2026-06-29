@@ -93,6 +93,7 @@ public class OrganizationProvisioningService {
         organization.setActive(true);
         organization.setPlanCode("TRIAL");
         organization.setTrialEndsAt(LocalDateTime.now().plusDays(14));
+        organization.setSeatLimit(5);
         organization = organizationRepository.save(organization);
 
         List<Role> roles = seedDefaultRoles(organization);

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, tap, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthRequest, AuthResponse, SignupRequest, User } from '../models/auth.model';
+import { EntitlementService } from './entitlement.service';
 import { STORAGE_KEYS, type Role } from '../utils/constants';
 
 /**
@@ -16,6 +17,7 @@ import { STORAGE_KEYS, type Role } from '../utils/constants';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly entitlementService = inject(EntitlementService);
   private readonly apiBase = environment.apiUrl;
 
   private readonly currentUserSignal = signal<User | null>(null);
@@ -91,6 +93,7 @@ export class AuthService {
     sessionStorage.removeItem(STORAGE_KEYS.USER);
     sessionStorage.removeItem(STORAGE_KEYS.ORGANIZATION_ID);
     this.currentUserSignal.set(null);
+    this.entitlementService.clear();
     this.router.navigate(['/login']);
   }
 
@@ -107,6 +110,7 @@ export class AuthService {
     sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
     sessionStorage.setItem(STORAGE_KEYS.ORGANIZATION_ID, response.organizationId);
     this.currentUserSignal.set(user);
+    this.entitlementService.load();
   }
 
   private loadUserFromStorage(): void {

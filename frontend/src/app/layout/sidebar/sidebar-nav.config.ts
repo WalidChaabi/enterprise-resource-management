@@ -7,6 +7,7 @@ export interface NavItem {
   icon: LucideIconData;
   section: 'core' | 'people' | 'insights';
   requiredRoles?: Role[];
+  requiredEntitlements?: string[];
   indicator?: {
     count: number;
     priority: 'high' | 'medium' | 'low';
@@ -72,5 +73,6 @@ export const SIDEBAR_NAV_ITEMS: NavItem[] = [
     icon: BarChart3,
     section: 'insights',
     requiredRoles: [ROLES.ORG_ADMIN, ROLES.PROJECT_MANAGER, ROLES.HR_ADMIN],
+    requiredEntitlements: ['REPORTING'],
   },
 ];

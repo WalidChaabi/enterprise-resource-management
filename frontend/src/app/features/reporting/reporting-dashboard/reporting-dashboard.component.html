@@ -4,6 +4,20 @@
     <p class="page-description">{{ 'reporting.subtitle' | translate }}</p>
   </div>
 
+  @if (upgradeRequired()) {
+    <app-alert>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="font-medium text-foreground">{{ 'reporting.upgrade.title' | translate }}</p>
+          <p class="text-sm text-muted-foreground">{{ 'reporting.upgrade.description' | translate }}</p>
+        </div>
+        <a routerLink="/settings/billing" class="inline-flex h-9 shrink-0 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+          {{ 'reporting.upgrade.cta' | translate }}
+        </a>
+      </div>
+    </app-alert>
+  }
+
   <div class="flex flex-wrap gap-2 border-b border-border pb-1">
     @for (tab of tabs; track tab.id) {
       <button

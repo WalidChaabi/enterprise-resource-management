@@ -19,6 +19,10 @@ import com.company.erm.dto.LeaveReportDTO;
 import com.company.erm.dto.ProjectStatsDTO;
 import com.company.erm.dto.ResourceAllocationDTO;
 import com.company.erm.dto.TimeReportDTO;
+import com.company.erm.entitlement.PlanEntitlement;
+import com.company.erm.entity.Organization;
+import com.company.erm.repository.OrganizationRepository;
+import com.company.erm.service.EntitlementService;
 import com.company.erm.service.reporting.DashboardService;
 import com.company.erm.service.reporting.LeaveReportService;
 import com.company.erm.service.reporting.ResourceAllocationService;
@@ -38,16 +42,28 @@ public class ReportingController {
     private final TimeReportService timeReportService;
     private final LeaveReportService leaveReportService;
     private final ResourceAllocationService resourceAllocationService;
+    private final OrganizationRepository organizationRepository;
+    private final EntitlementService entitlementService;
 
     public ReportingController(
             DashboardService dashboardService,
             TimeReportService timeReportService,
             LeaveReportService leaveReportService,
-            ResourceAllocationService resourceAllocationService) {
+            ResourceAllocationService resourceAllocationService,
+            OrganizationRepository organizationRepository,
+            EntitlementService entitlementService) {
         this.dashboardService = dashboardService;
         this.timeReportService = timeReportService;
         this.leaveReportService = leaveReportService;
         this.resourceAllocationService = resourceAllocationService;
+        this.organizationRepository = organizationRepository;
+        this.entitlementService = entitlementService;
+    }
+
+    private void requireReporting(UUID organizationId) {
+        Organization organization = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new IllegalArgumentException("Organization not found"));
+        entitlementService.requireEntitlement(organization, PlanEntitlement.REPORTING);
     }
 
     @GetMapping("/dashboard")
@@ -59,6 +75,7 @@ public class ReportingController {
     public ResponseEntity<ProjectStatsDTO> getProjectStats(
             @PathVariable UUID organizationId,
             @PathVariable UUID projectId) {
+        requireReporting(organizationId);
         return ResponseEntity.ok(timeReportService.getProjectStats(organizationId, projectId));
     }
 
@@ -67,6 +84,7 @@ public class ReportingController {
             @PathVariable UUID organizationId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        requireReporting(organizationId);
         return ResponseEntity.ok(timeReportService.getTimeReportByProject(organizationId, startDate, endDate));
     }
 
@@ -75,6 +93,7 @@ public class ReportingController {
             @PathVariable UUID organizationId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        requireReporting(organizationId);
         return ResponseEntity.ok(timeReportService.getTimeReportByEmployee(organizationId, startDate, endDate));
     }
 
@@ -83,21 +102,25 @@ public class ReportingController {
             @PathVariable UUID organizationId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        requireReporting(organizationId);
         return ResponseEntity.ok(timeReportService.getTimeSummary(organizationId, startDate, endDate));
     }
 
     @GetMapping("/leave/balance")
     public ResponseEntity<List<LeaveBalanceDTO>> getLeaveBalance(@PathVariable UUID organizationId) {
+        requireReporting(organizationId);
         return ResponseEntity.ok(leaveReportService.getLeaveBalance(organizationId));
     }
 
     @GetMapping("/leave/upcoming")
     public ResponseEntity<List<LeaveReportDTO>> getUpcomingLeaveRequests(@PathVariable UUID organizationId) {
+        requireReporting(organizationId);
         return ResponseEntity.ok(leaveReportService.getUpcomingLeaveRequests(organizationId));
     }
 
     @GetMapping("/resource-allocation")
     public ResponseEntity<ResourceAllocationDTO> getResourceAllocation(@PathVariable UUID organizationId) {
+        requireReporting(organizationId);
         return ResponseEntity.ok(resourceAllocationService.getResourceAllocation(organizationId));
     }
 }

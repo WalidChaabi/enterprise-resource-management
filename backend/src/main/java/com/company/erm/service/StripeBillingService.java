@@ -275,6 +275,12 @@ public class StripeBillingService {
         if ("canceled".equals(subscription.getStatus()) || "unpaid".equals(subscription.getStatus())) {
             organization.setPlanCode("TRIAL");
         }
+        if (subscription.getItems() != null && !subscription.getItems().getData().isEmpty()) {
+            Long quantity = subscription.getItems().getData().get(0).getQuantity();
+            if (quantity != null) {
+                organization.setSeatLimit(quantity.intValue());
+            }
+        }
         organizationRepository.save(organization);
     }
 

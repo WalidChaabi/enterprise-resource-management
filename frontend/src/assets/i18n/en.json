@@ -462,6 +462,11 @@
       "time": "Time",
       "leave": "Leave"
     },
+    "upgrade": {
+      "title": "Advanced reporting requires a paid plan",
+      "description": "Upgrade to Starter or Pro to unlock time, leave, and resource allocation reports.",
+      "cta": "View plans"
+    },
     "metrics": {
       "activeProjects": "Active Projects",
       "totalProjects": "total projects",

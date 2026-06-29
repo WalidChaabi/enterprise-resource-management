@@ -49,3 +49,12 @@ export interface BillingSettings {
 export interface BillingPortalResponse {
   url: string;
 }
+
+export interface Entitlements {
+  planCode: string;
+  planName: string;
+  entitlements: string[];
+  seatLimit?: number | null;
+  seatCount: number;
+  upgradeRequired: boolean;
+}

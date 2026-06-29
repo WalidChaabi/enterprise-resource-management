@@ -74,6 +74,9 @@ class EmployeeServiceTest {
     private EmployeeMapper employeeMapper;
 
     @Mock
+    private EntitlementService entitlementService;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
@@ -118,6 +121,7 @@ class EmployeeServiceTest {
         when(organizationRepository.findById(organizationId)).thenReturn(Optional.of(organization));
         when(departmentRepository.findById(departmentId)).thenReturn(Optional.of(department));
         doNothing().when(permissionChecker).requireRole(eq(organizationId), eq("admin@example.com"), any(String[].class));
+        doNothing().when(entitlementService).requireSeatAvailable(any(Organization.class));
         doNothing().when(employeeDomainService).validateEmployeeCreation(any(), any(), any(), any());
         doNothing().when(employeeDomainService).assignRoleToEmployee(any(), any(), any());
         when(passwordEncoder.encode(anyString())).thenAnswer(invocation -> realPasswordEncoder.encode(invocation.getArgument(0)));

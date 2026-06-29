@@ -2,9 +2,11 @@ import { LucideAngularModule } from 'lucide-angular';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { ReportingService } from '../../../core/services/reporting.service';
+import { EntitlementService } from '../../../core/services/entitlement.service';
 import { ResourceAllocationService } from '../../../core/services/resource-allocation.service';
 import { Dashboard } from '../../../core/models/dashboard.model';
 import { LeaveBalance, LeaveReport, ReportingTab, TimeReport } from '../../../core/models/report.model';
@@ -19,6 +21,7 @@ import { BadgeComponent } from '../../../shared/components/ui/badge/badge.compon
     selector: 'app-reporting-dashboard',
     imports: [
         CommonModule,
+        RouterModule,
         FormsModule,
         TranslatePipe,
         LucideAngularModule,
@@ -36,6 +39,7 @@ import { BadgeComponent } from '../../../shared/components/ui/badge/badge.compon
 })
 export class ReportingDashboardComponent {
   private readonly reportingService = inject(ReportingService);
+  private readonly entitlementService = inject(EntitlementService);
   private readonly resourceAllocationService = inject(ResourceAllocationService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -52,6 +56,10 @@ export class ReportingDashboardComponent {
   readonly timeLoading = signal<boolean>(false);
   readonly leaveLoading = signal<boolean>(false);
   readonly error = signal<string>('');
+
+  readonly upgradeRequired = computed(
+    () => !this.entitlementService.has('REPORTING')
+  );
 
   readonly startDate = signal(this.monthStart());
   readonly endDate = signal(this.today());
@@ -114,11 +122,14 @@ export class ReportingDashboardComponent {
           this.dashboard.set(dashboard);
           this.loading.set(false);
         },
-        error: (err) => {
-          this.error.set(err?.error?.message || err?.message || 'Failed to load reports');
+        error: () => {
           this.loading.set(false);
         }
       });
+
+    if (this.upgradeRequired()) {
+      return;
+    }
 
     this.resourceAllocationService
       .getResourceAllocation()
@@ -128,6 +139,9 @@ export class ReportingDashboardComponent {
           this.allocation.set(allocation);
         },
         error: (err) => {
+          if (err?.code === 'UPGRADE_REQUIRED') {
+            return;
+          }
           const currentError = this.error();
           const nextError = err?.error?.message || err?.message || 'Failed to load resource allocation';
           this.error.set(currentError ? `${currentError}. ${nextError}` : nextError);

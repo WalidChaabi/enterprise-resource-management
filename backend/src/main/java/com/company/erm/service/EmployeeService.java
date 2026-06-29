@@ -43,6 +43,7 @@ public class EmployeeService {
     private final PermissionChecker permissionChecker;
     private final AuditLogService auditLogService;
     private final EmployeeMapper employeeMapper;
+    private final EntitlementService entitlementService;
 
     public EmployeeService(
             UserRepository userRepository,
@@ -52,7 +53,8 @@ public class EmployeeService {
             PasswordEncoder passwordEncoder,
             PermissionChecker permissionChecker,
             AuditLogService auditLogService,
-            EmployeeMapper employeeMapper) {
+            EmployeeMapper employeeMapper,
+            EntitlementService entitlementService) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.departmentRepository = departmentRepository;
@@ -61,6 +63,7 @@ public class EmployeeService {
         this.permissionChecker = permissionChecker;
         this.auditLogService = auditLogService;
         this.employeeMapper = employeeMapper;
+        this.entitlementService = entitlementService;
     }
 
     /**
@@ -79,6 +82,8 @@ public class EmployeeService {
         // 2. Load organization
         Organization organization = organizationRepository.findById(organizationId)
             .orElseThrow(() -> new IllegalArgumentException("Organization not found"));
+
+        entitlementService.requireSeatAvailable(organization);
         
         // 3. Business validation (delegated to domain service)
         employeeDomainService.validateEmployeeCreation(

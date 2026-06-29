@@ -15,7 +15,7 @@
 |-------|--------|----------|----------|--------|
 | MT-A | Self-serve signup & org provisioning | 2–3 weeks | P0 | ✅ Code complete · QA pending |
 | MT-B | Stripe billing (plans, seats, trials) | 3–4 weeks | P0 | 🟡 In progress — core wired · seat enforcement pending |
-| MT-C | Plan entitlements & feature flags | 1–2 weeks | P1 | ⬜ Not started |
+| MT-C | Plan entitlements & feature flags | 1–2 weeks | P1 | 🟡 In progress — core gating wired |
 | MT-D | SSO/OIDC + MFA (TOTP) | 3–4 weeks | P0 | ⬜ Not started |
 | MT-E | Persistent audit log + admin export | 2 weeks | P0 | ⬜ Not started |
 | MT-F | GDPR export & erasure | 2–3 weeks | P0 | ⬜ Not started |
@@ -100,15 +100,16 @@
 
 | ID | Task | Owner | Effort | Notes |
 |----|------|-------|--------|-------|
-| MT-C.1 | `PlanEntitlement` enum + `organization.plan_code` → feature map | Backend | 1d | e.g. `REPORTING_ADVANCED`, `WEBHOOKS` |
-| MT-C.2 | `EntitlementChecker` used in services + `@PreAuthorize` helpers | Backend | 1d | 403 with upgrade hint code |
-| MT-C.3 | Expose entitlements on `/api/v1/ui-config` or settings | Backend | 0.5d | Frontend hides nav items |
-| MT-C.4 | Upgrade prompts in UI (billing CTA) | Frontend | 1d | |
+| MT-C.1 | `PlanEntitlement` enum + `organization.plan_code` → feature map | Backend | 1d | ✅ `REPORTING`, `WEBHOOKS` |
+| MT-C.2 | `EntitlementChecker` used in services + `@PreAuthorize` helpers | Backend | 1d | ✅ `EntitlementService` + 403 `UPGRADE_REQUIRED` |
+| MT-C.3 | Expose entitlements on `/api/v1/ui-config` or settings | Backend | 0.5d | ✅ `GET /api/settings/entitlements` |
+| MT-C.4 | Upgrade prompts in UI (billing CTA) | Frontend | 1d | ✅ Sidebar hide + reports upgrade banner |
 
 **Acceptance criteria**
 
-- [ ] Free/trial org cannot enable webhooks until Pro
-- [ ] Seat limit blocks employee create with actionable error
+- [x] Trial org cannot access advanced report APIs (`UPGRADE_REQUIRED`)
+- [x] Seat limit blocks employee create with actionable error (`SEAT_LIMIT_REACHED`)
+- [ ] WEBHOOKS gating verified when MT-H ships
 
 ---
 
