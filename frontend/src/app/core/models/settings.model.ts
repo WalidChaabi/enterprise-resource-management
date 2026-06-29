@@ -38,6 +38,14 @@ export interface BillingSettings {
   planName: string;
   status: string;
   nextBillingDate?: string;
+  trialEndsAt?: string;
   amount?: number;
   currency?: string;
+  seatCount?: number;
+  portalAvailable?: boolean;
+  checkoutAvailable?: boolean;
+}
+
+export interface BillingPortalResponse {
+  url: string;
 }

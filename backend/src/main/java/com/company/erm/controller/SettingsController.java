@@ -6,12 +6,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.company.erm.dto.RoleResponseDTO;
+import com.company.erm.dto.settings.BillingPortalResponseDTO;
 import com.company.erm.dto.settings.BillingSettingsResponseDTO;
 import com.company.erm.dto.settings.NotificationPreferencesResponseDTO;
 import com.company.erm.dto.settings.NotificationPreferencesUpdateDTO;
@@ -76,6 +78,20 @@ public class SettingsController {
     public ResponseEntity<BillingSettingsResponseDTO> getBilling(Authentication authentication) {
         String currentUserEmail = authentication.getName();
         return ResponseEntity.ok(settingsService.getBilling(currentUserEmail));
+    }
+
+    @PostMapping("/billing/portal")
+    @PreAuthorize("hasRole('ORG_ADMIN')")
+    public ResponseEntity<BillingPortalResponseDTO> createBillingPortalSession(Authentication authentication) {
+        String currentUserEmail = authentication.getName();
+        return ResponseEntity.ok(settingsService.createBillingPortalSession(currentUserEmail));
+    }
+
+    @PostMapping("/billing/checkout")
+    @PreAuthorize("hasRole('ORG_ADMIN')")
+    public ResponseEntity<BillingPortalResponseDTO> createBillingCheckoutSession(Authentication authentication) {
+        String currentUserEmail = authentication.getName();
+        return ResponseEntity.ok(settingsService.createBillingCheckoutSession(currentUserEmail));
     }
 
     @GetMapping("/notification-preferences")

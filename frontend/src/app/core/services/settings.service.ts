@@ -9,6 +9,7 @@ import {
   NotificationPreferences,
   NotificationPreferencesUpdate,
   BillingSettings,
+  BillingPortalResponse,
   ShortcutDefinition
 } from '../models/settings.model';
 import { Role } from '../models/user-role.model';
@@ -42,6 +43,14 @@ export class SettingsService {
 
   getBilling(): Observable<BillingSettings> {
     return this.api.get<BillingSettings>(`${API_ENDPOINTS.SETTINGS}/billing`);
+  }
+
+  createBillingPortalSession(): Observable<BillingPortalResponse> {
+    return this.api.post<BillingPortalResponse>(`${API_ENDPOINTS.SETTINGS}/billing/portal`, {});
+  }
+
+  createBillingCheckoutSession(): Observable<BillingPortalResponse> {
+    return this.api.post<BillingPortalResponse>(`${API_ENDPOINTS.SETTINGS}/billing/checkout`, {});
   }
 
   getNotificationPreferences(): Observable<NotificationPreferences> {

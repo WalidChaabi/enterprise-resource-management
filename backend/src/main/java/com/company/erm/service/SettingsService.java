@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.company.erm.dto.RoleResponseDTO;
+import com.company.erm.dto.settings.BillingPortalResponseDTO;
 import com.company.erm.dto.settings.BillingSettingsResponseDTO;
 import com.company.erm.dto.settings.NotificationPreferencesResponseDTO;
 import com.company.erm.dto.settings.NotificationPreferencesUpdateDTO;
@@ -25,6 +26,8 @@ import com.company.erm.repository.OrganizationRepository;
 import com.company.erm.repository.RoleRepository;
 import com.company.erm.repository.UserNotificationPreferencesRepository;
 import com.company.erm.repository.UserRepository;
+import com.company.erm.security.PermissionChecker;
+import com.company.erm.security.RoleCode;
 
 @Service
 @Transactional
@@ -36,6 +39,8 @@ public class SettingsService {
     private final RoleMapper roleMapper;
     private final UserNotificationPreferencesRepository notificationPreferencesRepository;
     private final SettingsShortcutsProperties shortcutsProperties;
+    private final StripeBillingService stripeBillingService;
+    private final PermissionChecker permissionChecker;
 
     public SettingsService(
             UserRepository userRepository,
@@ -43,13 +48,17 @@ public class SettingsService {
             RoleRepository roleRepository,
             RoleMapper roleMapper,
             UserNotificationPreferencesRepository notificationPreferencesRepository,
-            SettingsShortcutsProperties shortcutsProperties) {
+            SettingsShortcutsProperties shortcutsProperties,
+            StripeBillingService stripeBillingService,
+            PermissionChecker permissionChecker) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.roleRepository = roleRepository;
         this.roleMapper = roleMapper;
         this.notificationPreferencesRepository = notificationPreferencesRepository;
         this.shortcutsProperties = shortcutsProperties;
+        this.stripeBillingService = stripeBillingService;
+        this.permissionChecker = permissionChecker;
     }
 
     @Transactional(readOnly = true)
@@ -118,14 +127,25 @@ public class SettingsService {
 
     @Transactional(readOnly = true)
     public BillingSettingsResponseDTO getBilling(String currentUserEmail) {
-        getUserByEmail(currentUserEmail);
-        BillingSettingsResponseDTO dto = new BillingSettingsResponseDTO();
-        dto.setPlanName("FREE");
-        dto.setStatus("ACTIVE");
-        dto.setNextBillingDate(null);
-        dto.setAmount(null);
-        dto.setCurrency("USD");
-        return dto;
+        User user = getUserByEmail(currentUserEmail);
+        Organization org = user.getOrganization();
+        long seatCount = userRepository.countByOrganizationIdAndActiveTrue(org.getId());
+        return stripeBillingService.getBillingSummary(org, seatCount);
+    }
+
+    public BillingPortalResponseDTO createBillingPortalSession(String currentUserEmail) {
+        User user = getUserByEmail(currentUserEmail);
+        Organization org = user.getOrganization();
+        permissionChecker.requireRole(org.getId(), currentUserEmail, RoleCode.ORG_ADMIN);
+        return stripeBillingService.createPortalSession(org);
+    }
+
+    public BillingPortalResponseDTO createBillingCheckoutSession(String currentUserEmail) {
+        User user = getUserByEmail(currentUserEmail);
+        Organization org = user.getOrganization();
+        permissionChecker.requireRole(org.getId(), currentUserEmail, RoleCode.ORG_ADMIN);
+        long seatCount = userRepository.countByOrganizationIdAndActiveTrue(org.getId());
+        return stripeBillingService.createCheckoutSession(org, seatCount);
     }
 
     @Transactional(readOnly = true)

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import com.company.erm.config.AuthCookieProperties;
 import com.company.erm.config.JwtProperties;
 import com.company.erm.config.SettingsShortcutsProperties;
+import com.company.erm.config.StripeProperties;
 import com.company.erm.config.UiConfigProperties;
 
 @SpringBootApplication(scanBasePackages = "com.company.erm")
@@ -16,7 +17,8 @@ import com.company.erm.config.UiConfigProperties;
     JwtProperties.class,
     AuthCookieProperties.class,
     UiConfigProperties.class,
-    SettingsShortcutsProperties.class
+    SettingsShortcutsProperties.class,
+    StripeProperties.class
 })
 public class ErmBackendApplication {
 

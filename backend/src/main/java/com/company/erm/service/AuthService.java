@@ -64,7 +64,7 @@ public class AuthService {
     }
 
     public AuthSession buildSessionForOrganization(User user, UUID organizationId) {
-        return buildSessionWithTokens(user, organizationId, null);
+        return buildSession(user, organizationId);
     }
 
     private User authenticate(String email, String password) {

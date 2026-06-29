@@ -26,7 +26,9 @@
     "description": "Description",
     "members": "membres",
     "noDescription": "Aucune description",
-    "notSet": "Non défini"
+    "notSet": "Non défini",
+    "back": "Retour",
+    "continue": "Continuer"
   },
   "app": {
     "title": "Gestion des Ressources d'Entreprise",
@@ -57,7 +59,34 @@
       "error": {
         "default": "Échec de la connexion. Veuillez vérifier vos identifiants et réessayer."
       },
-      "forgotPassword": "Mot de passe oublié ?"
+      "forgotPassword": "Mot de passe oublié ?",
+      "createAccount": "Créer un compte"
+    },
+    "signup": {
+      "progress": "Étape {{current}} sur {{total}}",
+      "step1Title": "Votre compte",
+      "step1Subtitle": "Créez le compte administrateur de votre organisation.",
+      "step2Title": "Votre organisation",
+      "step2Subtitle": "Indiquez le nom de l'entreprise à configurer.",
+      "step3Title": "Vérification",
+      "step3Subtitle": "Confirmez vos informations et acceptez les conditions pour démarrer l'essai.",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "organizationName": "Nom de l'organisation",
+      "organizationHint": "C'est le nom d'espace visible par votre équipe.",
+      "passwordHint": "Au moins 8 caractères.",
+      "reviewName": "Nom",
+      "acceptTerms": "J'accepte les Conditions d'utilisation et la Politique de confidentialité.",
+      "inviteLater": "Vous pourrez inviter des collègues depuis les Paramètres après la configuration.",
+      "createAccount": "Créer le compte",
+      "creating": "Création de l'espace...",
+      "alreadyHaveAccount": "Déjà un compte ? Se connecter",
+      "error": {
+        "default": "Impossible de créer le compte. Réessayez.",
+        "emailInUse": "Un compte existe déjà avec cet e-mail.",
+        "disabled": "L'inscription en libre-service n'est pas disponible.",
+        "terms": "Vous devez accepter les conditions d'utilisation."
+      }
     },
     "forgotPassword": {
       "title": "Réinitialiser votre mot de passe",
@@ -513,8 +542,26 @@
       "inAppEnabledHint": "Afficher les notifications dans la boîte de réception."
     },
     "billing": {
+      "title": "Facturation",
+      "subtitle": "Gérez votre abonnement, vos factures et vos moyens de paiement.",
       "noPlan": "Aucun forfait",
-      "unknown": "Inconnu"
+      "unknown": "Inconnu",
+      "seats": "sièges",
+      "trialEnds": "Fin de l'essai :",
+      "nextBilling": "Prochaine facturation :",
+      "noBillingDate": "Aucune date de facturation prévue",
+      "upgrade": "Passer au forfait payant",
+      "managePlan": "Gérer l'abonnement",
+      "paymentInfo": "Moyens de paiement",
+      "paymentViaPortal": "Gérer les paiements dans Stripe",
+      "paymentViaPortalHint": "Utilisez Gérer l'abonnement pour mettre à jour vos cartes.",
+      "paymentComingSoon": "Gestion des paiements bientôt disponible",
+      "paymentComingSoonHint": "Ajoutez et gérez vos moyens de paiement ici",
+      "history": "Historique de facturation",
+      "historyViaPortal": "Voir les factures dans Stripe",
+      "historyViaPortalHint": "Utilisez Gérer l'abonnement pour télécharger vos factures.",
+      "historyComingSoon": "Historique des factures bientôt disponible",
+      "historyComingSoonHint": "Consultez et téléchargez vos factures passées"
     }
   },
   "errors": {

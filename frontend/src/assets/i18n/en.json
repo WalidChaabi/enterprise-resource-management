@@ -26,7 +26,9 @@
     "description": "Description",
     "members": "members",
     "noDescription": "No description",
-    "notSet": "Not set"
+    "notSet": "Not set",
+    "back": "Back",
+    "continue": "Continue"
   },
   "app": {
     "title": "Enterprise Resource Management",
@@ -57,7 +59,34 @@
       "error": {
         "default": "Login failed. Please check your credentials and try again."
       },
-      "forgotPassword": "Forgot password?"
+      "forgotPassword": "Forgot password?",
+      "createAccount": "Create an account"
+    },
+    "signup": {
+      "progress": "Step {{current}} of {{total}}",
+      "step1Title": "Your account",
+      "step1Subtitle": "Create the administrator account for your organization.",
+      "step2Title": "Your organization",
+      "step2Subtitle": "Tell us about the company you're setting up.",
+      "step3Title": "Review and create",
+      "step3Subtitle": "Confirm your details and accept the terms to start your trial.",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "organizationName": "Organization name",
+      "organizationHint": "This is the workspace name your team will see.",
+      "passwordHint": "At least 8 characters.",
+      "reviewName": "Name",
+      "acceptTerms": "I agree to the Terms of Service and Privacy Policy.",
+      "inviteLater": "You can invite teammates from Settings after setup.",
+      "createAccount": "Create account",
+      "creating": "Creating workspace...",
+      "alreadyHaveAccount": "Already have an account? Sign in",
+      "error": {
+        "default": "Unable to create your account. Please try again.",
+        "emailInUse": "An account with this email already exists.",
+        "disabled": "Self-serve signup is not available.",
+        "terms": "You must accept the terms of service."
+      }
     },
     "forgotPassword": {
       "title": "Reset your password",
@@ -513,8 +542,26 @@
       "inAppEnabledHint": "Show notifications in the inbox while you use the app."
     },
     "billing": {
+      "title": "Billing",
+      "subtitle": "Manage your subscription plan, invoices, and payment methods.",
       "noPlan": "No Plan",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "seats": "seats",
+      "trialEnds": "Trial ends:",
+      "nextBilling": "Next billing date:",
+      "noBillingDate": "No billing date scheduled",
+      "upgrade": "Upgrade plan",
+      "managePlan": "Manage plan",
+      "paymentInfo": "Payment Information",
+      "paymentViaPortal": "Manage payment methods in Stripe",
+      "paymentViaPortalHint": "Use Manage plan to update cards and billing details.",
+      "paymentComingSoon": "Payment management coming soon",
+      "paymentComingSoonHint": "Add and manage your payment methods here",
+      "history": "Billing History",
+      "historyViaPortal": "View invoices in Stripe",
+      "historyViaPortalHint": "Use Manage plan to download past invoices.",
+      "historyComingSoon": "Invoice history coming soon",
+      "historyComingSoonHint": "View and download your past invoices"
     }
   },
   "errors": {

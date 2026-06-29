@@ -7,6 +7,15 @@ export interface AuthRequest {
   password: string;
 }
 
+export interface SignupRequest {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  organizationName: string;
+  acceptTerms: boolean;
+}
+
 export interface AuthResponse {
   accessToken: string;
   tokenType: string;

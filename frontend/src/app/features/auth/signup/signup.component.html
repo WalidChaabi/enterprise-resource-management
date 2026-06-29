@@ -1,0 +1,90 @@
+<div class="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+  <div class="w-full max-w-md">
+    <app-card>
+      <app-card-header class="text-center">
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          {{ 'auth.signup.progress' | translate: { current: step(), total: totalSteps } }}
+        </p>
+        <app-card-title class="mt-2">{{ stepTitle() | translate }}</app-card-title>
+        <app-card-description>{{ stepSubtitle() | translate }}</app-card-description>
+      </app-card-header>
+
+      <app-card-content>
+        @if (errorMessage()) {
+          <app-alert variant="destructive" class="mb-4">{{ errorMessage() | translate }}</app-alert>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="step() === totalSteps ? onSubmit() : nextStep()" class="space-y-4">
+          @if (step() === 1) {
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="firstName" class="text-sm font-medium">{{ 'auth.signup.firstName' | translate }}</label>
+                <input id="firstName" type="text" formControlName="firstName" autocomplete="given-name"
+                  class="mt-1 flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm" />
+              </div>
+              <div>
+                <label for="lastName" class="text-sm font-medium">{{ 'auth.signup.lastName' | translate }}</label>
+                <input id="lastName" type="text" formControlName="lastName" autocomplete="family-name"
+                  class="mt-1 flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm" />
+              </div>
+            </div>
+            <div>
+              <label for="email" class="text-sm font-medium">{{ 'auth.login.email' | translate }}</label>
+              <input id="email" type="email" formControlName="email" autocomplete="email"
+                class="mt-1 flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm" />
+            </div>
+            <div>
+              <label for="password" class="text-sm font-medium">{{ 'auth.login.password' | translate }}</label>
+              <input id="password" type="password" formControlName="password" autocomplete="new-password"
+                class="mt-1 flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm" />
+              <p class="mt-1 text-xs text-muted-foreground">{{ 'auth.signup.passwordHint' | translate }}</p>
+            </div>
+          }
+
+          @if (step() === 2) {
+            <div>
+              <label for="organizationName" class="text-sm font-medium">{{ 'auth.signup.organizationName' | translate }}</label>
+              <input id="organizationName" type="text" formControlName="organizationName" autocomplete="organization"
+                class="mt-1 flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm" />
+              <p class="mt-1 text-xs text-muted-foreground">{{ 'auth.signup.organizationHint' | translate }}</p>
+            </div>
+          }
+
+          @if (step() === 3) {
+            <div class="rounded-lg border border-border bg-muted/30 p-4 text-sm space-y-2">
+              <p><span class="font-medium">{{ 'auth.signup.reviewName' | translate }}:</span> {{ form.value.firstName }} {{ form.value.lastName }}</p>
+              <p><span class="font-medium">{{ 'auth.login.email' | translate }}:</span> {{ form.value.email }}</p>
+              <p><span class="font-medium">{{ 'auth.signup.organizationName' | translate }}:</span> {{ form.value.organizationName }}</p>
+            </div>
+            <label class="flex items-start gap-2 text-sm">
+              <input type="checkbox" formControlName="acceptTerms" class="mt-1" />
+              <span>{{ 'auth.signup.acceptTerms' | translate }}</span>
+            </label>
+            <p class="text-xs text-muted-foreground">{{ 'auth.signup.inviteLater' | translate }}</p>
+          }
+
+          <div class="flex gap-2 pt-2">
+            @if (step() > 1) {
+              <app-button type="button" variant="outline" class="flex-1" [disabled]="loading()" (click)="previousStep()">
+                {{ 'common.back' | translate }}
+              </app-button>
+            }
+            <app-button type="submit" class="flex-1" [disabled]="loading()">
+              @if (step() === totalSteps) {
+                {{ loading() ? ('auth.signup.creating' | translate) : ('auth.signup.createAccount' | translate) }}
+              } @else {
+                {{ 'common.continue' | translate }}
+              }
+            </app-button>
+          </div>
+
+          <div class="text-center">
+            <a routerLink="/login" class="text-sm text-muted-foreground hover:text-foreground">
+              {{ 'auth.signup.alreadyHaveAccount' | translate }}
+            </a>
+          </div>
+        </form>
+      </app-card-content>
+    </app-card>
+  </div>
+</div>

@@ -30,7 +30,13 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-        if (!"POST".equalsIgnoreCase(request.getMethod()) || !"/auth/login".equals(request.getRequestURI())) {
+        if (!"POST".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String uri = request.getRequestURI();
+        if (!"/auth/login".equals(uri) && !"/auth/signup".equals(uri)) {
             filterChain.doFilter(request, response);
             return;
         }

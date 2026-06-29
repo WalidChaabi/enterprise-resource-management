@@ -331,6 +331,8 @@ Tenant branding, multi-org admin, reseller billing — aligns with your multi-te
 |----------|------|
 | Technical audit | [AUDIT_REPORT.md](./AUDIT_REPORT.md) |
 | Implementation roadmap | [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) |
+| Short-term sprint | [SHORT_TERM_IMPLEMENTATION_PLAN.md](./SHORT_TERM_IMPLEMENTATION_PLAN.md) |
+| Medium-term sprint | [MEDIUM_TERM_IMPLEMENTATION_PLAN.md](./MEDIUM_TERM_IMPLEMENTATION_PLAN.md) |
 | RBAC reference | [../backend/docs/ROLES_AND_PERMISSIONS.md](../backend/docs/ROLES_AND_PERMISSIONS.md) |
 | Security test plan | [SECURITY_TEST_PLAN.md](./SECURITY_TEST_PLAN.md) |
 | Backend/frontend gaps | [../backend/docs/BACKEND_FRONTEND_GAP_ANALYSIS.md](../backend/docs/BACKEND_FRONTEND_GAP_ANALYSIS.md) |

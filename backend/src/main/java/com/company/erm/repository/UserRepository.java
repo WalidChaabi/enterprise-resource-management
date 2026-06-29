@@ -19,6 +19,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     
     @EntityGraph(attributePaths = {"organization", "department"})
     Optional<User> findByEmail(String email);
+
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE LOWER(u.email) = LOWER(:email)")
+    boolean existsByEmailIgnoreCase(@Param("email") String email);
     
     @EntityGraph(attributePaths = {"organization", "department"})
     Optional<User> findByIdAndOrganizationId(UUID id, UUID organizationId);
@@ -50,6 +53,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
            "LOWER(u.lastName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%')))")
     long countSearchActiveByOrganizationIdAndQuery(@Param("orgId") UUID orgId, @Param("query") String query);
+
+    long countByOrganizationIdAndActiveTrue(UUID organizationId);
 }
 
 

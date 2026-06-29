@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthRequest, AuthResponse, User } from '../models/auth.model';
+import { AuthRequest, AuthResponse, SignupRequest, User } from '../models/auth.model';
 import { STORAGE_KEYS, type Role } from '../utils/constants';
 
 /**
@@ -30,6 +30,14 @@ export class AuthService {
 
   login(credentials: AuthRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiBase}/auth/login`, credentials, {
+      withCredentials: true
+    }).pipe(
+      tap(response => this.setCurrentUser(response))
+    );
+  }
+
+  signup(request: SignupRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiBase}/auth/signup`, request, {
       withCredentials: true
     }).pipe(
       tap(response => this.setCurrentUser(response))

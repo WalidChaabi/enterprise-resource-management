@@ -124,13 +124,15 @@ Shared primitives: `shared/components/data-table/*`, per-entity `*-data-table` +
 
 ---
 
-## Out of scope (medium term)
+## Out of scope (moved to medium term)
 
-See [PRODUCT_AUDIT_INTERNATIONAL_SAAS.md](./PRODUCT_AUDIT_INTERNATIONAL_SAAS.md): Stripe billing, self-serve signup, SSO/MFA, GDPR, capacity/utilization dashboard.
+See [MEDIUM_TERM_IMPLEMENTATION_PLAN.md](./MEDIUM_TERM_IMPLEMENTATION_PLAN.md): Stripe billing, self-serve signup, SSO/MFA, GDPR, capacity/utilization dashboard, webhooks, and related items.
 
 ---
 
 ## Related docs
+
+- [MEDIUM_TERM_IMPLEMENTATION_PLAN.md](./MEDIUM_TERM_IMPLEMENTATION_PLAN.md) — commercial SaaS & differentiation (MT-A–MT-L)
 
 - [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) — technical/engineering phases
 - [PRODUCT_AUDIT_INTERNATIONAL_SAAS.md](./PRODUCT_AUDIT_INTERNATIONAL_SAAS.md) — product audit

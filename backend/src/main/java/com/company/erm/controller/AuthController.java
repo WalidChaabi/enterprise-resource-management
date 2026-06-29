@@ -7,6 +7,8 @@ import com.company.erm.dto.ResetPasswordRequestDTO;
 import com.company.erm.security.AuthCookieService;
 import com.company.erm.service.AuthService;
 import com.company.erm.service.AuthService.AuthSession;
+import com.company.erm.dto.SignupRequestDTO;
+import com.company.erm.service.OrganizationProvisioningService;
 import com.company.erm.service.PasswordResetService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,14 +27,17 @@ public class AuthController {
     private final AuthService authService;
     private final AuthCookieService authCookieService;
     private final PasswordResetService passwordResetService;
+    private final OrganizationProvisioningService organizationProvisioningService;
 
     public AuthController(
             AuthService authService,
             AuthCookieService authCookieService,
-            PasswordResetService passwordResetService) {
+            PasswordResetService passwordResetService,
+            OrganizationProvisioningService organizationProvisioningService) {
         this.authService = authService;
         this.authCookieService = authCookieService;
         this.passwordResetService = passwordResetService;
+        this.organizationProvisioningService = organizationProvisioningService;
     }
 
     @PostMapping("/login")
@@ -57,6 +62,15 @@ public class AuthController {
         authService.logout(authCookieService.readRefreshToken(request));
         authCookieService.clearAuthCookies(response);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<AuthResponse> signup(
+            @Valid @RequestBody SignupRequestDTO request,
+            HttpServletResponse response) {
+        AuthSession session = organizationProvisioningService.signup(request);
+        authCookieService.writeAuthCookies(response, session.accessToken(), session.refreshToken());
+        return ResponseEntity.ok(session.response());
     }
 
     @PostMapping("/forgot-password")
