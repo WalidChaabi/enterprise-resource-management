@@ -1,5 +1,6 @@
 import { Component, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
 import { ToastService, Toast, ToastVariant } from './toast.service';
 
 const toastVariants: Record<ToastVariant, string> = {
@@ -10,17 +11,17 @@ const toastVariants: Record<ToastVariant, string> = {
   info: 'bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100 border-blue-200 dark:border-blue-800'
 };
 
-const iconVariants: Record<ToastVariant, string> = {
-  default: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-  success: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
-  error: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z',
-  warning: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
-  info: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+const toastIconNames: Record<ToastVariant, string> = {
+  default: 'circle-help',
+  success: 'check-circle-2',
+  error: 'x-circle',
+  warning: 'alert-triangle',
+  info: 'alert-circle',
 };
 
 @Component({
     selector: 'app-toast',
-    imports: [CommonModule],
+    imports: [CommonModule, LucideAngularModule],
     template: `
     <div 
       class="pointer-events-auto w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border shadow-lg transition-all duration-300 animate-in slide-in-from-top-5"
@@ -28,9 +29,7 @@ const iconVariants: Record<ToastVariant, string> = {
       <div class="p-4">
         <div class="flex items-start">
           <div class="flex-shrink-0">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="iconVariants[toast().variant]" />
-            </svg>
+            <lucide-icon [name]="toastIconNames[toast().variant]" [size]="20" />
           </div>
           <div class="ml-3 min-w-0 flex-1">
             <p class="text-sm font-medium break-words">{{ toast().title }}</p>
@@ -43,9 +42,7 @@ const iconVariants: Record<ToastVariant, string> = {
               class="inline-flex rounded-md opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2"
               (click)="dismiss()">
               <span class="sr-only">Close</span>
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <lucide-icon name="x" [size]="20" />
             </button>
           </div>
         </div>
@@ -61,7 +58,7 @@ export class ToastComponent {
   toastService = inject(ToastService);
   
   readonly toastVariants = toastVariants;
-  readonly iconVariants = iconVariants;
+  readonly toastIconNames = toastIconNames;
 
   dismiss(): void {
     this.toastService.dismiss(this.toast().id);

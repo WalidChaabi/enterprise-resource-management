@@ -1,21 +1,20 @@
 import { Component, ElementRef, EventEmitter, HostListener, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
     selector: 'app-quick-action-menu',
-    imports: [CommonModule, RouterModule],
+    imports: [CommonModule, RouterModule, LucideAngularModule],
     template: `
     <div class="relative">
       <button
         type="button"
-        class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+        class="toolbar-icon-btn"
         (click)="toggleMenu()"
         [attr.aria-expanded]="open()"
         [attr.aria-label]="'Open quick actions'">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
-        </svg>
+        <lucide-icon name="plus" [size]="20" />
       </button>
 
       @if (open()) {

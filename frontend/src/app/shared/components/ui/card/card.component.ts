@@ -6,7 +6,7 @@ import { mergeClasses } from '@/shared/utils/merge-classes';
     selector: 'app-card',
     imports: [CommonModule],
     template: `
-    <div [class]="mergeClasses('rounded-lg border bg-card text-card-foreground shadow-sm transition-shadow duration-150 hover:shadow', class())">
+    <div [class]="mergeClasses('rounded-xl border border-subtle bg-card text-card-foreground shadow-card transition-[box-shadow] duration-150 hover:shadow-card-hover', class())">
       <ng-content />
     </div>
   `
@@ -20,13 +20,13 @@ export class CardComponent {
     selector: 'app-card-header',
     imports: [CommonModule],
     template: `
-    <div [class]="mergeClasses('flex flex-col space-y-1.5 p-6 pb-4', class())">
+    <div [class]="mergeClasses('flex w-full flex-col space-y-1.5 p-6 pb-4', className())">
       <ng-content />
     </div>
   `
 })
 export class CardHeaderComponent {
-  class = input<string>('');
+  className = input('', { alias: 'class' });
   mergeClasses = mergeClasses;
 }
 
@@ -34,7 +34,7 @@ export class CardHeaderComponent {
     selector: 'app-card-title',
     imports: [CommonModule],
     template: `
-    <h3 [class]="mergeClasses('text-lg font-semibold leading-none tracking-tight', class())">
+    <h3 [class]="mergeClasses('card-title-premium leading-none tracking-tight', class())">
       <ng-content />
     </h3>
   `
@@ -76,7 +76,7 @@ export class CardContentComponent {
     selector: 'app-card-footer',
     imports: [CommonModule],
     template: `
-    <div [class]="mergeClasses('flex items-center p-6 pt-4 border-t', class())">
+    <div [class]="mergeClasses('flex items-center p-6 pt-4 border-t border-subtle', class())">
       <ng-content />
     </div>
   `

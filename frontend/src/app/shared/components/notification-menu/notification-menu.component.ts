@@ -1,21 +1,20 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
 import { Notification } from '../../../core/models/notification.model';
 
 @Component({
     selector: 'app-notification-menu',
-    imports: [CommonModule, DatePipe],
+    imports: [CommonModule, DatePipe, LucideAngularModule],
     template: `
     <div class="relative">
       <button
         type="button"
-        class="relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+        class="toolbar-icon-btn relative"
         (click)="toggleMenu()"
         [attr.aria-expanded]="open()"
         [attr.aria-label]="'Open notifications'">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m6 0a3 3 0 1 1-6 0h6z" />
-        </svg>
+        <lucide-icon name="bell" [size]="20" />
         @if (unreadCount() > 0) {
           <span class="absolute -right-1 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground">
             {{ unreadCount() }}

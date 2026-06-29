@@ -1,49 +1,40 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, EventEmitter, Input, Output, computed, inject, signal } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
 import { ReportingService } from '../../core/services/reporting.service';
 import { Dashboard } from '../../core/models/dashboard.model';
 import { AlertType } from '../../core/models/alert.model';
-import {
-  CreateAction,
-  NavItem,
-  SIDEBAR_CREATE_ACTIONS,
-  SIDEBAR_NAV_ITEMS,
-  SIDEBAR_NAV_SECTIONS,
-} from './sidebar-nav.config';
+import { NavItem, SIDEBAR_NAV_ITEMS, SIDEBAR_NAV_SECTIONS } from './sidebar-nav.config';
 import { SidebarNavComponent } from './sidebar-nav.component';
 
 @Component({
-    selector: 'app-sidebar',
-    imports: [SidebarNavComponent],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-sidebar',
+  imports: [SidebarNavComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <app-sidebar-nav
       [theme]="theme"
-      [isMobile]="isMobile"
-      [isCollapsed]="isCollapsed()"
       [sections]="visibleSections()"
-      [currentCreateAction]="currentCreateAction()"
+      [userName]="userFullName()"
+      [userEmail]="userEmail()"
       (navigated)="handleNavigate()"
-      (toggleCollapse)="toggleCollapse()"
       (logout)="onLogout()" />
-  `
+  `,
 })
 export class SidebarComponent {
   private readonly authService = inject(AuthService);
   private readonly reportingService = inject(ReportingService);
-  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   @Input({ required: true }) theme!: 'dark' | 'light';
-  @Input() isMobile = false;
   @Output() navigated = new EventEmitter<void>();
 
-  readonly isCollapsed = signal(false);
-  readonly currentRoute = signal('');
   readonly dashboardData = signal<Dashboard | null>(null);
+  readonly userFullName = computed(() => {
+    const user = this.authService.currentUser();
+    return user ? `${user.firstName} ${user.lastName}` : '';
+  });
+  readonly userEmail = computed(() => this.authService.currentUser()?.email ?? '');
 
   private readonly enableIndicators = true;
 
@@ -99,37 +90,7 @@ export class SidebarComponent {
     })).filter((section) => section.items.length > 0);
   });
 
-  readonly currentCreateAction = computed<CreateAction | null>(() => {
-    const route = this.currentRoute();
-    if (!route) {
-      return null;
-    }
-
-    const action = SIDEBAR_CREATE_ACTIONS[route];
-    if (!action) {
-      return null;
-    }
-
-    const navItem = SIDEBAR_NAV_ITEMS.find((item) => item.route[0] === route);
-    if (navItem?.requiredRoles && !this.authService.hasAnyRole(...navItem.requiredRoles)) {
-      return null;
-    }
-
-    return action;
-  });
-
   constructor() {
-    this.currentRoute.set(this.router.url.split('?')[0]);
-
-    this.router.events
-      .pipe(
-        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe((event) => {
-        this.currentRoute.set(event.urlAfterRedirects.split('?')[0]);
-      });
-
     if (this.enableIndicators) {
       this.reportingService
         .getDashboard()
@@ -141,20 +102,12 @@ export class SidebarComponent {
     }
   }
 
-  toggleCollapse(): void {
-    this.isCollapsed.update((value) => !value);
-  }
-
   handleNavigate(): void {
-    if (this.isMobile) {
-      this.navigated.emit();
-    }
+    this.navigated.emit();
   }
 
   onLogout(): void {
     this.authService.logout();
-    if (this.isMobile) {
-      this.navigated.emit();
-    }
+    this.navigated.emit();
   }
 }

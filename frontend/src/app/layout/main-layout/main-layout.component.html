@@ -1,56 +1,39 @@
-<div class="flex min-h-screen">
-  @if (mobileSidebarOpen()) {
-    <div class="fixed inset-0 z-50 md:hidden" (click)="closeMobileSidebar()">
-      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-      <div class="absolute left-0 top-0 h-full" (click)="$event.stopPropagation()">
-        <app-sidebar
-          [theme]="theme()"
-          [isMobile]="true"
-          (navigated)="closeMobileSidebar()"></app-sidebar>
-      </div>
-    </div>
-  }
+<app-sidebar-provider>
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground">
+    {{ 'a11y.skipToContent' | translate }}
+  </a>
+  <app-sidebar [theme]="theme()"></app-sidebar>
 
-  <app-sidebar class="hidden md:flex" [theme]="theme()"></app-sidebar>
-
-  <div class="flex min-h-screen flex-1 flex-col">
-    <header class="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div class="flex h-14 w-full items-center gap-4 px-6">
-        <button
-          type="button"
-          class="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
-          (click)="toggleMobileSidebar()"
-          [attr.aria-label]="'Toggle navigation'">
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <div class="flex items-center gap-2 min-w-0">
+  <app-sidebar-inset>
+    <header class="sticky top-0 z-40 w-full border-b border-subtle bg-sidebar">
+      <div class="flex h-14 w-full items-center gap-3 px-8 2xl:px-10">
+        <app-sidebar-trigger>
+          <lucide-icon [img]="PanelLeft" [size]="18" />
+        </app-sidebar-trigger>
+        <div class="flex min-w-0 items-center gap-2">
           <button
             type="button"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+            class="toolbar-icon-btn"
             (click)="goBack()"
             [attr.aria-label]="'Go back'">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
+            <lucide-icon [img]="ChevronLeft" [size]="16" />
           </button>
           <div class="min-w-0">
             <app-breadcrumb [items]="breadcrumbs()"></app-breadcrumb>
           </div>
         </div>
-        <div class="hidden md:flex items-center ml-3">
+        <div class="hidden md:flex items-center ml-2 shrink-0">
           <app-org-switcher
             [organizations]="organizations()"
             [currentName]="currentOrganization()"
             (orgSelected)="switchOrganization($event)"></app-org-switcher>
         </div>
-        <div class="hidden md:flex items-center ml-6 flex-1">
-          <div class="w-72">
+        <div class="hidden md:flex items-center ml-4 min-w-0 flex-1">
+          <div class="w-full min-w-0">
             <app-search-bar></app-search-bar>
           </div>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex shrink-0 items-center gap-1.5 ml-auto">
           <app-quick-action-menu></app-quick-action-menu>
           <app-notification-menu
             [items]="notifications()"
@@ -59,55 +42,53 @@
             [documentationUrl]="uiConfig().documentationUrl"
             [supportUrl]="uiConfig().supportUrl"
             (shortcuts)="openShortcuts()"></app-help-menu>
-          <div class="flex gap-0.5 rounded-md bg-muted/50 p-0.5">
+          <div class="flex gap-0.5 rounded-[10px] bg-muted/40 p-0.5">
             @for (lang of languages; track lang.code) {
-              <button 
-                class="inline-flex h-8 w-8 items-center justify-center rounded transition-all hover:scale-110 [&.active]:bg-background [&.active]:shadow-sm flag-button"
+              <button
+                class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] text-xs font-semibold uppercase text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground [&.active]:bg-accent [&.active]:text-foreground"
                 [class.active]="currentLanguage() === lang.code"
                 (click)="setLanguage(lang.code)"
                 [attr.aria-label]="'Switch to ' + lang.label"
                 [title]="lang.label">
-                <span class="flag-icon" [innerHTML]="getFlagSvg(lang.code)"></span>
+                <span>{{ lang.code }}</span>
               </button>
             }
           </div>
-          <button 
-            class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
-            (click)="toggleTheme()" 
+          <button
+            class="toolbar-icon-btn"
+            (click)="toggleTheme()"
             [attr.aria-label]="'Toggle ' + (theme() === 'dark' ? 'light' : 'dark') + ' mode'"
             type="button">
             @if (theme() === 'dark') {
-              <span [innerHTML]="getSunIcon()"></span>
+              <lucide-icon [img]="Sun" [size]="18" />
             } @else {
-              <span [innerHTML]="getMoonIcon()"></span>
+              <lucide-icon [img]="Moon" [size]="18" />
             }
           </button>
-          <!-- Mobile Search Icon -->
-          <a 
+          <a
             routerLink="/search"
-            class="md:hidden flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            class="md:hidden toolbar-icon-btn"
             [title]="'search.title' | translate">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <lucide-icon [img]="Search" [size]="18" />
           </a>
-          <app-profile-menu
-            [name]="userFullName()"
-            [email]="userEmail()"
-            (settings)="openSettings()"
-            (logout)="logout()"></app-profile-menu>
+          <app-user-menu
+            class="md:hidden"
+            variant="toolbar"
+            [userName]="userFullName()"
+            [userEmail]="userEmail()"
+            (logout)="logout()" />
         </div>
       </div>
     </header>
 
-    <main class="flex-1">
-      <div class="container py-6">
+    <div class="flex min-w-0 flex-1 flex-col w-full bg-background">
+      <div id="main-content" tabindex="-1" class="page-content w-full max-w-none flex-1">
         <router-outlet></router-outlet>
       </div>
-    </main>
+    </div>
     <app-keyboard-shortcuts
       [open]="shortcutsOpen()"
       [shortcuts]="shortcuts()"
       (closed)="closeShortcuts()"></app-keyboard-shortcuts>
-  </div>
-</div>
+  </app-sidebar-inset>
+</app-sidebar-provider>

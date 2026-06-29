@@ -1,3 +1,4 @@
+import { LucideAngularModule } from 'lucide-angular';
 import { Component, Input, Output, EventEmitter, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +10,7 @@ import { BadgeComponent } from '../ui/badge/badge.component';
 
 @Component({
     selector: 'app-role-picker',
-    imports: [CommonModule, FormsModule, TranslatePipe, ButtonComponent, BadgeComponent],
+    imports: [CommonModule, FormsModule, TranslatePipe, LucideAngularModule, ButtonComponent, BadgeComponent],
     templateUrl: './role-picker.component.html'
 })
 export class RolePickerComponent implements OnInit {

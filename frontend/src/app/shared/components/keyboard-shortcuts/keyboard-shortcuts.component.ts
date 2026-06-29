@@ -1,10 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
 import { ShortcutDefinition } from '../../../core/models/settings.model';
 
 @Component({
     selector: 'app-keyboard-shortcuts',
-    imports: [CommonModule],
+    imports: [CommonModule, LucideAngularModule],
     template: `
     @if (open) {
       <div class="fixed inset-0 z-50 flex items-center justify-center">
@@ -17,9 +18,7 @@ import { ShortcutDefinition } from '../../../core/models/settings.model';
               class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-input hover:bg-accent"
               (click)="close()"
               [attr.aria-label]="'Close shortcuts'">
-              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <lucide-icon name="x" [size]="16" />
             </button>
           </div>
           <div class="mt-4 space-y-3 text-sm text-foreground">

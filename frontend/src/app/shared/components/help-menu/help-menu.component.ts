@@ -1,20 +1,19 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
     selector: 'app-help-menu',
-    imports: [CommonModule],
+    imports: [CommonModule, LucideAngularModule],
     template: `
     <div class="relative">
       <button
         type="button"
-        class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+        class="toolbar-icon-btn"
         (click)="toggleMenu()"
         [attr.aria-expanded]="open()"
         [attr.aria-label]="'Open help menu'">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10a4 4 0 1 1 8 0c0 2-2 3-2 3m-2 4h.01M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18z" />
-        </svg>
+        <lucide-icon name="circle-help" [size]="20" />
       </button>
 
       @if (open()) {

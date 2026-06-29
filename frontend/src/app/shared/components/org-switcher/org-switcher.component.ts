@@ -1,22 +1,21 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
 import { OrganizationSummary } from '../../../core/models/organization.model';
 
 @Component({
     selector: 'app-org-switcher',
-    imports: [CommonModule],
+    imports: [CommonModule, LucideAngularModule],
     template: `
     <div class="relative">
       <button
         type="button"
-        class="inline-flex items-center gap-2 rounded-md border border-input bg-background px-2 py-1.5 text-sm text-foreground hover:bg-accent hover:text-accent-foreground"
+        class="inline-flex items-center gap-2 rounded-[10px] border border-subtle bg-transparent px-2.5 py-1.5 text-sm text-foreground transition-colors duration-150 hover:bg-accent"
         (click)="toggleMenu()"
         [attr.aria-expanded]="open()"
         [attr.aria-label]="'Switch organization'">
         <span class="truncate max-w-[140px]">{{ currentName || 'Organization' }}</span>
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6" />
-        </svg>
+        <lucide-icon name="chevron-down" [size]="16" />
       </button>
 
       @if (open()) {

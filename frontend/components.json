@@ -5,7 +5,7 @@
   "packageManager": "npm",
   "tailwind": {
     "css": "src/styles.scss",
-    "baseColor": "neutral"
+    "baseColor": "slate"
   },
   "baseUrl": "src/app",
   "aliases": {
