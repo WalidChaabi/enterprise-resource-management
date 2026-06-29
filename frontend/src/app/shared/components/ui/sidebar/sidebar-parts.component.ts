@@ -36,9 +36,12 @@ type SidebarMenuButtonVariants = VariantProps<typeof sidebarMenuButtonVariants>;
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [SidebarService],
+  host: {
+    class: 'block h-svh overflow-hidden',
+  },
   template: `
     <div
-      class="group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar"
+      class="group/sidebar-wrapper flex h-svh w-full overflow-hidden has-[[data-variant=inset]]:bg-sidebar"
       [style.--sidebar-width]="'16rem'"
       [style.--sidebar-width-icon]="'3rem'">
       <ng-content />
@@ -59,7 +62,7 @@ export class SidebarProviderComponent {
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'flex min-h-svh min-w-0 w-full flex-1 flex-col',
+    class: 'flex h-full min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden',
   },
   template: `
     <main
@@ -93,7 +96,7 @@ export class SidebarInsetComponent {
       }
     } @else {
       <aside
-        class="group peer hidden h-svh shrink-0 flex flex-col border-r border-sidebar-border/80 bg-sidebar text-sidebar-foreground transition-[width] duration-150 ease-out md:flex"
+        class="group peer hidden h-full min-h-0 shrink-0 flex flex-col border-r border-sidebar-border/80 bg-sidebar text-sidebar-foreground transition-[width] duration-150 ease-out md:flex"
         [ngClass]="{
           'w-[var(--sidebar-width)]': sidebar.state() === 'expanded',
           'w-[var(--sidebar-width-icon)]': sidebar.state() === 'collapsed' && collapsible() === 'icon'

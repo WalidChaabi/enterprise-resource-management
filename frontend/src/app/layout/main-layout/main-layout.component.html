@@ -5,7 +5,7 @@
   <app-sidebar [theme]="theme()"></app-sidebar>
 
   <app-sidebar-inset>
-    <header class="sticky top-0 z-40 w-full border-b border-subtle bg-sidebar">
+    <header class="z-40 w-full shrink-0 border-b border-subtle bg-sidebar">
       <div class="flex h-14 w-full items-center gap-3 px-8 2xl:px-10">
         <app-sidebar-trigger>
           <lucide-icon [img]="PanelLeft" [size]="18" />
@@ -81,8 +81,8 @@
       </div>
     </header>
 
-    <div class="flex min-w-0 flex-1 flex-col w-full bg-background">
-      <div id="main-content" tabindex="-1" class="page-content w-full max-w-none flex-1">
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col w-full overflow-y-auto bg-background">
+      <div id="main-content" tabindex="-1" class="page-content w-full max-w-none">
         <router-outlet></router-outlet>
       </div>
     </div>
