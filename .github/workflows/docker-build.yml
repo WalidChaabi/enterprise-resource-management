@@ -87,5 +87,4 @@ jobs:
       - name: Run compose smoke tests
         run: |
           chmod +x docker/scripts/smoke-test.sh
-          docker compose -f docker/docker-compose.yml -f docker/docker-compose.ci.yml build --no-cache backend
           docker/scripts/smoke-test.sh
