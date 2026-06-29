@@ -108,5 +108,5 @@
     [processing]="processingId() === context.row.original.id"
     (approve)="approve.emit($event)"
     (reject)="reject.emit($event)"
-    (cancel)="cancel.emit($event)" />
+    (cancelRequest)="cancelRequest.emit($event)" />
 </ng-template>

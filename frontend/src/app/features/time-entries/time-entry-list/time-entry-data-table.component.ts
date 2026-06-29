@@ -55,7 +55,7 @@ export class TimeEntryDataTableComponent {
   readonly canApprove = input(false);
   readonly processingId = input<string | null>(null);
 
-  readonly submit = output<TimeEntry>();
+  readonly submitEntry = output<TimeEntry>();
   readonly approve = output<TimeEntry>();
   readonly reject = output<TimeEntry>();
 

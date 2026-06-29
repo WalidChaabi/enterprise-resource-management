@@ -20,7 +20,7 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { AuthService } from '../../core/services/auth.service';
 import { ReportingService } from '../../core/services/reporting.service';
 import { Dashboard } from '../../core/models/dashboard.model';
-import { Alert, AlertType, AlertSeverity } from '../../core/models/alert.model';
+import { AlertType, AlertSeverity } from '../../core/models/alert.model';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import {
   CardComponent,

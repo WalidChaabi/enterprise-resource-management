@@ -56,7 +56,7 @@ export class LeaveRequestDataTableComponent {
 
   readonly approve = output<LeaveRequest>();
   readonly reject = output<LeaveRequest>();
-  readonly cancel = output<LeaveRequest>();
+  readonly cancelRequest = output<LeaveRequest>();
 
   readonly employeeHeader = viewChild.required<TemplateRef<{ $implicit: HeaderContext<LeaveRequest, unknown> }>>('employeeHeader');
   readonly typeHeader = viewChild.required<TemplateRef<{ $implicit: HeaderContext<LeaveRequest, unknown> }>>('typeHeader');

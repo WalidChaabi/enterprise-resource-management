@@ -33,7 +33,7 @@ import { ButtonComponent } from '@/shared/components/ui/button/button.component'
         </app-button>
       }
       @if (showCancel()) {
-        <app-button variant="outline" size="sm" [disabled]="processing()" (click)="cancel.emit(request())">
+        <app-button variant="outline" size="sm" [disabled]="processing()" (click)="cancelRequest.emit(request())">
           {{ 'leaveRequests.cancel' | translate }}
         </app-button>
       }
@@ -49,5 +49,5 @@ export class LeaveRequestRowActionsComponent {
 
   readonly approve = output<LeaveRequest>();
   readonly reject = output<LeaveRequest>();
-  readonly cancel = output<LeaveRequest>();
+  readonly cancelRequest = output<LeaveRequest>();
 }

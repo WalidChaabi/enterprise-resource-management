@@ -30,6 +30,15 @@
       }
     },
     {
+      "files": [
+        "src/app/shared/components/ui/**/*.ts",
+        "src/app/shared/components/data-table/**/*.ts"
+      ],
+      "rules": {
+        "@angular-eslint/no-input-rename": "off"
+      }
+    },
+    {
       "files": ["*.html"],
       "parser": "@angular-eslint/template-parser",
       "plugins": ["@angular-eslint/template"],

@@ -3,3 +3,7 @@ services:
   backend:
     environment:
       ERM_DEMO_DATA_ENABLED: "true"
+      MANAGEMENT_HEALTH_DISKSPACE_ENABLED: "false"
+    healthcheck:
+      start_period: 120s
+      retries: 15

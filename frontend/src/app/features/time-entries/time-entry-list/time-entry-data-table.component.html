@@ -101,7 +101,7 @@
     [showSubmit]="canSubmitEntry(context.row.original)"
     [showApprove]="canApproveEntry(context.row.original)"
     [processing]="processingId() === context.row.original.id"
-    (submit)="submit.emit($event)"
+    (submitEntry)="submitEntry.emit($event)"
     (approve)="approve.emit($event)"
     (reject)="reject.emit($event)" />
 </ng-template>

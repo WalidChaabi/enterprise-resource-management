@@ -80,7 +80,7 @@
           [data]="timeEntries()"
           [canApprove]="canApprove()"
           [processingId]="processing()"
-          (submit)="submitEntry($event)"
+          (submitEntry)="submitEntry($event)"
           (approve)="approveEntry($event)"
           (reject)="startRejectEntry($event)" />
       </app-card-content>

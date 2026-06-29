@@ -17,7 +17,7 @@ import { ButtonComponent } from '@/shared/components/ui/button/button.component'
         </app-button>
       }
       @if (showSubmit()) {
-        <app-button variant="default" size="sm" [disabled]="processing()" (click)="submit.emit(entry())">
+        <app-button variant="default" size="sm" [disabled]="processing()" (click)="submitEntry.emit(entry())">
           @if (processing()) {
             <div class="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
           }
@@ -45,7 +45,7 @@ export class TimeEntryRowActionsComponent {
   readonly showApprove = input(false);
   readonly processing = input(false);
 
-  readonly submit = output<TimeEntry>();
+  readonly submitEntry = output<TimeEntry>();
   readonly approve = output<TimeEntry>();
   readonly reject = output<TimeEntry>();
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostBinding, HostListener, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { cva, type VariantProps } from 'class-variance-authority';

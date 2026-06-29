@@ -140,7 +140,7 @@
 
 <ng-template #budgetCell let-context>
   <div class="text-right font-medium tabular-nums">
-    @if (context.row.original.budget != null) {
+    @if (context.row.original.budget !== null) {
       {{ context.row.original.budget | currency: 'USD' : 'symbol' : '1.0-0' }}
     } @else {
       <span class="text-muted-foreground">—</span>
