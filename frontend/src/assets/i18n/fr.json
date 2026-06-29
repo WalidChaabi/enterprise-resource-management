@@ -573,6 +573,25 @@
       "historyViaPortalHint": "Utilisez Gérer l'abonnement pour télécharger vos factures.",
       "historyComingSoon": "Historique des factures bientôt disponible",
       "historyComingSoonHint": "Consultez et téléchargez vos factures passées"
+    },
+    "audit": {
+      "tab": "Journal d'audit",
+      "title": "Journal d'audit",
+      "subtitle": "Consultez les actions administratives pour la conformité et le dépannage.",
+      "logTitle": "Événements récents",
+      "events": "événements",
+      "export": "Exporter CSV",
+      "exporting": "Export…",
+      "filterAction": "Filtrer par action",
+      "filterEntity": "Filtrer par type d'entité",
+      "applyFilters": "Appliquer",
+      "empty": "Aucun événement d'audit enregistré.",
+      "when": "Date",
+      "actor": "Acteur",
+      "action": "Action",
+      "entity": "Entité",
+      "details": "Détails",
+      "page": "Page"
     }
   },
   "capacity": {

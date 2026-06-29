@@ -23,9 +23,11 @@ public class AuditLogService {
     
     private static final Logger auditLogger = LoggerFactory.getLogger("AUDIT");
     private final ObjectMapper objectMapper;
+    private final AuditEventService auditEventService;
     
-    public AuditLogService(ObjectMapper objectMapper) {
+    public AuditLogService(ObjectMapper objectMapper, AuditEventService auditEventService) {
         this.objectMapper = objectMapper;
+        this.auditEventService = auditEventService;
     }
     
     /**
@@ -385,12 +387,9 @@ public class AuditLogService {
     
     private void logEvent(AuditEvent event) {
         try {
-            // Log to structured logger (JSON format for parsing)
             String json = objectMapper.writeValueAsString(event);
             auditLogger.info("AUDIT_EVENT: {}", json);
-            
-            // In production, also persist to database
-            // auditRepository.save(toAuditEntity(event));
+            auditEventService.persist(event);
         } catch (Exception e) {
             auditLogger.error("Failed to log audit event", e);
         }

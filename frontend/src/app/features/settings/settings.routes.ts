@@ -30,5 +30,10 @@ export const routes: Routes = [
     path: 'notifications',
     loadComponent: () =>
       import('./notification-preferences/notification-preferences.component').then(m => m.NotificationPreferencesComponent)
+  },
+  {
+    path: 'audit',
+    loadComponent: () =>
+      import('./audit-settings/audit-settings.component').then(m => m.AuditSettingsComponent)
   }
 ];

@@ -573,6 +573,25 @@
       "historyViaPortalHint": "Use Manage plan to download past invoices.",
       "historyComingSoon": "Invoice history coming soon",
       "historyComingSoonHint": "View and download your past invoices"
+    },
+    "audit": {
+      "tab": "Audit log",
+      "title": "Audit log",
+      "subtitle": "Review administrative actions for compliance and troubleshooting.",
+      "logTitle": "Recent events",
+      "events": "events",
+      "export": "Export CSV",
+      "exporting": "Exporting…",
+      "filterAction": "Filter by action",
+      "filterEntity": "Filter by entity type",
+      "applyFilters": "Apply",
+      "empty": "No audit events recorded yet.",
+      "when": "When",
+      "actor": "Actor",
+      "action": "Action",
+      "entity": "Entity",
+      "details": "Details",
+      "page": "Page"
     }
   },
   "capacity": {

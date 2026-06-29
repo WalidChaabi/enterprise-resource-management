@@ -17,7 +17,7 @@
 | MT-B | Stripe billing (plans, seats, trials) | 3–4 weeks | P0 | 🟡 In progress — core wired · seat enforcement pending |
 | MT-C | Plan entitlements & feature flags | 1–2 weeks | P1 | 🟡 In progress — core gating wired |
 | MT-D | SSO/OIDC + MFA (TOTP) | 3–4 weeks | P0 | ⬜ Not started |
-| MT-E | Persistent audit log + admin export | 2 weeks | P0 | ⬜ Not started |
+| MT-E | Persistent audit log + admin export | 2 weeks | P0 | 🟡 In progress — core wired |
 | MT-F | GDPR export & erasure | 2–3 weeks | P0 | ⬜ Not started |
 | MT-G | SMTP email for workflow events | 1–2 weeks | P1 | ⬜ Not started |
 | MT-H | Webhooks for key events | 2 weeks | P1 | ⬜ Not started |
@@ -142,11 +142,11 @@
 
 | ID | Task | Owner | Effort | Notes |
 |----|------|-------|--------|-------|
-| MT-E.1 | Flyway `V16__audit_events.sql` | Backend | 0.5d | `id`, `org_id`, `actor_id`, `action`, `entity_type`, `entity_id`, `payload_json`, `created_at` |
-| MT-E.2 | `AuditEventRepository` + persist from `AuditLogService` | Backend | 1d | Keep SLF4J mirror |
-| MT-E.3 | `GET /api/v1/organizations/{id}/audit-events` paginated + filters | Backend | 1d | Admin only |
-| MT-E.4 | `GET .../audit-events/export` CSV | Backend | 0.5d | |
-| MT-E.5 | Settings → Audit log viewer (TanStack table) | Frontend | 2d | |
+| MT-E.1 | Flyway `V18__audit_events.sql` | Backend | 0.5d | ✅ |
+| MT-E.2 | `AuditEventRepository` + persist from `AuditLogService` | Backend | 1d | ✅ Keep SLF4J mirror |
+| MT-E.3 | `GET /api/v1/organizations/{id}/audit-events` paginated + filters | Backend | 1d | ✅ ORG_ADMIN only |
+| MT-E.4 | `GET .../audit-events/export` CSV | Backend | 0.5d | ✅ |
+| MT-E.5 | Settings → Audit log viewer | Frontend | 2d | ✅ `/settings/audit` |
 
 **Key files:** `AuditLogService.java` (today logs only), `ARCHITECTURAL_REVIEW.md` § audit persistence.
 
