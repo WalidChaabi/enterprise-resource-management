@@ -129,7 +129,13 @@ jobs:
 
       - name: Start stack
         working-directory: docker
-        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --build --wait --timeout 300
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml build --no-cache backend
+          if ! docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --build --wait --timeout 300; then
+            echo "=== backend logs ==="
+            docker compose -f docker-compose.yml -f docker-compose.ci.yml logs backend --tail 120 || true
+            exit 1
+          fi
 
       - name: Run Playwright smoke tests
         working-directory: e2e

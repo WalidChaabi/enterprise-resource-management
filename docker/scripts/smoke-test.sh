@@ -22,7 +22,11 @@ cleanup() {
 trap cleanup EXIT
 
 echo "Starting CI stack..."
-docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --build --wait --timeout 300
+if ! docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --build --wait --timeout 300; then
+  echo "Stack failed to become healthy. Backend logs:" >&2
+  docker compose -f docker-compose.yml -f docker-compose.ci.yml logs backend --tail 120 >&2 || true
+  exit 1
+fi
 
 echo "Backend liveness..."
 curl -fsS http://localhost:8080/actuator/health/liveness | grep -q '"status":"UP"'
