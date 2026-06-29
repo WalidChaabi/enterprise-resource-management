@@ -16,11 +16,14 @@ import com.company.erm.repository.TaskRepository;
 import com.company.erm.repository.TimeEntryRepository;
 import com.company.erm.repository.UserRepository;
 import com.company.erm.security.PermissionChecker;
+import com.company.erm.webhook.WebhookEventType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -45,6 +48,7 @@ public class TimeEntryService {
     private final PermissionChecker permissionChecker;
     private final TimeEntryMapper timeEntryMapper;
     private final NotificationService notificationService;
+    private final WebhookDispatchService webhookDispatchService;
 
     public TimeEntryService(
             TimeEntryRepository timeEntryRepository,
@@ -54,7 +58,8 @@ public class TimeEntryService {
             TimeEntryDomainService timeEntryDomainService,
             PermissionChecker permissionChecker,
             TimeEntryMapper timeEntryMapper,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            WebhookDispatchService webhookDispatchService) {
         this.timeEntryRepository = timeEntryRepository;
         this.projectRepository = projectRepository;
         this.taskRepository = taskRepository;
@@ -63,6 +68,7 @@ public class TimeEntryService {
         this.permissionChecker = permissionChecker;
         this.timeEntryMapper = timeEntryMapper;
         this.notificationService = notificationService;
+        this.webhookDispatchService = webhookDispatchService;
     }
 
     /**
@@ -332,7 +338,23 @@ public class TimeEntryService {
         timeEntry.setStatus(TimeEntryStatus.SUBMITTED);
         
         TimeEntry updated = timeEntryRepository.save(timeEntry);
+        dispatchTimeEntrySubmittedWebhook(organizationId, updated);
         return timeEntryMapper.toResponseDTO(updated);
+    }
+
+    private void dispatchTimeEntrySubmittedWebhook(UUID organizationId, TimeEntry timeEntry) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("timeEntryId", timeEntry.getId().toString());
+        data.put("employeeId", timeEntry.getEmployee().getId().toString());
+        data.put("employeeEmail", timeEntry.getEmployee().getEmail());
+        data.put("projectId", timeEntry.getProject().getId().toString());
+        if (timeEntry.getTask() != null) {
+            data.put("taskId", timeEntry.getTask().getId().toString());
+        }
+        data.put("entryDate", timeEntry.getEntryDate().toString());
+        data.put("durationHours", timeEntry.getDurationHours());
+        data.put("status", timeEntry.getStatus().name());
+        webhookDispatchService.dispatch(organizationId, WebhookEventType.TIMEENTRY_SUBMITTED, data);
     }
 
     /**
@@ -363,7 +385,7 @@ public class TimeEntryService {
         timeEntry.setRejectionReason(null);
         
         TimeEntry updated = timeEntryRepository.save(timeEntry);
-        notificationService.createInAppNotification(
+        notificationService.notifyUser(
             updated.getEmployee(),
             "Time entry approved",
             String.format("Your time entry for %s on %s was approved.",
@@ -402,7 +424,7 @@ public class TimeEntryService {
                 updated.getProject().getName(), updated.getEntryDate(), rejectionReason)
             : String.format("Your time entry for %s on %s was rejected.",
                 updated.getProject().getName(), updated.getEntryDate());
-        notificationService.createInAppNotification(updated.getEmployee(), "Time entry rejected", description);
+        notificationService.notifyUser(updated.getEmployee(), "Time entry rejected", description);
         return timeEntryMapper.toResponseDTO(updated);
     }
 

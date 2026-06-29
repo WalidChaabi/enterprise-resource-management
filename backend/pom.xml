@@ -55,6 +55,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
+		<!-- Spring Mail: SMTP for workflow email notifications (MT-G) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
 
 		<!-- PostgreSQL Driver: JDBC driver for PostgreSQL database -->
 		<dependency>

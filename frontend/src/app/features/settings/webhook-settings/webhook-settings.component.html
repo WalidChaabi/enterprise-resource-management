@@ -1,0 +1,164 @@
+<div class="mt-6 space-y-6">
+  <div>
+    <h2 class="text-xl font-semibold text-foreground">{{ 'settings.webhooks.title' | translate }}</h2>
+    <p class="text-sm text-muted-foreground">{{ 'settings.webhooks.subtitle' | translate }}</p>
+  </div>
+
+  @if (!hasWebhooks()) {
+    <app-alert variant="default">{{ 'settings.webhooks.upgradeHint' | translate }}</app-alert>
+  } @else {
+    @if (error()) {
+      <app-alert variant="destructive">{{ error() | translate }}</app-alert>
+    }
+    @if (success()) {
+      <app-alert variant="default">{{ success() | translate }}</app-alert>
+    }
+    @if (createdSecret()) {
+      <app-alert variant="default">
+        <p class="font-medium">{{ 'settings.webhooks.secretTitle' | translate }}</p>
+        <p class="mt-1 break-all font-mono text-sm">{{ createdSecret() }}</p>
+        <p class="mt-2 text-xs text-muted-foreground">{{ 'settings.webhooks.secretHint' | translate }}</p>
+      </app-alert>
+    }
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <app-card>
+        <app-card-header>
+          <app-card-title>
+            {{ editingId() ? ('settings.webhooks.editEndpoint' | translate) : ('settings.webhooks.addEndpoint' | translate) }}
+          </app-card-title>
+          <app-card-description>{{ 'settings.webhooks.formHint' | translate }}</app-card-description>
+        </app-card-header>
+        <app-card-content>
+          <form [formGroup]="form" class="space-y-4" (ngSubmit)="save()">
+            <div class="space-y-2">
+              <label class="text-sm font-medium">{{ 'settings.webhooks.url' | translate }}</label>
+              <app-input formControlName="url" placeholder="https://example.com/webhooks/erm" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium">{{ 'settings.webhooks.description' | translate }}</label>
+              <app-input formControlName="description" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium">{{ 'settings.webhooks.eventsLabel' | translate }}</label>
+              <div class="space-y-2">
+                @for (option of eventOptions; track option.value) {
+                  <label class="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      [checked]="isEventSelected(option.value)"
+                      (change)="toggleEvent(option.value, $any($event.target).checked)" />
+                    {{ option.labelKey | translate }}
+                  </label>
+                }
+              </div>
+            </div>
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" formControlName="active" />
+              {{ 'settings.webhooks.active' | translate }}
+            </label>
+            <div class="flex gap-2">
+              <app-button type="submit" [disabled]="saving()">
+                {{ saving() ? ('settings.webhooks.saving' | translate) : ('settings.webhooks.save' | translate) }}
+              </app-button>
+              @if (editingId()) {
+                <app-button type="button" variant="outline" (click)="startCreate()">
+                  {{ 'settings.webhooks.cancelEdit' | translate }}
+                </app-button>
+              }
+            </div>
+          </form>
+        </app-card-content>
+      </app-card>
+
+      <app-card>
+        <app-card-header>
+          <app-card-title>{{ 'settings.webhooks.endpointsTitle' | translate }}</app-card-title>
+        </app-card-header>
+        <app-card-content>
+          @if (loading()) {
+            <p class="text-sm text-muted-foreground">{{ 'settings.webhooks.loading' | translate }}</p>
+          } @else if (endpoints().length === 0) {
+            <p class="text-sm text-muted-foreground">{{ 'settings.webhooks.noEndpoints' | translate }}</p>
+          } @else {
+            <div class="space-y-3">
+              @for (endpoint of endpoints(); track endpoint.id) {
+                <div class="rounded-lg border border-border p-4">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <p class="truncate font-medium">{{ endpoint.url }}</p>
+                      @if (endpoint.description) {
+                        <p class="text-sm text-muted-foreground">{{ endpoint.description }}</p>
+                      }
+                      <div class="mt-2 flex flex-wrap gap-1">
+                        @for (event of endpoint.eventTypes; track event) {
+                          <app-badge variant="outline">{{ event }}</app-badge>
+                        }
+                      </div>
+                    </div>
+                    <app-badge [variant]="endpoint.active ? 'default' : 'secondary'">
+                      {{ endpoint.active ? ('settings.webhooks.active' | translate) : ('settings.webhooks.inactive' | translate) }}
+                    </app-badge>
+                  </div>
+                  <div class="mt-3 flex gap-2">
+                    <app-button type="button" size="sm" variant="outline" (click)="startEdit(endpoint)">
+                      {{ 'settings.webhooks.edit' | translate }}
+                    </app-button>
+                    <app-button type="button" size="sm" variant="destructive" (click)="remove(endpoint)">
+                      {{ 'settings.webhooks.delete' | translate }}
+                    </app-button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </app-card-content>
+      </app-card>
+    </div>
+
+    <app-card>
+      <app-card-header>
+        <app-card-title>{{ 'settings.webhooks.deliveriesTitle' | translate }}</app-card-title>
+        <app-card-description>{{ 'settings.webhooks.deliveriesHint' | translate }}</app-card-description>
+      </app-card-header>
+      <app-card-content>
+        @if (deliveries().length === 0) {
+          <p class="text-sm text-muted-foreground">{{ 'settings.webhooks.noDeliveries' | translate }}</p>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead>
+                <tr class="border-b text-left text-muted-foreground">
+                  <th class="py-2 pr-4">{{ 'settings.webhooks.when' | translate }}</th>
+                  <th class="py-2 pr-4">{{ 'settings.webhooks.event' | translate }}</th>
+                  <th class="py-2 pr-4">{{ 'settings.webhooks.status' | translate }}</th>
+                  <th class="py-2 pr-4">{{ 'settings.webhooks.attempts' | translate }}</th>
+                  <th class="py-2">{{ 'settings.webhooks.response' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (delivery of deliveries(); track delivery.id) {
+                  <tr class="border-b border-border/60">
+                    <td class="py-2 pr-4 whitespace-nowrap">{{ delivery.createdAt | date: 'short' }}</td>
+                    <td class="py-2 pr-4">{{ delivery.eventType }}</td>
+                    <td class="py-2 pr-4">
+                      <app-badge [variant]="deliveryVariant(delivery.status)">{{ delivery.status }}</app-badge>
+                    </td>
+                    <td class="py-2 pr-4">{{ delivery.attemptCount }}/{{ delivery.maxAttempts }}</td>
+                    <td class="py-2">
+                      @if (delivery.responseStatus) {
+                        HTTP {{ delivery.responseStatus }}
+                      } @else {
+                        —
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </app-card-content>
+    </app-card>
+  }
+</div>

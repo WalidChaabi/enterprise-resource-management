@@ -112,7 +112,7 @@ public class TaskService {
         Task savedTask = taskRepository.save(task);
 
         if (savedTask.getAssignedTo() != null) {
-            notificationService.createInAppNotification(
+            notificationService.notifyUser(
                 savedTask.getAssignedTo(),
                 "Task assigned",
                 String.format("You were assigned to task \"%s\" on project %s.",
@@ -199,7 +199,7 @@ public class TaskService {
         User newAssignee = updated.getAssignedTo();
         if (newAssignee != null
                 && (previousAssignee == null || !newAssignee.getId().equals(previousAssignee.getId()))) {
-            notificationService.createInAppNotification(
+            notificationService.notifyUser(
                 newAssignee,
                 "Task assigned",
                 String.format("You were assigned to task \"%s\" on project %s.",

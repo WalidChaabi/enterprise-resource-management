@@ -384,7 +384,65 @@ public class AuditLogService {
         
         logEvent(event);
     }
-    
+
+    public void logDataExport(UUID organizationId, UUID userId, String actorEmail) {
+        Map<String, Object> details = new HashMap<>();
+        details.put("userId", userId.toString());
+        details.put("action", "EXPORT");
+
+        AuditEvent event = new AuditEvent(
+            "DATA_EXPORT",
+            organizationId,
+            "USER",
+            userId,
+            actorEmail,
+            LocalDateTime.now(),
+            details
+        );
+        logEvent(event);
+    }
+
+    public void logErasureRequested(UUID organizationId, UUID userId, String actorEmail) {
+        Map<String, Object> details = new HashMap<>();
+        details.put("userId", userId.toString());
+        details.put("action", "REQUEST");
+
+        AuditEvent event = new AuditEvent(
+            "ERASURE_REQUESTED",
+            organizationId,
+            "USER",
+            userId,
+            actorEmail,
+            LocalDateTime.now(),
+            details
+        );
+        logEvent(event);
+    }
+
+    public void logErasureCompleted(
+            UUID organizationId,
+            UUID userId,
+            String actorEmail,
+            String adminNotes) {
+        Map<String, Object> details = new HashMap<>();
+        details.put("userId", userId.toString());
+        details.put("action", "COMPLETE");
+        if (adminNotes != null && !adminNotes.isBlank()) {
+            details.put("adminNotes", adminNotes);
+        }
+
+        AuditEvent event = new AuditEvent(
+            "ERASURE_COMPLETED",
+            organizationId,
+            "USER",
+            userId,
+            actorEmail,
+            LocalDateTime.now(),
+            details
+        );
+        logEvent(event);
+    }
+
     private void logEvent(AuditEvent event) {
         try {
             String json = objectMapper.writeValueAsString(event);

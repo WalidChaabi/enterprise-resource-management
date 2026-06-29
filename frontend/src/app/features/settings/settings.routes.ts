@@ -35,5 +35,15 @@ export const routes: Routes = [
     path: 'audit',
     loadComponent: () =>
       import('./audit-settings/audit-settings.component').then(m => m.AuditSettingsComponent)
+  },
+  {
+    path: 'privacy',
+    loadComponent: () =>
+      import('./privacy-settings/privacy-settings.component').then(m => m.PrivacySettingsComponent)
+  },
+  {
+    path: 'webhooks',
+    loadComponent: () =>
+      import('./webhook-settings/webhook-settings.component').then(m => m.WebhookSettingsComponent)
   }
 ];

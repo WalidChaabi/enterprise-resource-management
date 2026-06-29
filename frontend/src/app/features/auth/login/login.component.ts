@@ -11,6 +11,7 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { CardComponent, CardHeaderComponent, CardTitleComponent, CardDescriptionComponent, CardContentComponent, CardFooterComponent } from '../../../shared/components/ui/card/card.component';
 import { environment } from '../../../../environments/environment';
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '../../../core/config/demo-accounts';
 
 /**
  * Enterprise-grade login component
@@ -50,6 +51,8 @@ export class LoginComponent {
   readonly showPassword = signal<boolean>(false);
   readonly showDemoCredentials = signal<boolean>(false); // Collapsible demo section
   readonly demoAccessEnabled = environment.showDemoAccess;
+  readonly demoAccounts = DEMO_ACCOUNTS;
+  readonly demoPassword = DEMO_PASSWORD;
 
   // Computed states for better UX
   readonly hasError = computed(() => this.errorMessage().length > 0);
@@ -154,13 +157,12 @@ export class LoginComponent {
    * Fill demo credentials (for quick testing)
    * Enterprise pattern: Convenient but not prominent
    */
-  fillDemoCredentials(): void {
+  fillDemoCredentials(email: string = 'admin@demo.com'): void {
     this.loginForm.patchValue({
-      email: 'admin@demo.com',
-      password: 'password123'
+      email,
+      password: DEMO_PASSWORD
     });
     this.showDemoCredentials.set(false);
-    // Focus password field for quick submission
     setTimeout(() => document.getElementById('password')?.focus(), 100);
   }
 

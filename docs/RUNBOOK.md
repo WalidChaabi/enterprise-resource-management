@@ -145,7 +145,19 @@ Ensure compose `depends_on: service_healthy` is used. Check `docker logs erm-db`
 
 ### Demo user missing in dev
 
-Set `ERM_DEMO_DATA_ENABLED=true` and ensure Flyway demo seed (`db/demo-migration/V3__seed_test_data.sql`) runs.
+Set `ERM_DEMO_DATA_ENABLED=true` and ensure Flyway demo migrations run (`V3__seed_test_data.sql` + `V21__ideal_demo_user_pack.sql`).
+
+**Demo personas** (password `password123` for all):
+
+| Email | Role |
+|-------|------|
+| `admin@demo.com` | ORG_ADMIN |
+| `hr@demo.com` | HR_ADMIN |
+| `pm@demo.com` | PROJECT_MANAGER |
+| `employee@demo.com` | EMPLOYEE |
+| `manager@demo.com` | DEPARTMENT_MANAGER |
+
+On the dev login page, expand **Demo Access** to one-click fill credentials.
 
 ---
 
@@ -155,7 +167,7 @@ GitHub Actions runs `docker/scripts/smoke-test.sh` after image build:
 
 1. Stack up with health wait
 2. Backend liveness
-3. Demo login (`admin@demo.com` / dev password)
+3. Demo login (`admin@demo.com` / `password123`; V21 adds four more personas — see RUNBOOK)
 4. Frontend health
 
 ---

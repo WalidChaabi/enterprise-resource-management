@@ -207,24 +207,25 @@
         </button>
 
         @if (showDemoCredentials()) {
-        <div class="mt-3 w-full space-y-2 rounded-lg border border-border bg-muted/30 p-3 text-xs">
-          <p class="text-center font-medium text-muted-foreground mb-2">
+        <div class="mt-3 w-full space-y-3 rounded-lg border border-border bg-muted/30 p-3 text-xs">
+          <p class="text-center font-medium text-muted-foreground">
             {{ 'auth.login.demoCredentials' | translate }}
           </p>
-          <div class="space-y-1.5 text-muted-foreground">
-            <div class="flex items-center justify-between">
-              <span class="font-medium">{{ 'auth.login.email' | translate }}:</span>
-              <code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">admin&#64;demo.com</code>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="font-medium">{{ 'auth.login.password' | translate }}:</span>
-              <code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">password123</code>
-            </div>
+          <p class="text-center text-muted-foreground">
+            {{ 'auth.login.demoPasswordHint' | translate }}
+            <code class="rounded bg-background px-1.5 py-0.5 font-mono">{{ demoPassword }}</code>
+          </p>
+          <div class="space-y-2">
+            @for (account of demoAccounts; track account.email) {
+              <button
+                type="button"
+                (click)="fillDemoCredentials(account.email)"
+                class="flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground">
+                <span class="font-medium text-foreground">{{ account.labelKey | translate }}</span>
+                <code class="font-mono text-[11px] text-muted-foreground">{{ account.email }}</code>
+              </button>
+            }
           </div>
-          <button type="button" (click)="fillDemoCredentials()"
-            class="mt-2 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-            {{ 'auth.login.useDemoCredentials' | translate }}
-          </button>
         </div>
         }
       </app-card-footer>

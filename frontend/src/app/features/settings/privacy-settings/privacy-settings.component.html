@@ -1,0 +1,94 @@
+<div class="mt-6 space-y-6">
+  <div>
+    <h2 class="text-xl font-semibold text-foreground">{{ 'settings.privacy.title' | translate }}</h2>
+    <p class="text-sm text-muted-foreground">{{ 'settings.privacy.subtitle' | translate }}</p>
+  </div>
+
+  @if (error()) {
+    <app-alert variant="destructive">{{ error() | translate }}</app-alert>
+  }
+  @if (success()) {
+    <app-alert variant="default">{{ success() | translate }}</app-alert>
+  }
+
+  <app-card>
+    <app-card-header>
+      <app-card-title>{{ 'settings.privacy.exportTitle' | translate }}</app-card-title>
+      <app-card-description>{{ 'settings.privacy.exportDescription' | translate }}</app-card-description>
+    </app-card-header>
+    <app-card-content>
+      <app-button
+        type="button"
+        [disabled]="exporting()"
+        (click)="exportData()">
+        {{ exporting() ? ('settings.privacy.exporting' | translate) : ('settings.privacy.export' | translate) }}
+      </app-button>
+    </app-card-content>
+  </app-card>
+
+  <app-card>
+    <app-card-header>
+      <app-card-title>{{ 'settings.privacy.deletionTitle' | translate }}</app-card-title>
+      <app-card-description>{{ 'settings.privacy.deletionDescription' | translate }}</app-card-description>
+    </app-card-header>
+    <app-card-content class="space-y-4">
+      @if (erasureRequest(); as request) {
+        <div class="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/30 p-4 text-sm">
+          <span class="text-muted-foreground">{{ 'settings.privacy.requestStatus' | translate }}:</span>
+          <app-badge [variant]="request.status === 'PENDING' ? 'secondary' : 'outline'">
+            {{ request.status }}
+          </app-badge>
+          <span class="text-muted-foreground">
+            {{ 'settings.privacy.requestedAt' | translate }} {{ request.requestedAt | date: 'medium' }}
+          </span>
+        </div>
+      }
+
+      <app-button
+        type="button"
+        variant="destructive"
+        [disabled]="requesting() || erasureRequest()?.status === 'PENDING' || erasureRequest()?.status === 'COMPLETED'"
+        (click)="requestDeletion()">
+        {{ requesting() ? ('settings.privacy.requesting' | translate) : ('settings.privacy.requestDeletion' | translate) }}
+      </app-button>
+    </app-card-content>
+  </app-card>
+
+  @if (isOrgAdmin()) {
+    <app-card>
+      <app-card-header>
+        <app-card-title>{{ 'settings.privacy.adminTitle' | translate }}</app-card-title>
+        <app-card-description>{{ 'settings.privacy.adminDescription' | translate }}</app-card-description>
+      </app-card-header>
+      <app-card-content>
+        @if (adminLoading()) {
+          <p class="text-sm text-muted-foreground">{{ 'settings.privacy.loading' | translate }}</p>
+        } @else if (pendingRequests().length === 0) {
+          <p class="text-sm text-muted-foreground">{{ 'settings.privacy.noPending' | translate }}</p>
+        } @else {
+          <div class="space-y-3">
+            @for (request of pendingRequests(); track request.id) {
+              <div class="flex flex-col gap-3 rounded-lg border border-border p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p class="font-medium text-foreground">{{ request.userFullName }}</p>
+                  <p class="text-sm text-muted-foreground">{{ request.userEmail }}</p>
+                  <p class="text-xs text-muted-foreground mt-1">
+                    {{ 'settings.privacy.requestedAt' | translate }} {{ request.requestedAt | date: 'medium' }}
+                  </p>
+                </div>
+                <div class="flex gap-2">
+                  <app-button type="button" size="sm" (click)="approveRequest(request)">
+                    {{ 'settings.privacy.approve' | translate }}
+                  </app-button>
+                  <app-button type="button" size="sm" variant="outline" (click)="rejectRequest(request)">
+                    {{ 'settings.privacy.reject' | translate }}
+                  </app-button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </app-card-content>
+    </app-card>
+  }
+</div>

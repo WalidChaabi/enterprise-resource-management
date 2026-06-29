@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ErrorResponse } from '../models/auth.model';
 
@@ -67,6 +67,25 @@ export class ApiService {
       params,
       responseType: 'blob'
     }).pipe(
+      catchError(this.handleError.bind(this))
+    );
+  }
+
+  postBlob(url: string, body: unknown = {}): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}${url}`, body, {
+      headers: this.jsonHeaders,
+      responseType: 'blob'
+    }).pipe(
+      catchError(this.handleError.bind(this))
+    );
+  }
+
+  getOptional<T>(url: string): Observable<T | null> {
+    return this.http.get<T>(`${this.baseUrl}${url}`, {
+      headers: this.jsonHeaders,
+      observe: 'response'
+    }).pipe(
+      map(response => (response.status === 204 ? null : response.body)),
       catchError(this.handleError.bind(this))
     );
   }

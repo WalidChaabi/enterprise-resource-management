@@ -50,6 +50,18 @@ import { TranslatePipe } from '../../core/pipes/translate.pipe';
           class="rounded-t-md border-b-2 border-transparent px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
           {{ 'settings.audit.tab' | translate }}
         </a>
+        <a
+          routerLink="/settings/privacy"
+          routerLinkActive="border-b-2 border-primary text-primary"
+          class="rounded-t-md border-b-2 border-transparent px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          {{ 'settings.privacy.tab' | translate }}
+        </a>
+        <a
+          routerLink="/settings/webhooks"
+          routerLinkActive="border-b-2 border-primary text-primary"
+          class="rounded-t-md border-b-2 border-transparent px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          {{ 'settings.webhooks.tab' | translate }}
+        </a>
       </div>
 
       <router-outlet></router-outlet>

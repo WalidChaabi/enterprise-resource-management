@@ -18,9 +18,9 @@
 | MT-C | Plan entitlements & feature flags | 1–2 weeks | P1 | 🟡 In progress — core gating wired |
 | MT-D | SSO/OIDC + MFA (TOTP) | 3–4 weeks | P0 | ⬜ Not started |
 | MT-E | Persistent audit log + admin export | 2 weeks | P0 | 🟡 In progress — core wired |
-| MT-F | GDPR export & erasure | 2–3 weeks | P0 | ⬜ Not started |
-| MT-G | SMTP email for workflow events | 1–2 weeks | P1 | ⬜ Not started |
-| MT-H | Webhooks for key events | 2 weeks | P1 | ⬜ Not started |
+| MT-F | GDPR export & erasure | 2–3 weeks | P0 | 🟡 In progress — core wired |
+| MT-G | SMTP email for workflow events | 1–2 weeks | P1 | 🟡 In progress — core wired |
+| MT-H | Webhooks for key events | 2 weeks | P1 | 🟡 In progress — core wired |
 | MT-I | Capacity / utilization dashboard | 2–3 weeks | P1 | 🟡 In progress — core dashboard shipped |
 | MT-J | Mobile-responsive employee flows | 2 weeks | P1 | ⬜ Not started |
 | MT-K | Calendar sync (Google / Outlook leave) | 2–3 weeks | P1 | ⬜ Not started |
@@ -40,7 +40,7 @@
 | Audit | `AuditLogService` → SLF4J only | No `audit_events` table or admin UI |
 | Resource intel | `ResourceAllocationService`, reporting APIs | No dedicated utilization dashboard UI |
 | Roles | `RoleController`, `UserRoleController` | Settings roles UI read-only / partial |
-| Notifications | In-app inbox wired (ST-D) | No SMTP; no webhooks |
+| Notifications | In-app inbox wired (ST-D) | SMTP on leave/time/task workflows when `MAIL_ENABLED` |
 | i18n | EN/FR core modules | Settings/legal pages, locale formats |
 | Tables | TanStack client-side (ST-C) | No server-side pagination |
 
@@ -169,10 +169,18 @@
 | MT-F.4 | Settings → Privacy: export my data, request deletion | Frontend | 1d | |
 | MT-F.5 | Audit log entries for export/erasure | Backend | 0.5d | MT-E dependency |
 
+**Implementation notes (2026-06-29)**
+
+- `POST /api/v1/users/me/data-export` — sync ZIP (JSON + README)
+- `POST /api/v1/users/me/erasure-request` — pending admin approval workflow
+- `GET/POST .../organizations/{id}/privacy/...` — ORG_ADMIN approve/reject; HR/ORG admin direct offboarding erasure
+- Anonymizes email/name, revokes tokens; blocks last ORG_ADMIN erasure
+- Settings → Privacy UI at `/settings/privacy`
+
 **Acceptance criteria**
 
-- [ ] User receives downloadable export within 24h (or sync for MVP)
-- [ ] Erasure anonymizes email/name; retains legal billing records per policy
+- [x] User receives downloadable export (sync MVP)
+- [x] Erasure anonymizes email/name; retains legal billing records per policy
 
 ---
 
@@ -186,10 +194,17 @@
 | MT-G.2 | Send on leave/time approve/reject if `emailEnabled` | Backend | 1d | Reuse ST-D producers |
 | MT-G.3 | Org-level SMTP override (optional P2) | Backend | 1d | Defer to MT-L if needed |
 
+**Implementation notes (2026-06-29)**
+
+- `erm.mail.*` config + `MailConfig` (conditional on `MAIL_ENABLED=true`)
+- `EmailNotificationService` sends HTML email respecting `UserNotificationPreferences.emailEnabled`
+- `NotificationService.notifyUser()` delivers in-app + email; wired from leave/time/task workflows
+- EN HTML template in service; FR i18n deferred
+
 **Acceptance criteria**
 
-- [ ] Approve leave → assignee gets email + in-app notification
-- [ ] User can disable email in notification preferences (ST-B)
+- [x] Approve leave → assignee gets email + in-app notification (when mail enabled)
+- [x] User can disable email in notification preferences (ST-B)
 
 ---
 
@@ -205,10 +220,19 @@
 | MT-H.4 | Settings → Webhooks UI | Frontend | 2d | Pro entitlement (MT-C) |
 | MT-H.5 | Retry + delivery log viewer | Backend | 1d | |
 
+**Implementation notes (2026-06-29)**
+
+- `V20__webhook_endpoints.sql` — endpoints + delivery outbox
+- CRUD at `/api/v1/organizations/{id}/webhooks` (ORG_ADMIN + `WEBHOOKS` entitlement)
+- HMAC-SHA256 via `X-ERM-Signature` + `X-ERM-Timestamp`
+- Dispatch on `leave.approved`, `timeentry.submitted`, `employee.created`
+- Scheduler retries with backoff (1m → 5m → 15m → 1h → 4h)
+- Settings → Webhooks UI with delivery log
+
 **Acceptance criteria**
 
-- [ ] Test webhook receives signed POST on leave approval
-- [ ] Failed delivery retried with backoff
+- [x] Test webhook receives signed POST on leave approval (when Pro + endpoint configured)
+- [x] Failed delivery retried with backoff
 
 ---
 

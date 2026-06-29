@@ -27,16 +27,27 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final UserNotificationPreferencesRepository notificationPreferencesRepository;
     private final NotificationMapper notificationMapper;
+    private final EmailNotificationService emailNotificationService;
 
     public NotificationService(
             NotificationRepository notificationRepository,
             UserRepository userRepository,
             UserNotificationPreferencesRepository notificationPreferencesRepository,
-            NotificationMapper notificationMapper) {
+            NotificationMapper notificationMapper,
+            EmailNotificationService emailNotificationService) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.notificationPreferencesRepository = notificationPreferencesRepository;
         this.notificationMapper = notificationMapper;
+        this.emailNotificationService = emailNotificationService;
+    }
+
+    /**
+     * Deliver in-app and email notifications according to user preferences.
+     */
+    public void notifyUser(User user, String title, String description) {
+        createInAppNotification(user, title, description);
+        emailNotificationService.sendWorkflowNotification(user, title, description);
     }
 
     /**

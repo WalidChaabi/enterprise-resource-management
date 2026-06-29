@@ -12,11 +12,14 @@ import com.company.erm.mapper.LeaveRequestMapper;
 import com.company.erm.repository.LeaveRequestRepository;
 import com.company.erm.repository.UserRepository;
 import com.company.erm.security.PermissionChecker;
+import com.company.erm.webhook.WebhookEventType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -39,6 +42,7 @@ public class LeaveRequestService {
     private final PermissionChecker permissionChecker;
     private final LeaveRequestMapper leaveRequestMapper;
     private final NotificationService notificationService;
+    private final WebhookDispatchService webhookDispatchService;
 
     public LeaveRequestService(
             LeaveRequestRepository leaveRequestRepository,
@@ -46,13 +50,15 @@ public class LeaveRequestService {
             LeaveRequestDomainService leaveRequestDomainService,
             PermissionChecker permissionChecker,
             LeaveRequestMapper leaveRequestMapper,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            WebhookDispatchService webhookDispatchService) {
         this.leaveRequestRepository = leaveRequestRepository;
         this.userRepository = userRepository;
         this.leaveRequestDomainService = leaveRequestDomainService;
         this.permissionChecker = permissionChecker;
         this.leaveRequestMapper = leaveRequestMapper;
         this.notificationService = notificationService;
+        this.webhookDispatchService = webhookDispatchService;
     }
 
     /**
@@ -297,11 +303,12 @@ public class LeaveRequestService {
         leaveRequest.setRejectionReason(null);
         
         LeaveRequest updated = leaveRequestRepository.save(leaveRequest);
-        notificationService.createInAppNotification(
+        notificationService.notifyUser(
             updated.getEmployee(),
             "Leave request approved",
             String.format("Your %s leave from %s to %s was approved.",
                 updated.getLeaveType(), updated.getStartDate(), updated.getEndDate()));
+        dispatchLeaveApprovedWebhook(organizationId, updated, approver);
         return leaveRequestMapper.toResponseDTO(updated);
     }
 
@@ -350,7 +357,7 @@ public class LeaveRequestService {
                 updated.getStartDate(), updated.getEndDate(), rejectionReason)
             : String.format("Your leave request from %s to %s was rejected.",
                 updated.getStartDate(), updated.getEndDate());
-        notificationService.createInAppNotification(updated.getEmployee(), "Leave request rejected", description);
+        notificationService.notifyUser(updated.getEmployee(), "Leave request rejected", description);
         return leaveRequestMapper.toResponseDTO(updated);
     }
 
@@ -413,6 +420,20 @@ public class LeaveRequestService {
         
         // Delete
         leaveRequestRepository.delete(leaveRequest);
+    }
+
+    private void dispatchLeaveApprovedWebhook(UUID organizationId, LeaveRequest leaveRequest, User approver) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("leaveRequestId", leaveRequest.getId().toString());
+        data.put("employeeId", leaveRequest.getEmployee().getId().toString());
+        data.put("employeeEmail", leaveRequest.getEmployee().getEmail());
+        data.put("leaveType", leaveRequest.getLeaveType().name());
+        data.put("startDate", leaveRequest.getStartDate().toString());
+        data.put("endDate", leaveRequest.getEndDate().toString());
+        data.put("totalDays", leaveRequest.getTotalDays());
+        data.put("approvedById", approver.getId().toString());
+        data.put("approvedAt", leaveRequest.getApprovedAt() != null ? leaveRequest.getApprovedAt().toString() : null);
+        webhookDispatchService.dispatch(organizationId, WebhookEventType.LEAVE_APPROVED, data);
     }
 }
 

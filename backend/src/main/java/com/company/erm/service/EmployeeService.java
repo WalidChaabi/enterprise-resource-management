@@ -13,12 +13,15 @@ import com.company.erm.repository.DepartmentRepository;
 import com.company.erm.repository.OrganizationRepository;
 import com.company.erm.repository.UserRepository;
 import com.company.erm.security.PermissionChecker;
+import com.company.erm.webhook.WebhookEventType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -44,6 +47,7 @@ public class EmployeeService {
     private final AuditLogService auditLogService;
     private final EmployeeMapper employeeMapper;
     private final EntitlementService entitlementService;
+    private final WebhookDispatchService webhookDispatchService;
 
     public EmployeeService(
             UserRepository userRepository,
@@ -54,7 +58,8 @@ public class EmployeeService {
             PermissionChecker permissionChecker,
             AuditLogService auditLogService,
             EmployeeMapper employeeMapper,
-            EntitlementService entitlementService) {
+            EntitlementService entitlementService,
+            WebhookDispatchService webhookDispatchService) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.departmentRepository = departmentRepository;
@@ -64,6 +69,7 @@ public class EmployeeService {
         this.auditLogService = auditLogService;
         this.employeeMapper = employeeMapper;
         this.entitlementService = entitlementService;
+        this.webhookDispatchService = webhookDispatchService;
     }
 
     /**
@@ -125,6 +131,13 @@ public class EmployeeService {
             createDTO.email(),
             currentUserEmail
         );
+
+        Map<String, Object> webhookData = new LinkedHashMap<>();
+        webhookData.put("employeeId", savedUser.getId().toString());
+        webhookData.put("email", savedUser.getEmail());
+        webhookData.put("firstName", savedUser.getFirstName());
+        webhookData.put("lastName", savedUser.getLastName());
+        webhookDispatchService.dispatch(organizationId, WebhookEventType.EMPLOYEE_CREATED, webhookData);
         
         // 9. Map to DTO
         return employeeMapper.toResponseDTO(savedUser);

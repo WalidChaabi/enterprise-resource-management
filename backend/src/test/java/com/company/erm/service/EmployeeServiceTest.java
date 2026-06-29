@@ -77,6 +77,9 @@ class EmployeeServiceTest {
     private EntitlementService entitlementService;
 
     @Mock
+    private WebhookDispatchService webhookDispatchService;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks

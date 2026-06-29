@@ -38,6 +38,16 @@ public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> 
         @Param("roleId") UUID roleId,
         @Param("organizationId") UUID organizationId
     );
+
+    @Query("""
+            SELECT COUNT(ur) FROM UserRole ur
+            JOIN ur.user u
+            WHERE ur.organization.id = :organizationId
+              AND ur.role.code = 'ORG_ADMIN'
+              AND u.active = true
+              AND u.email NOT LIKE '%@anonymized.local'
+            """)
+    long countActiveOrgAdmins(@Param("organizationId") UUID organizationId);
 }
 
 
