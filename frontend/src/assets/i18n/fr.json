@@ -117,6 +117,7 @@
     "employees": "Employés",
     "departments": "Départements",
     "reports": "Rapports",
+    "capacity": "Capacité",
     "timeEntries": "Saisies de temps",
     "leaveRequests": "Demandes de congé",
     "sections": {
@@ -170,6 +171,11 @@
         "title": "Rapports",
         "description": "Voir les analyses et rapports"
       }
+    },
+    "capacity": {
+      "title": "Capacité de l'équipe cette semaine",
+      "subtitle": "Utilisation, disponibilité et congés en un coup d'œil",
+      "viewAll": "Ouvrir le tableau de capacité"
     }
   },
   "employees": {
@@ -567,6 +573,35 @@
       "historyViaPortalHint": "Utilisez Gérer l'abonnement pour télécharger vos factures.",
       "historyComingSoon": "Historique des factures bientôt disponible",
       "historyComingSoonHint": "Consultez et téléchargez vos factures passées"
+    }
+  },
+  "capacity": {
+    "title": "Capacité et utilisation",
+    "subtitle": "Qui est surchargé, disponible ou en congé pour la semaine sélectionnée",
+    "openDashboard": "Ouvrir le tableau de capacité",
+    "backToReports": "Retour aux rapports",
+    "previousWeek": "Semaine précédente",
+    "nextWeek": "Semaine suivante",
+    "upgradeHint": "Passez à Starter ou Pro pour débloquer le tableau de capacité.",
+    "metrics": {
+      "overallocated": "Surchargés",
+      "available": "Disponibles",
+      "onLeave": "En congé",
+      "underutilized": "Sous-utilisés"
+    },
+    "chart": {
+      "title": "Utilisation par employé",
+      "subtitle": "Principaux employés selon les heures saisies vs 40h de capacité"
+    },
+    "table": {
+      "title": "Équipe",
+      "subtitle": "Heures, utilisation et congés approuvés sur cette semaine",
+      "employee": "Employé",
+      "hours": "Heures",
+      "utilization": "Utilisation",
+      "status": "Statut",
+      "leave": "Congé",
+      "onLeave": "En congé"
     }
   },
   "errors": {

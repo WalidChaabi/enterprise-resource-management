@@ -1,0 +1,131 @@
+<div class="space-y-8">
+  <div class="page-header">
+    <h1 class="page-title">{{ 'capacity.title' | translate }}</h1>
+    <p class="page-description">{{ 'capacity.subtitle' | translate }}</p>
+  </div>
+
+  @if (upgradeRequired()) {
+    <app-alert>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="font-medium text-foreground">{{ 'reporting.upgrade.title' | translate }}</p>
+          <p class="text-sm text-muted-foreground">{{ 'capacity.upgradeHint' | translate }}</p>
+        </div>
+        <a routerLink="/settings/billing" class="inline-flex h-9 shrink-0 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+          {{ 'reporting.upgrade.cta' | translate }}
+        </a>
+      </div>
+    </app-alert>
+  }
+
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-2">
+      <app-button type="button" variant="outline" size="icon" (click)="previousWeek()" [attr.aria-label]="'capacity.previousWeek' | translate">
+        <lucide-icon [img]="ChevronLeft" [size]="16" />
+      </app-button>
+      <div class="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm">
+        <lucide-icon [img]="CalendarDays" [size]="16" class="text-muted-foreground" />
+        @if (capacity()) {
+          <span>{{ capacity()!.weekStart | date:'mediumDate' }} – {{ capacity()!.weekEnd | date:'mediumDate' }}</span>
+        } @else {
+          <span>{{ weekStart() | date:'mediumDate' }}</span>
+        }
+      </div>
+      <app-button type="button" variant="outline" size="icon" (click)="nextWeek()" [attr.aria-label]="'capacity.nextWeek' | translate">
+        <lucide-icon [img]="ChevronRight" [size]="16" />
+      </app-button>
+    </div>
+    <a routerLink="/reports" class="text-sm text-muted-foreground hover:text-foreground">{{ 'capacity.backToReports' | translate }}</a>
+  </div>
+
+  @if (error()) {
+    <app-alert variant="destructive">{{ error() }}</app-alert>
+  }
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-16">
+      <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+    </div>
+  } @else if (capacity()) {
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <app-card>
+        <app-card-content class="p-5">
+          <p class="text-sm text-muted-foreground">{{ 'capacity.metrics.overallocated' | translate }}</p>
+          <p class="mt-1 text-3xl font-bold text-destructive">{{ capacity()!.overallocatedEmployees }}</p>
+        </app-card-content>
+      </app-card>
+      <app-card>
+        <app-card-content class="p-5">
+          <p class="text-sm text-muted-foreground">{{ 'capacity.metrics.available' | translate }}</p>
+          <p class="mt-1 text-3xl font-bold text-emerald-600">{{ capacity()!.availableEmployees }}</p>
+        </app-card-content>
+      </app-card>
+      <app-card>
+        <app-card-content class="p-5">
+          <p class="text-sm text-muted-foreground">{{ 'capacity.metrics.onLeave' | translate }}</p>
+          <p class="mt-1 text-3xl font-bold text-blue-600">{{ capacity()!.onLeaveEmployees }}</p>
+        </app-card-content>
+      </app-card>
+      <app-card>
+        <app-card-content class="p-5">
+          <p class="text-sm text-muted-foreground">{{ 'capacity.metrics.underutilized' | translate }}</p>
+          <p class="mt-1 text-3xl font-bold">{{ capacity()!.underutilizedEmployees }}</p>
+        </app-card-content>
+      </app-card>
+    </div>
+
+    <app-card>
+      <app-card-header>
+        <app-card-title>{{ 'capacity.chart.title' | translate }}</app-card-title>
+        <app-card-description>{{ 'capacity.chart.subtitle' | translate }}</app-card-description>
+      </app-card-header>
+      <app-card-content>
+        <div class="h-72">
+          <app-chart type="bar" [data]="utilizationChartData()" [options]="chartOptions()" />
+        </div>
+      </app-card-content>
+    </app-card>
+
+    <app-card>
+      <app-card-header>
+        <app-card-title>{{ 'capacity.table.title' | translate }}</app-card-title>
+        <app-card-description>{{ 'capacity.table.subtitle' | translate }}</app-card-description>
+      </app-card-header>
+      <app-card-content class="overflow-x-auto">
+        <table class="w-full min-w-[720px] text-sm">
+          <thead>
+            <tr class="border-b border-border text-left text-muted-foreground">
+              <th class="pb-3 pr-4 font-medium">{{ 'capacity.table.employee' | translate }}</th>
+              <th class="pb-3 pr-4 font-medium">{{ 'capacity.table.hours' | translate }}</th>
+              <th class="pb-3 pr-4 font-medium">{{ 'capacity.table.utilization' | translate }}</th>
+              <th class="pb-3 pr-4 font-medium">{{ 'capacity.table.status' | translate }}</th>
+              <th class="pb-3 font-medium">{{ 'capacity.table.leave' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of capacity()!.employees; track row.employeeId) {
+              <tr class="border-b border-border/60">
+                <td class="py-3 pr-4">
+                  <div class="font-medium text-foreground">{{ row.employeeName }}</div>
+                  <div class="text-xs text-muted-foreground">{{ row.jobTitle || row.employeeCode }}</div>
+                </td>
+                <td class="py-3 pr-4">{{ row.loggedHours | number:'1.0-1' }} / {{ row.capacityHoursPerWeek }}</td>
+                <td class="py-3 pr-4">{{ row.utilizationPercentage | number:'1.0-0' }}%</td>
+                <td class="py-3 pr-4">
+                  <app-badge [variant]="statusVariant(row.allocationStatus)">{{ row.allocationStatus }}</app-badge>
+                </td>
+                <td class="py-3">
+                  @if (row.onLeaveThisWeek) {
+                    <span class="text-blue-600">{{ row.leaveSummary || ('capacity.table.onLeave' | translate) }}</span>
+                  } @else {
+                    <span class="text-muted-foreground">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </app-card-content>
+    </app-card>
+  }
+</div>

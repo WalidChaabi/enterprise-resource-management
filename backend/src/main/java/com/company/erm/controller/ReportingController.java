@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.company.erm.dto.CapacityDashboardDTO;
 import com.company.erm.dto.DashboardDTO;
 import com.company.erm.dto.LeaveBalanceDTO;
 import com.company.erm.dto.LeaveReportDTO;
@@ -23,6 +24,7 @@ import com.company.erm.entitlement.PlanEntitlement;
 import com.company.erm.entity.Organization;
 import com.company.erm.repository.OrganizationRepository;
 import com.company.erm.service.EntitlementService;
+import com.company.erm.service.reporting.CapacityDashboardService;
 import com.company.erm.service.reporting.DashboardService;
 import com.company.erm.service.reporting.LeaveReportService;
 import com.company.erm.service.reporting.ResourceAllocationService;
@@ -42,6 +44,7 @@ public class ReportingController {
     private final TimeReportService timeReportService;
     private final LeaveReportService leaveReportService;
     private final ResourceAllocationService resourceAllocationService;
+    private final CapacityDashboardService capacityDashboardService;
     private final OrganizationRepository organizationRepository;
     private final EntitlementService entitlementService;
 
@@ -50,12 +53,14 @@ public class ReportingController {
             TimeReportService timeReportService,
             LeaveReportService leaveReportService,
             ResourceAllocationService resourceAllocationService,
+            CapacityDashboardService capacityDashboardService,
             OrganizationRepository organizationRepository,
             EntitlementService entitlementService) {
         this.dashboardService = dashboardService;
         this.timeReportService = timeReportService;
         this.leaveReportService = leaveReportService;
         this.resourceAllocationService = resourceAllocationService;
+        this.capacityDashboardService = capacityDashboardService;
         this.organizationRepository = organizationRepository;
         this.entitlementService = entitlementService;
     }
@@ -122,5 +127,13 @@ public class ReportingController {
     public ResponseEntity<ResourceAllocationDTO> getResourceAllocation(@PathVariable UUID organizationId) {
         requireReporting(organizationId);
         return ResponseEntity.ok(resourceAllocationService.getResourceAllocation(organizationId));
+    }
+
+    @GetMapping("/capacity")
+    public ResponseEntity<CapacityDashboardDTO> getCapacityDashboard(
+            @PathVariable UUID organizationId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStart) {
+        requireReporting(organizationId);
+        return ResponseEntity.ok(capacityDashboardService.getCapacityDashboard(organizationId, weekStart));
     }
 }

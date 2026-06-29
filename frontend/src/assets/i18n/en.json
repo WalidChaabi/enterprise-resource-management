@@ -117,6 +117,7 @@
     "employees": "Employees",
     "departments": "Departments",
     "reports": "Reports",
+    "capacity": "Capacity",
     "timeEntries": "Time Entries",
     "leaveRequests": "Leave Requests",
     "sections": {
@@ -170,6 +171,11 @@
         "title": "Reports",
         "description": "View analytics and reports"
       }
+    },
+    "capacity": {
+      "title": "Team capacity this week",
+      "subtitle": "Utilization, bench, and leave at a glance",
+      "viewAll": "Open capacity dashboard"
     }
   },
   "employees": {
@@ -567,6 +573,35 @@
       "historyViaPortalHint": "Use Manage plan to download past invoices.",
       "historyComingSoon": "Invoice history coming soon",
       "historyComingSoonHint": "View and download your past invoices"
+    }
+  },
+  "capacity": {
+    "title": "Capacity & utilization",
+    "subtitle": "Who is overloaded, available, or on leave for the selected week",
+    "openDashboard": "Open capacity dashboard",
+    "backToReports": "Back to reports",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "upgradeHint": "Upgrade to Starter or Pro to unlock the capacity dashboard.",
+    "metrics": {
+      "overallocated": "Overallocated",
+      "available": "Available on bench",
+      "onLeave": "On leave",
+      "underutilized": "Underutilized"
+    },
+    "chart": {
+      "title": "Utilization by employee",
+      "subtitle": "Top employees by logged hours vs 40h capacity"
+    },
+    "table": {
+      "title": "Team roster",
+      "subtitle": "Hours, utilization, and approved leave overlapping this week",
+      "employee": "Employee",
+      "hours": "Hours",
+      "utilization": "Utilization",
+      "status": "Status",
+      "leave": "Leave",
+      "onLeave": "On leave"
     }
   },
   "errors": {

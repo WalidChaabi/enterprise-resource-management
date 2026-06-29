@@ -21,7 +21,7 @@
 | MT-F | GDPR export & erasure | 2–3 weeks | P0 | ⬜ Not started |
 | MT-G | SMTP email for workflow events | 1–2 weeks | P1 | ⬜ Not started |
 | MT-H | Webhooks for key events | 2 weeks | P1 | ⬜ Not started |
-| MT-I | Capacity / utilization dashboard | 2–3 weeks | P1 | ⬜ Not started |
+| MT-I | Capacity / utilization dashboard | 2–3 weeks | P1 | 🟡 In progress — core dashboard shipped |
 | MT-J | Mobile-responsive employee flows | 2 weeks | P1 | ⬜ Not started |
 | MT-K | Calendar sync (Google / Outlook leave) | 2–3 weeks | P1 | ⬜ Not started |
 | MT-L | Scale, admin UI, legal, white-label | 3–4 weeks | P2 | ⬜ Not started |
@@ -218,19 +218,19 @@
 
 | ID | Task | Owner | Effort | Notes |
 |----|------|-------|--------|-------|
-| MT-I.1 | Promote `ResourceAllocationService` to dedicated reporting endpoint | Backend | 1d | Already computes utilization |
-| MT-I.2 | New route `/reporting/capacity` — heatmap or bar chart by employee | Frontend | 3d | Chart.js + TanStack |
-| MT-I.3 | Leave overlay on capacity (who’s out this week) | Full stack | 2d | |
-| MT-I.4 | Alerts: overallocated / bench widgets on dashboard | Frontend | 1d | Reuse `AlertType` |
-| MT-I.5 | i18n EN/FR for capacity module | Frontend | 0.5d | |
+| MT-I.1 | Promote `ResourceAllocationService` to dedicated reporting endpoint | Backend | 1d | ✅ `GET /reports/capacity` |
+| MT-I.2 | New route `/reporting/capacity` — heatmap or bar chart by employee | Frontend | 3d | ✅ `/reports/capacity` + Chart.js |
+| MT-I.3 | Leave overlay on capacity (who’s out this week) | Full stack | 2d | ✅ Leave days + summary per row |
+| MT-I.4 | Alerts: overallocated / bench widgets on dashboard | Frontend | 1d | ✅ Home dashboard capacity widgets |
+| MT-I.5 | i18n EN/FR for capacity module | Frontend | 0.5d | ✅ |
 
 **Key files:** `ResourceAllocationService.java`, `resource-allocation.service.ts`, `reporting-dashboard/`.
 
 **Acceptance criteria**
 
-- [ ] PM sees utilization % per employee for selected week
-- [ ] Leave conflicts visible on capacity view
-- [ ] Matches positioning message in product audit GTM Phase 1
+- [x] PM sees utilization % per employee for selected week
+- [x] Leave conflicts visible on capacity view
+- [ ] Manual QA on staging with real time/leave data
 
 ---
 

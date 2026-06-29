@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -18,9 +18,13 @@ import {
 } from 'lucide-angular';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { AuthService } from '../../core/services/auth.service';
+import { CapacityService } from '../../core/services/capacity.service';
+import { EntitlementService } from '../../core/services/entitlement.service';
 import { ReportingService } from '../../core/services/reporting.service';
+import { CapacityDashboard } from '../../core/models/capacity.model';
 import { Dashboard } from '../../core/models/dashboard.model';
 import { AlertType, AlertSeverity } from '../../core/models/alert.model';
+import { ROLES } from '../../core/utils/constants';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import {
   CardComponent,
@@ -91,10 +95,14 @@ interface ActivityItem {
 export class DashboardComponent {
   private readonly authService = inject(AuthService);
   private readonly reportingService = inject(ReportingService);
+  private readonly capacityService = inject(CapacityService);
+  private readonly entitlementService = inject(EntitlementService);
   private readonly destroyRef = inject(DestroyRef);
+  private capacityRequested = false;
 
   readonly currentUser = this.authService.currentUser;
   readonly loading = signal(false);
+  readonly capacity = signal<CapacityDashboard | null>(null);
   readonly dashboard = signal<Dashboard | null>(null);
   readonly error = signal<string | null>(null);
 
@@ -208,6 +216,40 @@ export class DashboardComponent {
   readonly doughnutChartOptions = computed(
     (): ChartConfiguration['options'] => this._doughnutChartOptions as ChartConfiguration['options']
   );
+
+  readonly showCapacityWidgets = computed(
+    () =>
+      this.entitlementService.has('REPORTING') &&
+      this.authService.hasAnyRole(ROLES.ORG_ADMIN, ROLES.PROJECT_MANAGER, ROLES.HR_ADMIN)
+  );
+
+  readonly capacityWidgets = computed(() => {
+    const data = this.capacity();
+    if (!data) return [];
+    return [
+      {
+        title: 'Overallocated',
+        value: String(data.overallocatedEmployees),
+        hint: 'Employees above 110% utilization',
+        route: ['/reports', 'capacity'] as string[],
+        icon: Users,
+      },
+      {
+        title: 'Available',
+        value: String(data.availableEmployees),
+        hint: 'On bench with no project hours',
+        route: ['/reports', 'capacity'] as string[],
+        icon: UserX,
+      },
+      {
+        title: 'On leave',
+        value: String(data.onLeaveEmployees),
+        hint: 'Approved leave this week',
+        route: ['/reports', 'capacity'] as string[],
+        icon: Calendar,
+      },
+    ];
+  });
 
   readonly metricCards = computed<MetricCard[]>(() => {
     const d = this.dashboard();
@@ -386,6 +428,12 @@ export class DashboardComponent {
 
   constructor() {
     this.loadDashboard();
+    effect(() => {
+      if (this.entitlementService.entitlements() && !this.capacityRequested) {
+        this.capacityRequested = true;
+        this.loadCapacity();
+      }
+    });
   }
 
   alertIcon(type: AlertType): LucideIconData {
@@ -412,6 +460,23 @@ export class DashboardComponent {
       default:
         return 'outline';
     }
+  }
+
+  private loadCapacity(): void {
+    if (!this.entitlementService.has('REPORTING')) {
+      return;
+    }
+    if (!this.authService.hasAnyRole(ROLES.ORG_ADMIN, ROLES.PROJECT_MANAGER, ROLES.HR_ADMIN)) {
+      return;
+    }
+
+    this.capacityService
+      .getCapacityDashboard()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => this.capacity.set(data),
+        error: () => this.capacity.set(null),
+      });
   }
 
   private loadDashboard(): void {

@@ -2,6 +2,11 @@
   <div class="page-header">
     <h1 class="page-title">{{ 'reporting.title' | translate }}</h1>
     <p class="page-description">{{ 'reporting.subtitle' | translate }}</p>
+    @if (!upgradeRequired()) {
+      <a routerLink="/reports/capacity" class="mt-2 inline-flex text-sm font-medium text-primary hover:underline">
+        {{ 'capacity.openDashboard' | translate }} →
+      </a>
+    }
   </div>
 
   @if (upgradeRequired()) {

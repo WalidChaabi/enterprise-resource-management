@@ -1,4 +1,4 @@
-import { LucideIconData, BarChart3, Building2, Calendar, Clock, FolderKanban, LayoutDashboard, Users } from 'lucide-angular';
+import { LucideIconData, Activity, BarChart3, Building2, Calendar, Clock, FolderKanban, LayoutDashboard, Users } from 'lucide-angular';
 import { ROLES, type Role } from '../../core/utils/constants';
 
 export interface NavItem {
@@ -71,6 +71,14 @@ export const SIDEBAR_NAV_ITEMS: NavItem[] = [
     label: 'nav.reports',
     route: ['/reports'],
     icon: BarChart3,
+    section: 'insights',
+    requiredRoles: [ROLES.ORG_ADMIN, ROLES.PROJECT_MANAGER, ROLES.HR_ADMIN],
+    requiredEntitlements: ['REPORTING'],
+  },
+  {
+    label: 'nav.capacity',
+    route: ['/reports', 'capacity'],
+    icon: Activity,
     section: 'insights',
     requiredRoles: [ROLES.ORG_ADMIN, ROLES.PROJECT_MANAGER, ROLES.HR_ADMIN],
     requiredEntitlements: ['REPORTING'],
