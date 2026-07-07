@@ -17,9 +17,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.company.erm.dto.AuditEventResponseDTO;
 import com.company.erm.service.AuditEventService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "Audit Events", description = "Organization audit log")
 @RestController
 @RequestMapping("/api/v1/organizations/{organizationId}/audit-events")
-@PreAuthorize("hasRole('ORG_ADMIN')")
+@PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN')")
 public class AuditEventController {
 
     private final AuditEventService auditEventService;
@@ -28,6 +33,8 @@ public class AuditEventController {
         this.auditEventService = auditEventService;
     }
 
+    @Operation(summary = "List Audit Events")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping
     public ResponseEntity<Page<AuditEventResponseDTO>> listAuditEvents(
             @PathVariable UUID organizationId,
@@ -39,6 +46,8 @@ public class AuditEventController {
                 organizationId, authentication.getName(), action, entityType, pageable));
     }
 
+    @Operation(summary = "Export Audit Events")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportAuditEvents(
             @PathVariable UUID organizationId,

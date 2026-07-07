@@ -5,7 +5,8 @@ import { EntitlementService } from '../../core/services/entitlement.service';
 import { ReportingService } from '../../core/services/reporting.service';
 import { Dashboard } from '../../core/models/dashboard.model';
 import { AlertType } from '../../core/models/alert.model';
-import { NavItem, SIDEBAR_NAV_ITEMS, SIDEBAR_NAV_SECTIONS } from './sidebar-nav.config';
+import { ROLES } from '../../core/utils/constants';
+import { NavItem, NavItemIndicator, SIDEBAR_NAV_ITEMS, SIDEBAR_NAV_SECTIONS } from './sidebar-nav.config';
 import { SidebarNavComponent } from './sidebar-nav.component';
 
 @Component({
@@ -38,7 +39,17 @@ export class SidebarComponent {
   });
   readonly userEmail = computed(() => this.authService.currentUser()?.email ?? '');
 
-  private readonly enableIndicators = true;
+  private readonly canApproveTimeEntries = computed(() =>
+    this.authService.hasAnyRole(ROLES.PROJECT_MANAGER, ROLES.ORG_ADMIN, ROLES.HR_ADMIN),
+  );
+
+  private readonly canApproveLeaveRequests = computed(() =>
+    this.authService.hasAnyRole(ROLES.HR_ADMIN, ROLES.ORG_ADMIN, ROLES.DEPARTMENT_MANAGER),
+  );
+
+  private readonly canViewProjectAlerts = computed(() =>
+    this.authService.hasAnyRole(ROLES.ORG_ADMIN, ROLES.PROJECT_MANAGER),
+  );
 
   readonly visibleSections = computed(() => {
     const user = this.authService.currentUser();
@@ -59,37 +70,10 @@ export class SidebarComponent {
       return this.authService.hasAnyRole(...item.requiredRoles);
     });
 
+    const dashboard = this.dashboardData();
     const enrichedItems = visibleItems.map((item) => {
-      if (!this.enableIndicators || !this.dashboardData()) {
-        return item;
-      }
-
-      const dashboard = this.dashboardData()!;
-      let indicator: NavItem['indicator'];
-
-      switch (item.route[0]) {
-        case '/time-entries':
-          if (dashboard.pendingTimeEntries > 0) {
-            indicator = { count: dashboard.pendingTimeEntries, priority: 'medium' };
-          }
-          break;
-        case '/leave-requests':
-          if (dashboard.pendingLeaveRequests > 0) {
-            indicator = { count: dashboard.pendingLeaveRequests, priority: 'high' };
-          }
-          break;
-        case '/projects': {
-          const projectAlerts = dashboard.alerts?.filter(
-            (alert) => alert.type === AlertType.PROJECT_OVER_BUDGET || alert.type === AlertType.PROJECT_AT_RISK
-          ) ?? [];
-          if (projectAlerts.length > 0) {
-            indicator = { count: projectAlerts.length, priority: 'high' };
-          }
-          break;
-        }
-      }
-
-      return { ...item, indicator };
+      const indicator = dashboard ? this.resolveIndicator(item, dashboard) : undefined;
+      return indicator ? { ...item, indicator } : item;
     });
 
     return SIDEBAR_NAV_SECTIONS.map((section) => ({
@@ -99,14 +83,57 @@ export class SidebarComponent {
   });
 
   constructor() {
-    if (this.enableIndicators) {
-      this.reportingService
-        .getDashboard()
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (data) => this.dashboardData.set(data),
-          error: () => this.dashboardData.set(null),
-        });
+    this.reportingService
+      .getDashboard()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => this.dashboardData.set(data),
+        error: () => this.dashboardData.set(null),
+      });
+  }
+
+  private resolveIndicator(item: NavItem, dashboard: Dashboard): NavItemIndicator | undefined {
+    switch (item.route[0]) {
+      case '/time-entries':
+        if (this.canApproveTimeEntries() && dashboard.pendingTimeEntries > 0) {
+          return {
+            kind: 'approval',
+            count: dashboard.pendingTimeEntries,
+            priority: 'medium',
+            tooltipKey: 'nav.indicators.pendingTimeEntries',
+          };
+        }
+        return undefined;
+      case '/leave-requests':
+        if (this.canApproveLeaveRequests() && dashboard.pendingLeaveRequests > 0) {
+          return {
+            kind: 'approval',
+            count: dashboard.pendingLeaveRequests,
+            priority: 'high',
+            tooltipKey: 'nav.indicators.pendingLeaveRequests',
+          };
+        }
+        return undefined;
+      case '/projects': {
+        if (!this.canViewProjectAlerts()) {
+          return undefined;
+        }
+        const projectAlerts =
+          dashboard.alerts?.filter(
+            (alert) => alert.type === AlertType.PROJECT_OVER_BUDGET || alert.type === AlertType.PROJECT_AT_RISK,
+          ) ?? [];
+        if (projectAlerts.length > 0) {
+          return {
+            kind: 'alert',
+            count: projectAlerts.length,
+            priority: 'medium',
+            tooltipKey: 'nav.indicators.projectAlerts',
+          };
+        }
+        return undefined;
+      }
+      default:
+        return undefined;
     }
   }
 

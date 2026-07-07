@@ -31,6 +31,7 @@ import com.company.erm.repository.ProjectRepository;
 import com.company.erm.repository.TaskRepository;
 import com.company.erm.repository.TimeEntryRepository;
 import com.company.erm.repository.UserRepository;
+import com.company.erm.security.OrganizationSecurityService;
 
 @Service
 @Transactional(readOnly = true)
@@ -44,6 +45,7 @@ public class SearchService {
     private final TimeEntryRepository timeEntryRepository;
     private final LeaveRequestRepository leaveRequestRepository;
     private final UserRepository userRepository;
+    private final OrganizationSecurityService organizationSecurity;
 
     public SearchService(
             ProjectRepository projectRepository,
@@ -51,16 +53,19 @@ public class SearchService {
             DepartmentRepository departmentRepository,
             TimeEntryRepository timeEntryRepository,
             LeaveRequestRepository leaveRequestRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            OrganizationSecurityService organizationSecurity) {
         this.projectRepository = projectRepository;
         this.taskRepository = taskRepository;
         this.departmentRepository = departmentRepository;
         this.timeEntryRepository = timeEntryRepository;
         this.leaveRequestRepository = leaveRequestRepository;
         this.userRepository = userRepository;
+        this.organizationSecurity = organizationSecurity;
     }
 
     public SearchResultDTO search(UUID organizationId, SearchRequestDTO request, String currentUserEmail) {
+        organizationSecurity.requireOrgMembership(currentUserEmail, organizationId);
         String query = request.getQuery() != null ? request.getQuery().trim() : "";
 
         if (query.isEmpty()) {

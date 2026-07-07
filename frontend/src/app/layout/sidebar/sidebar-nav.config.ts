@@ -8,10 +8,18 @@ export interface NavItem {
   section: 'core' | 'people' | 'insights';
   requiredRoles?: Role[];
   requiredEntitlements?: string[];
-  indicator?: {
-    count: number;
-    priority: 'high' | 'medium' | 'low';
-  };
+  /** When true, nav link is active only on an exact route match (e.g. /reports vs /reports/capacity). */
+  exactMatch?: boolean;
+  indicator?: NavItemIndicator;
+}
+
+export type NavIndicatorKind = 'approval' | 'alert';
+
+export interface NavItemIndicator {
+  kind: NavIndicatorKind;
+  count: number;
+  priority: 'high' | 'medium' | 'low';
+  tooltipKey: string;
 }
 
 export interface NavSection {
@@ -72,6 +80,7 @@ export const SIDEBAR_NAV_ITEMS: NavItem[] = [
     route: ['/reports'],
     icon: BarChart3,
     section: 'insights',
+    exactMatch: true,
     requiredRoles: [ROLES.ORG_ADMIN, ROLES.PROJECT_MANAGER, ROLES.HR_ADMIN],
     requiredEntitlements: ['REPORTING'],
   },

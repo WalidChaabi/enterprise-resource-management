@@ -26,6 +26,7 @@ public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> 
         @Param("organizationId") UUID organizationId
     );
     
+    @EntityGraph(attributePaths = {"role"})
     @Query("SELECT ur FROM UserRole ur WHERE ur.user.id = :userId AND ur.organization.id = :organizationId")
     List<UserRole> findByUserIdAndOrganizationId(
         @Param("userId") UUID userId,

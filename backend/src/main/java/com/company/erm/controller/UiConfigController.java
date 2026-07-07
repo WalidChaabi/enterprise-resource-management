@@ -11,6 +11,11 @@ import com.company.erm.dto.UiConfigResponseDTO;
 /**
  * REST controller for UI configuration.
  */
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "UI Config", description = "Frontend feature flags and layout config")
 @RestController
 @RequestMapping("/api/config")
 public class UiConfigController {
@@ -21,6 +26,8 @@ public class UiConfigController {
         this.uiConfigProperties = uiConfigProperties;
     }
 
+    @Operation(summary = "Get Ui Config")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping("/ui")
     public ResponseEntity<UiConfigResponseDTO> getUiConfig() {
         UiConfigResponseDTO dto = new UiConfigResponseDTO();

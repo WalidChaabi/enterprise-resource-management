@@ -22,6 +22,8 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
   
   private chart: Chart | null = null;
   private isInitialized = false;
+  private dimensionRetries = 0;
+  private static readonly MAX_DIMENSION_RETRIES = 50;
 
   ngAfterViewInit(): void {
     // Delay to ensure DOM is ready
@@ -50,10 +52,16 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
 
       // Check if canvas has dimensions
       if (canvasEl.offsetWidth === 0 || canvasEl.offsetHeight === 0) {
-        console.warn('ChartComponent: Canvas has no dimensions, retrying...');
-        setTimeout(() => this.createChart(), 100);
+        if (this.dimensionRetries < ChartComponent.MAX_DIMENSION_RETRIES) {
+          this.dimensionRetries++;
+          setTimeout(() => this.createChart(), 100);
+        } else {
+          console.warn('ChartComponent: Canvas has no dimensions after max retries');
+        }
         return;
       }
+
+      this.dimensionRetries = 0;
 
       const currentData = this.data();
       const currentOptions = this.options();

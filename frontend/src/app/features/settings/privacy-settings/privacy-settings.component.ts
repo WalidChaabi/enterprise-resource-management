@@ -3,6 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PrivacyService } from '../../../core/services/privacy.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { TranslationService } from '../../../core/services/translation.service';
 import { ErasureRequest } from '../../../core/models/privacy.model';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ROLES } from '../../../core/utils/constants';
@@ -16,6 +17,9 @@ import {
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
+import { ConfirmDialogService } from '../../../shared/components/ui/alert-dialog';
+import { ToastService } from '../../../shared/components/ui/toast/toast.service';
+import { SettingsPageLayoutComponent } from '../components';
 
 @Component({
   selector: 'app-privacy-settings',
@@ -32,19 +36,22 @@ import { BadgeComponent } from '../../../shared/components/ui/badge/badge.compon
     AlertComponent,
     ButtonComponent,
     BadgeComponent,
+    SettingsPageLayoutComponent,
   ],
   templateUrl: './privacy-settings.component.html',
 })
 export class PrivacySettingsComponent implements OnInit {
   private readonly privacyService = inject(PrivacyService);
   private readonly authService = inject(AuthService);
+  private readonly translation = inject(TranslationService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly toastService = inject(ToastService);
 
   readonly loading = signal(false);
   readonly exporting = signal(false);
   readonly requesting = signal(false);
   readonly adminLoading = signal(false);
   readonly error = signal('');
-  readonly success = signal('');
   readonly erasureRequest = signal<ErasureRequest | null>(null);
   readonly pendingRequests = signal<ErasureRequest[]>([]);
 
@@ -86,7 +93,6 @@ export class PrivacySettingsComponent implements OnInit {
   exportData(): void {
     this.exporting.set(true);
     this.error.set('');
-    this.success.set('');
     this.privacyService.exportPersonalData().subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
@@ -96,7 +102,7 @@ export class PrivacySettingsComponent implements OnInit {
         anchor.click();
         URL.revokeObjectURL(url);
         this.exporting.set(false);
-        this.success.set('settings.privacy.exportSuccess');
+        this.toastService.successI18n('settings.privacy.exportSuccess');
       },
       error: () => {
         this.error.set('settings.privacy.exportError');
@@ -105,18 +111,25 @@ export class PrivacySettingsComponent implements OnInit {
     });
   }
 
-  requestDeletion(): void {
-    if (!confirm('Request account deletion? An administrator must approve before your data is anonymized.')) {
+  async requestDeletion(): Promise<void> {
+    const confirmed = await this.confirmDialog.open({
+      title: this.translation.translate('settings.privacy.confirmDeletionTitle'),
+      description: this.translation.translate('settings.privacy.confirmDeletionDescription'),
+      confirmLabel: this.translation.translate('settings.privacy.requestDeletion'),
+      cancelLabel: this.translation.translate('common.cancel'),
+      variant: 'destructive',
+    });
+    if (!confirmed) {
       return;
     }
+
     this.requesting.set(true);
     this.error.set('');
-    this.success.set('');
     this.privacyService.requestErasure().subscribe({
       next: (request) => {
         this.erasureRequest.set(request);
         this.requesting.set(false);
-        this.success.set('settings.privacy.requestSuccess');
+        this.toastService.successI18n('settings.privacy.requestSuccess');
       },
       error: (err) => {
         this.error.set(err.details?.[0] || 'settings.privacy.requestError');
@@ -125,11 +138,22 @@ export class PrivacySettingsComponent implements OnInit {
     });
   }
 
-  approveRequest(request: ErasureRequest): void {
+  async approveRequest(request: ErasureRequest): Promise<void> {
+    const confirmed = await this.confirmDialog.open({
+      title: this.translation.translate('settings.privacy.confirmApproveTitle'),
+      description: this.translation.translate('settings.privacy.confirmApproveDescription'),
+      confirmLabel: this.translation.translate('settings.privacy.approve'),
+      cancelLabel: this.translation.translate('common.cancel'),
+      variant: 'destructive',
+    });
+    if (!confirmed) {
+      return;
+    }
+
     this.privacyService.approveErasureRequest(request.id).subscribe({
       next: () => {
         this.loadPendingRequests();
-        this.success.set('settings.privacy.approveSuccess');
+        this.toastService.successI18n('settings.privacy.approveSuccess');
       },
       error: (err) => {
         this.error.set(err.details?.[0] || 'settings.privacy.adminError');
@@ -141,7 +165,7 @@ export class PrivacySettingsComponent implements OnInit {
     this.privacyService.rejectErasureRequest(request.id).subscribe({
       next: () => {
         this.loadPendingRequests();
-        this.success.set('settings.privacy.rejectSuccess');
+        this.toastService.successI18n('settings.privacy.rejectSuccess');
       },
       error: (err) => {
         this.error.set(err.details?.[0] || 'settings.privacy.adminError');

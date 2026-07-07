@@ -53,6 +53,15 @@ public class Organization {
     @Column(name = "seat_limit")
     private Integer seatLimit;
 
+    @Column(name = "sso_enabled", nullable = false)
+    private boolean ssoEnabled = false;
+
+    @Column(name = "require_mfa", nullable = false)
+    private boolean requireMfa = false;
+
+    @Column(name = "sso_provider", length = 20)
+    private String ssoProvider;
+
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
@@ -154,6 +163,30 @@ public class Organization {
 
     public void setSeatLimit(Integer seatLimit) {
         this.seatLimit = seatLimit;
+    }
+
+    public boolean isSsoEnabled() {
+        return ssoEnabled;
+    }
+
+    public void setSsoEnabled(boolean ssoEnabled) {
+        this.ssoEnabled = ssoEnabled;
+    }
+
+    public boolean isRequireMfa() {
+        return requireMfa;
+    }
+
+    public void setRequireMfa(boolean requireMfa) {
+        this.requireMfa = requireMfa;
+    }
+
+    public String getSsoProvider() {
+        return ssoProvider;
+    }
+
+    public void setSsoProvider(String ssoProvider) {
+        this.ssoProvider = ssoProvider;
     }
 }
 

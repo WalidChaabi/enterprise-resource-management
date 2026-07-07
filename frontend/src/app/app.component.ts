@@ -3,13 +3,15 @@ import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './core/services/theme.service';
 import { TranslationService } from './core/services/translation.service';
 import { ToastContainerComponent } from './shared/components/ui/toast/toast.component';
+import { ConfirmDialogHostComponent } from './shared/components/ui/alert-dialog';
 
 @Component({
     selector: 'app-root',
-    imports: [RouterOutlet, ToastContainerComponent],
+    imports: [RouterOutlet, ToastContainerComponent, ConfirmDialogHostComponent],
     template: `
     <router-outlet></router-outlet>
     <app-toast-container />
+    <app-confirm-dialog-host />
   `,
     styles: []
 })

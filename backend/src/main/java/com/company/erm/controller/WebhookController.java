@@ -28,9 +28,14 @@ import com.company.erm.service.WebhookEndpointService;
 
 import jakarta.validation.Valid;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "Webhooks", description = "Outbound webhook configuration")
 @RestController
 @RequestMapping("/api/v1/organizations/{organizationId}/webhooks")
-@PreAuthorize("hasRole('ORG_ADMIN')")
+@PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN')")
 public class WebhookController {
 
     private final WebhookEndpointService webhookEndpointService;
@@ -39,6 +44,8 @@ public class WebhookController {
         this.webhookEndpointService = webhookEndpointService;
     }
 
+    @Operation(summary = "List Endpoints")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping
     public ResponseEntity<List<WebhookEndpointResponseDTO>> listEndpoints(
             @PathVariable UUID organizationId,
@@ -46,6 +53,8 @@ public class WebhookController {
         return ResponseEntity.ok(webhookEndpointService.listEndpoints(organizationId, authentication.getName()));
     }
 
+    @Operation(summary = "Create Endpoint")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping
     public ResponseEntity<WebhookEndpointCreatedResponseDTO> createEndpoint(
             @PathVariable UUID organizationId,
@@ -55,6 +64,8 @@ public class WebhookController {
                 .body(webhookEndpointService.createEndpoint(organizationId, request, authentication.getName()));
     }
 
+    @Operation(summary = "Update Endpoint")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PutMapping("/{endpointId}")
     public ResponseEntity<WebhookEndpointResponseDTO> updateEndpoint(
             @PathVariable UUID organizationId,
@@ -65,6 +76,8 @@ public class WebhookController {
                 webhookEndpointService.updateEndpoint(organizationId, endpointId, request, authentication.getName()));
     }
 
+    @Operation(summary = "Delete Endpoint")
+    @ApiResponse(responseCode = "200", description = "Success")
     @DeleteMapping("/{endpointId}")
     public ResponseEntity<Void> deleteEndpoint(
             @PathVariable UUID organizationId,
@@ -74,6 +87,8 @@ public class WebhookController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "List Deliveries")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping("/deliveries")
     public ResponseEntity<Page<WebhookDeliveryResponseDTO>> listDeliveries(
             @PathVariable UUID organizationId,

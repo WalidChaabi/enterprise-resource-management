@@ -1,67 +1,112 @@
-<div class="space-y-6">
-  <div class="flex items-center justify-between">
+<app-list-page-shell [loading]="loading()" [empty]="employees().length === 0" [error]="error()">
+  <div shell-heading>
     <div>
       <h1 class="text-2xl font-semibold text-foreground">{{ 'employees.title' | translate }}</h1>
-      @if (employees().length > 0) {
-        <p class="page-description mt-1">
-          {{ employees().length }} {{ employees().length === 1 ? 'employee' : 'employees' }}
+      @if (!loading() && employees().length > 0) {
+        <p class="mt-1 text-sm text-muted-foreground">
+          {{ filteredCount() }} {{ 'employees.stats.employees' | translate }}
+          @if (statusFilter() !== 'ALL') {
+            <span>· {{ 'employees.filters.filtered' | translate }}</span>
+          }
         </p>
       }
     </div>
-    @if (canCreateEmployee()) {
-      <app-button (click)="openCreateModal()">
-        {{ 'employees.newEmployee' | translate }}
-      </app-button>
-    }
   </div>
-
-  @if (loading()) {
-    <app-card class="mt-6">
-      <app-card-content class="p-6">
-        <app-skeleton-table [rows]="5" [columns]="[
-          { width: '35%' },
-          { width: '20%' },
-          { width: '20%' },
-          { width: '15%' },
-          { width: '10%' }
-        ]" />
-      </app-card-content>
-    </app-card>
-  } @else if (error()) {
-    <div class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-      <lucide-icon name="alert-circle" [size]="20" class="flex-shrink-0 text-destructive mt-0.5" />
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-foreground">{{ error() }}</p>
-      </div>
-    </div>
-  } @else if (employees().length === 0) {
-    <app-card>
-      <app-card-content>
-        <div class="flex flex-col items-center justify-center py-12 text-center">
-          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-            <lucide-icon name="users" [size]="24" class="text-muted-foreground" />
-          </div>
-          <h3 class="text-base font-semibold text-foreground mb-1">No employees found</h3>
-          @if (canCreateEmployee()) {
-            <p class="text-sm text-muted-foreground mb-6 max-w-sm">Start building your team by adding the first employee to your organization.</p>
-            <app-button (click)="openCreateModal()">
-              {{ 'employees.newEmployee' | translate }}
-            </app-button>
-          } @else {
-            <p class="text-sm text-muted-foreground max-w-sm">Employee management is restricted to HR administrators and organization administrators.</p>
-          }
-        </div>
-      </app-card-content>
-    </app-card>
-  } @else {
-    <app-employee-data-table [data]="employees()" />
+  @if (canCreateEmployee()) {
+    <app-button shell-actions (click)="openCreateModal()">
+      <lucide-icon name="plus" [size]="16" />
+      {{ 'employees.newEmployee' | translate }}
+    </app-button>
   }
 
-  <!-- Create Employee Modal -->
-  <app-dialog 
-    [open]="showCreateModal()" 
+  <app-card shell-loading>
+    <app-card-content class="p-6">
+      <app-skeleton-table [rows]="5" [columns]="[
+        { width: '30%' },
+        { width: '22%' },
+        { width: '18%' },
+        { width: '16%' },
+        { width: '10%' },
+        { width: '4%' }
+      ]" />
+    </app-card-content>
+  </app-card>
+
+  <app-card shell-empty>
+    <app-card-content>
+      <app-empty-state
+        [iconName]="'users'"
+        [title]="'employees.emptyTitle' | translate"
+        [description]="'employees.emptyDescription' | translate">
+        @if (canCreateEmployee()) {
+          <app-button action (click)="openCreateModal()">
+            {{ 'employees.newEmployee' | translate }}
+          </app-button>
+        } @else {
+          <p description class="max-w-sm text-sm text-muted-foreground">{{ 'employees.emptyRestricted' | translate }}</p>
+        }
+      </app-empty-state>
+    </app-card-content>
+  </app-card>
+
+  <div shell-stats class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+    <app-card>
+      <app-card-content class="px-4 py-3.5">
+        <p class="text-xs font-medium text-muted-foreground">{{ 'employees.stats.total' | translate }}</p>
+        <p class="mt-1 text-xl font-semibold tabular-nums leading-none">{{ employees().length }}</p>
+      </app-card-content>
+    </app-card>
+    <app-card class="border-border/70">
+      <app-card-content class="px-4 py-3.5">
+        <p class="text-xs font-medium text-muted-foreground">{{ 'employees.stats.active' | translate }}</p>
+        <p class="mt-1 text-xl font-semibold tabular-nums leading-none">{{ countByStatus().active }}</p>
+      </app-card-content>
+    </app-card>
+    <app-card class="border-border/70">
+      <app-card-content class="px-4 py-3.5">
+        <p class="text-xs font-medium text-muted-foreground">{{ 'employees.stats.departments' | translate }}</p>
+        <p class="mt-1 text-xl font-semibold tabular-nums leading-none">{{ departmentCount() }}</p>
+      </app-card-content>
+    </app-card>
+    <app-card class="border-border/70">
+      <app-card-content class="px-4 py-3.5">
+        <p class="text-xs font-medium text-muted-foreground">{{ 'employees.stats.unassigned' | translate }}</p>
+        <p class="mt-1 text-xl font-semibold tabular-nums leading-none">{{ unassignedCount() }}</p>
+      </app-card-content>
+    </app-card>
+  </div>
+
+  <app-tabs shell-filters class="gap-5" [value]="statusFilter()" (valueChange)="onStatusTabChange($event)">
+    <app-tabs-list class="max-w-full overflow-x-auto">
+      @for (filter of statusFilters; track filter.value) {
+        <app-tabs-trigger [value]="filter.value">
+          <span>{{ filter.labelKey | translate }}</span>
+          <span
+            class="inline-flex min-w-[1.125rem] items-center justify-center rounded-sm px-1 text-[11px] font-normal tabular-nums text-muted-foreground"
+            [class.text-foreground]="isStatusTabActive(filter.value)"
+            [class.opacity-100]="isStatusTabActive(filter.value)"
+            [class.opacity-70]="!isStatusTabActive(filter.value)">
+            {{ statusCount(filter.value) }}
+          </span>
+        </app-tabs-trigger>
+      }
+    </app-tabs-list>
+
+    <app-card class="border-border/70">
+      <app-card-content class="p-6">
+        <app-tabs-content [value]="statusFilter()" class="mt-0">
+          <app-employee-data-table
+            [data]="employees()"
+            [statusFilter]="statusFilter()" />
+        </app-tabs-content>
+      </app-card-content>
+    </app-card>
+  </app-tabs>
+
+  <app-dialog
+    [open]="showCreateModal()"
     [title]="'employees.newEmployee' | translate"
     (closed)="closeCreateModal()">
-    <app-employee-form [modalMode]="true" (saved)="onEmployeeCreated()" (cancelled)="closeCreateModal()"></app-employee-form>
+    <app-employee-form [modalMode]="true" (saved)="onEmployeeCreated()" (cancelled)="closeCreateModal()" />
   </app-dialog>
-</div>
+</app-list-page-shell>

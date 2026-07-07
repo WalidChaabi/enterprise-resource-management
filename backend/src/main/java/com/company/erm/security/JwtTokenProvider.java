@@ -44,24 +44,34 @@ public class JwtTokenProvider {
     }
 
     public UUID getUserIdFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        Claims claims = parseClaims(token);
         return UUID.fromString(claims.getSubject());
+    }
+
+    public UUID getOrganizationIdFromToken(String token) {
+        Claims claims = parseClaims(token);
+        String organizationId = claims.get("organizationId", String.class);
+        if (organizationId == null || organizationId.isBlank()) {
+            return null;
+        }
+        return UUID.fromString(organizationId);
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(token);
+            parseClaims(token);
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }
 

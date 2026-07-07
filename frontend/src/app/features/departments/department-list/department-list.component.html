@@ -1,61 +1,105 @@
-<div class="space-y-6">
-  <div class="flex items-center justify-between gap-4">
+<app-list-page-shell [loading]="loading()" [empty]="departments().length === 0" [error]="error()">
+  <div shell-heading>
     <div>
-      <h1 class="page-title text-2xl">{{ 'departments.title' | translate }}</h1>
-      @if (departments().length > 0) {
-        <p class="page-description mt-1">
-          {{ departments().length }} {{ departments().length === 1 ? 'department' : 'departments' }}
+      <h1 class="text-2xl font-semibold text-foreground">{{ 'departments.title' | translate }}</h1>
+      @if (!loading() && departments().length > 0) {
+        <p class="mt-1 text-sm text-muted-foreground">
+          {{ filteredCount() }} {{ 'departments.stats.departments' | translate }}
+          @if (departmentFilter() !== 'ALL') {
+            <span>· {{ 'departments.filters.filtered' | translate }}</span>
+          }
         </p>
       }
     </div>
-    <app-button (click)="openCreateModal()" class="shadow-sm">
-      <lucide-icon name="plus" [size]="16" />
-      {{ 'departments.newDepartment' | translate }}
-    </app-button>
+  </div>
+  <app-button shell-actions (click)="openCreateModal()">
+    <lucide-icon name="plus" [size]="16" />
+    {{ 'departments.newDepartment' | translate }}
+  </app-button>
+
+  <app-card shell-loading>
+    <app-card-content class="p-6">
+      <app-skeleton-table [rows]="5" [columns]="[
+        { width: '25%' },
+        { width: '30%' },
+        { width: '20%' },
+        { width: '15%' },
+        { width: '10%' }
+      ]" />
+    </app-card-content>
+  </app-card>
+
+  <app-card shell-empty>
+    <app-card-content>
+      <app-empty-state
+        [iconName]="'layout-grid'"
+        [title]="'departments.emptyTitle' | translate"
+        [description]="'departments.emptyDescription' | translate">
+        <app-button action (click)="openCreateModal()">
+          {{ 'departments.newDepartment' | translate }}
+        </app-button>
+      </app-empty-state>
+    </app-card-content>
+  </app-card>
+
+  <div shell-stats class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+    <app-card class="border-border/70">
+      <app-card-content class="px-4 py-3.5">
+        <p class="text-xs font-medium text-muted-foreground">{{ 'departments.stats.total' | translate }}</p>
+        <p class="mt-1 text-xl font-semibold tabular-nums leading-none">{{ departments().length }}</p>
+      </app-card-content>
+    </app-card>
+    <app-card class="border-border/70">
+      <app-card-content class="px-4 py-3.5">
+        <p class="text-xs font-medium text-muted-foreground">{{ 'departments.stats.totalEmployees' | translate }}</p>
+        <p class="mt-1 text-xl font-semibold tabular-nums leading-none">{{ totalEmployees() }}</p>
+      </app-card-content>
+    </app-card>
+    <app-card class="border-border/70">
+      <app-card-content class="px-4 py-3.5">
+        <p class="text-xs font-medium text-muted-foreground">{{ 'departments.stats.withManager' | translate }}</p>
+        <p class="mt-1 text-xl font-semibold tabular-nums leading-none">{{ withManagerCount() }}</p>
+      </app-card-content>
+    </app-card>
+    <app-card class="border-border/70">
+      <app-card-content class="px-4 py-3.5">
+        <p class="text-xs font-medium text-muted-foreground">{{ 'departments.stats.empty' | translate }}</p>
+        <p class="mt-1 text-xl font-semibold tabular-nums leading-none">{{ emptyCount() }}</p>
+      </app-card-content>
+    </app-card>
   </div>
 
-  @if (loading()) {
-    <app-card>
+  <app-tabs shell-filters class="gap-5" [value]="departmentFilter()" (valueChange)="onDepartmentTabChange($event)">
+    <app-tabs-list class="max-w-full overflow-x-auto">
+      @for (filter of departmentFilters; track filter.value) {
+        <app-tabs-trigger [value]="filter.value">
+          <span>{{ filter.labelKey | translate }}</span>
+          <span
+            class="inline-flex min-w-[1.125rem] items-center justify-center rounded-sm px-1 text-[11px] font-normal tabular-nums text-muted-foreground"
+            [class.text-foreground]="isDepartmentTabActive(filter.value)"
+            [class.opacity-100]="isDepartmentTabActive(filter.value)"
+            [class.opacity-70]="!isDepartmentTabActive(filter.value)">
+            {{ filterCount(filter.value) }}
+          </span>
+        </app-tabs-trigger>
+      }
+    </app-tabs-list>
+
+    <app-card class="border-border/70">
       <app-card-content class="p-6">
-        <app-skeleton-table [rows]="5" [columns]="[
-          { width: '25%' },
-          { width: '30%' },
-          { width: '20%' },
-          { width: '15%' },
-          { width: '10%' }
-        ]" />
+        <app-tabs-content [value]="departmentFilter()" class="mt-0">
+          <app-department-data-table
+            [data]="departments()"
+            [departmentFilter]="departmentFilter()" />
+        </app-tabs-content>
       </app-card-content>
     </app-card>
-  } @else if (error()) {
-    <div class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-      <lucide-icon name="alert-circle" [size]="20" class="flex-shrink-0 text-destructive mt-0.5" />
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-foreground">{{ error() }}</p>
-      </div>
-    </div>
-  } @else if (departments().length === 0) {
-    <app-card>
-      <app-card-content>
-        <div class="flex flex-col items-center justify-center py-12 text-center">
-          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-            <lucide-icon name="layout-grid" [size]="24" class="text-muted-foreground" />
-          </div>
-          <h3 class="text-base font-semibold text-foreground mb-1">No departments yet</h3>
-          <p class="text-sm text-muted-foreground mb-6 max-w-sm">{{ 'departments.emptyState' | translate }}</p>
-          <app-button (click)="openCreateModal()">
-            {{ 'departments.newDepartment' | translate }}
-          </app-button>
-        </div>
-      </app-card-content>
-    </app-card>
-  } @else {
-    <app-department-data-table [data]="departments()" />
-  }
+  </app-tabs>
 
   <app-dialog
     [open]="showCreateModal()"
     [title]="'departments.newDepartment' | translate"
     (closed)="closeCreateModal()">
-    <app-department-form [modalMode]="true" (saved)="onDepartmentCreated()" (cancelled)="closeCreateModal()"></app-department-form>
+    <app-department-form [modalMode]="true" (saved)="onDepartmentCreated()" (cancelled)="closeCreateModal()" />
   </app-dialog>
-</div>
+</app-list-page-shell>

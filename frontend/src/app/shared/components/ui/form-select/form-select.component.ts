@@ -5,6 +5,7 @@ import {
   forwardRef,
   input,
   signal,
+  booleanAttribute,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -47,7 +48,7 @@ export interface FormSelectOption {
         app-button
         variant="outline"
         type="button"
-        [disabled]="disabled()"
+        [disabled]="isDisabled()"
         [class]="triggerClasses()"
         [attr.id]="id() || null"
         [attr.aria-haspopup]="'listbox'"
@@ -79,7 +80,10 @@ export class FormSelectComponent implements ControlValueAccessor {
   readonly id = input('');
 
   readonly value = signal('');
-  readonly disabled = signal(false);
+  readonly disabled = input(false, { transform: booleanAttribute });
+  private readonly formDisabled = signal(false);
+
+  readonly isDisabled = computed(() => this.disabled() || this.formDisabled());
 
   readonly ChevronDown = ChevronDown;
 
@@ -121,6 +125,6 @@ export class FormSelectComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled.set(isDisabled);
+    this.formDisabled.set(isDisabled);
   }
 }

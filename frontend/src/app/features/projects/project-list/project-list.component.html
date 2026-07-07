@@ -1,72 +1,115 @@
-<div class="space-y-6">
-  <div class="flex items-center justify-between gap-4">
+<app-list-page-shell [loading]="loading()" [empty]="projects().length === 0" [error]="error()">
+  <div shell-heading>
     <div>
-      <h1 class="page-title text-2xl">{{ 'projects.title' | translate }}</h1>
-      @if (projects().length > 0) {
-        <p class="page-description mt-1">
-          {{ projects().length }} {{ projects().length === 1 ? 'project' : 'projects' }}
+      <h1 class="text-2xl font-semibold text-foreground">{{ 'projects.title' | translate }}</h1>
+      @if (!loading() && projects().length > 0) {
+        <p class="mt-1 text-sm text-muted-foreground">
+          {{ filteredCount() }} {{ 'projects.stats.projects' | translate }}
+          @if (statusFilter() !== 'ALL') {
+            <span>· {{ 'projects.filters.filtered' | translate }}</span>
+          }
         </p>
       }
     </div>
-    @if (canCreateProject()) {
-      <app-button (click)="openCreateModal()" class="shadow-sm">
-        <lucide-icon name="plus" [size]="16" />
-        {{ 'projects.newProject' | translate }}
-      </app-button>
-    }
   </div>
-
-  @if (loading()) {
-    <app-card>
-      <app-card-content class="p-6">
-        <app-skeleton-table [rows]="5" [columns]="[
-          { width: '28%' },
-          { width: '14%' },
-          { width: '10%' },
-          { width: '14%' },
-          { width: '14%' },
-          { width: '12%' },
-          { width: '8%' }
-        ]" />
-      </app-card-content>
-    </app-card>
-  } @else if (error()) {
-    <div class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-      <lucide-icon name="alert-circle" [size]="20" class="flex-shrink-0 text-destructive mt-0.5" />
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-foreground">{{ error() }}</p>
-      </div>
-    </div>
-  } @else {
-    <app-project-data-table
-      [data]="projects()"
-      [canCreate]="canCreateProject()"
-      [canArchive]="canArchiveProject()"
-      (createRequested)="openCreateModal()"
-      (archiveRequested)="startArchive($event)" />
+  @if (canCreateProject()) {
+    <app-button shell-actions (click)="openCreateModal()">
+      <lucide-icon name="plus" [size]="16" />
+      {{ 'projects.newProject' | translate }}
+    </app-button>
   }
 
-  <app-dialog
-    [open]="archivingProjectId() !== null"
-    [title]="'projects.archive' | translate"
-    (closed)="closeArchiveDialog()">
-    <div class="space-y-4">
-      <p class="text-sm text-muted-foreground">{{ 'projects.archiveConfirm' | translate }}</p>
-      <div class="flex justify-end gap-2">
-        <app-button variant="outline" (click)="closeArchiveDialog()" [disabled]="processing()">
-          {{ 'common.cancel' | translate }}
-        </app-button>
-        <app-button variant="destructive" (click)="confirmArchive()" [disabled]="processing()">
-          {{ 'projects.confirmArchive' | translate }}
-        </app-button>
-      </div>
-    </div>
-  </app-dialog>
+  <app-card shell-loading>
+    <app-card-content class="p-6">
+      <app-skeleton-table [rows]="5" [columns]="[
+        { width: '28%' },
+        { width: '14%' },
+        { width: '10%' },
+        { width: '14%' },
+        { width: '14%' },
+        { width: '12%' },
+        { width: '8%' }
+      ]" />
+    </app-card-content>
+  </app-card>
+
+  <app-card shell-empty>
+    <app-card-content>
+      <app-empty-state
+        [iconName]="'folder-kanban'"
+        [title]="'projects.emptyTitle' | translate"
+        [description]="'projects.emptyDescription' | translate">
+        @if (canCreateProject()) {
+          <app-button action (click)="openCreateModal()">
+            {{ 'projects.newProject' | translate }}
+          </app-button>
+        }
+      </app-empty-state>
+    </app-card-content>
+  </app-card>
+
+  <div shell-stats class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+    <app-card class="border-border/70">
+      <app-card-content class="px-4 py-3.5">
+        <p class="text-xs font-medium text-muted-foreground">{{ 'projects.stats.total' | translate }}</p>
+        <p class="mt-1 text-xl font-semibold tabular-nums leading-none">{{ projects().length }}</p>
+      </app-card-content>
+    </app-card>
+    <app-card class="border-border/70">
+      <app-card-content class="px-4 py-3.5">
+        <p class="text-xs font-medium text-muted-foreground">{{ 'projects.stats.active' | translate }}</p>
+        <p class="mt-1 text-xl font-semibold tabular-nums leading-none">{{ countByStatus().active }}</p>
+      </app-card-content>
+    </app-card>
+    <app-card class="border-border/70">
+      <app-card-content class="px-4 py-3.5">
+        <p class="text-xs font-medium text-muted-foreground">{{ 'projects.stats.planning' | translate }}</p>
+        <p class="mt-1 text-xl font-semibold tabular-nums leading-none">{{ countByStatus().planning }}</p>
+      </app-card-content>
+    </app-card>
+    <app-card class="border-border/70">
+      <app-card-content class="px-4 py-3.5">
+        <p class="text-xs font-medium text-muted-foreground">{{ 'projects.stats.totalBudget' | translate }}</p>
+        <p class="mt-1 text-xl font-semibold tabular-nums leading-none">
+          {{ totalBudget() | currency:'USD':'symbol':'1.0-0' }}
+        </p>
+      </app-card-content>
+    </app-card>
+  </div>
+
+  <app-tabs shell-filters class="gap-5" [value]="statusFilter()" (valueChange)="onStatusTabChange($event)">
+    <app-tabs-list class="max-w-full overflow-x-auto">
+      @for (filter of statusFilters; track filter.value) {
+        <app-tabs-trigger [value]="filter.value">
+          <span>{{ filter.labelKey | translate }}</span>
+          <span
+            class="inline-flex min-w-[1.125rem] items-center justify-center rounded-sm px-1 text-[11px] font-normal tabular-nums text-muted-foreground"
+            [class.text-foreground]="isStatusTabActive(filter.value)"
+            [class.opacity-100]="isStatusTabActive(filter.value)"
+            [class.opacity-70]="!isStatusTabActive(filter.value)">
+            {{ statusCount(filter.value) }}
+          </span>
+        </app-tabs-trigger>
+      }
+    </app-tabs-list>
+
+    <app-card class="border-border/70">
+      <app-card-content class="p-6">
+        <app-tabs-content [value]="statusFilter()" class="mt-0">
+          <app-project-data-table
+            [data]="projects()"
+            [statusFilter]="statusFilter()"
+            [canArchive]="canArchiveProject()"
+            (archiveRequested)="startArchive($event)" />
+        </app-tabs-content>
+      </app-card-content>
+    </app-card>
+  </app-tabs>
 
   <app-dialog
     [open]="showCreateModal()"
     [title]="'projects.newProject' | translate"
     (closed)="closeCreateModal()">
-    <app-project-form [modalMode]="true" (saved)="onProjectCreated()" (cancelled)="closeCreateModal()"></app-project-form>
+    <app-project-form [modalMode]="true" (saved)="onProjectCreated()" (cancelled)="closeCreateModal()" />
   </app-dialog>
-</div>
+</app-list-page-shell>

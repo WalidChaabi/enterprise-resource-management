@@ -1,6 +1,7 @@
 package com.company.erm.dto;
 
 import com.company.erm.entity.LeaveType;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,8 +25,17 @@ public class LeaveRequestUpdateDTO {
     }
 
     public boolean hasUpdates() {
-        return leaveType.isPresent() || startDate.isPresent() 
+        return leaveType.isPresent() || startDate.isPresent()
             || endDate.isPresent() || reason.isPresent();
     }
-}
 
+    @AssertTrue(message = "At least one field must be provided for update")
+    public boolean isHasUpdates() {
+        return hasUpdates();
+    }
+
+    @AssertTrue(message = "Reason must not exceed 5000 characters")
+    public boolean isReasonLengthValid() {
+        return reason.isEmpty() || reason.get().length() <= 5000;
+    }
+}

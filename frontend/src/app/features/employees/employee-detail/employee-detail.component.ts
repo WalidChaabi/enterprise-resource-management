@@ -15,6 +15,7 @@ import { AlertComponent } from '../../../shared/components/ui/alert/alert.compon
 import { RolePickerComponent } from '../../../shared/components/role-picker/role-picker.component';
 import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.component';
 import { EmployeeFormComponent } from '../employee-form/employee-form.component';
+import { ToastService } from '../../../shared/components/ui/toast/toast.service';
 
 @Component({
     selector: 'app-employee-detail',
@@ -28,6 +29,7 @@ export class EmployeeDetailComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly translationService = inject(TranslationService);
+  private readonly toastService = inject(ToastService);
 
   readonly employee = signal<Employee | null>(null);
   readonly userRoles = signal<UserRole[]>([]);
@@ -71,6 +73,7 @@ export class EmployeeDetailComponent implements OnInit {
 
   onEmployeeUpdated(): void {
     this.closeEditModal();
+    this.toastService.successI18n('employees.toast.updatedTitle', 'employees.toast.updatedDescription');
     const employeeId = this.employee()?.id;
     if (employeeId) {
       this.loadEmployee(employeeId);
@@ -109,6 +112,7 @@ export class EmployeeDetailComponent implements OnInit {
       next: (userRole) => {
         this.userRoles.set([...this.userRoles(), userRole]);
         this.assigningRole.set(false);
+        this.toastService.successI18n('employees.toast.roleAssignedTitle', 'employees.toast.roleAssignedDescription');
       },
       error: (err) => {
         console.error('Error assigning role:', err);
@@ -138,6 +142,7 @@ export class EmployeeDetailComponent implements OnInit {
       next: () => {
         this.userRoles.set(this.userRoles().filter(ur => ur.roleId !== roleId));
         this.assigningRole.set(false);
+        this.toastService.successI18n('employees.toast.roleRemovedTitle', 'employees.toast.roleRemovedDescription');
       },
       error: (err) => {
         console.error('Error removing role:', err);

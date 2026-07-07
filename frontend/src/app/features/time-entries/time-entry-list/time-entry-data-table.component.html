@@ -1,61 +1,10 @@
-<div class="w-full">
-  <div class="flex items-center py-4">
-    <input
-      type="text"
-      class="flex h-9 w-full max-w-sm rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-      [placeholder]="'timeEntries.table.filter' | translate"
-      [ngModel]="filterValue()"
-      (ngModelChange)="onFilterChange($event)" />
-    <app-data-table-view-options [table]="table" />
-  </div>
-
-  <div class="overflow-hidden rounded-md border">
-    <div class="relative w-full overflow-auto">
-      <table class="w-full caption-bottom text-sm">
-        <thead class="[&_tr]:border-b">
-          @for (headerGroup of table.getHeaderGroups(); track headerGroup.id) {
-            <tr class="border-b transition-colors">
-              @for (header of headerGroup.headers; track header.id) {
-                <th
-                  class="h-10 px-2 text-left align-middle font-medium text-muted-foreground"
-                  [class.text-right]="header.column.id === 'actions'">
-                  @if (!header.isPlaceholder) {
-                    <ng-container *flexRender="header.column.columnDef.header; props: header.getContext()" />
-                  }
-                </th>
-              }
-            </tr>
-          }
-        </thead>
-        <tbody class="[&_tr:last-child]:border-0">
-          @if (table.getRowModel().rows.length) {
-            @for (row of table.getRowModel().rows; track row.id) {
-              <tr class="border-b transition-colors hover:bg-muted/50">
-                @for (cell of row.getVisibleCells(); track cell.id) {
-                  <td
-                    class="p-2 align-middle"
-                    [class.text-right]="cell.column.id === 'actions'">
-                    <ng-container *flexRender="cell.column.columnDef.cell; props: cell.getContext()" />
-                  </td>
-                }
-              </tr>
-            }
-          } @else {
-            <tr>
-              <td class="h-24 p-2 text-center align-middle text-muted-foreground" [attr.colspan]="table.getAllColumns().length">
-                {{ 'timeEntries.table.noResults' | translate }}
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="py-4">
-    <app-data-table-pagination [table]="table" />
-  </div>
-</div>
+<app-entity-data-table
+  [table]="table"
+  [filterValue]="filterValue()"
+  [filterPlaceholderKey]="'timeEntries.table.filter'"
+  [noResultsKey]="'timeEntries.table.noResults'"
+  [rightAlignColumnIds]="['actions']"
+  (filterChange)="onFilterChange($event)" />
 
 <ng-template #dateHeader let-context>
   <app-data-table-column-header variant="menu" [column]="context.column" [title]="'timeEntries.table.date' | translate" />
@@ -63,8 +12,14 @@
 <ng-template #projectHeader let-context>
   <app-data-table-column-header variant="menu" [column]="context.column" [title]="'timeEntries.table.project' | translate" />
 </ng-template>
+<ng-template #timeHeader let-context>
+  <app-data-table-column-header variant="menu" [column]="context.column" [title]="'timeEntries.table.timeRange' | translate" />
+</ng-template>
 <ng-template #hoursHeader let-context>
   <app-data-table-column-header variant="menu" [column]="context.column" [title]="'timeEntries.table.hours' | translate" />
+</ng-template>
+<ng-template #employeeHeader let-context>
+  <app-data-table-column-header variant="menu" [column]="context.column" [title]="'timeEntries.table.employee' | translate" />
 </ng-template>
 <ng-template #statusHeader let-context>
   <app-data-table-column-header variant="menu" [column]="context.column" [title]="'timeEntries.table.status' | translate" />
@@ -74,34 +29,50 @@
 </ng-template>
 
 <ng-template #dateCell let-context>
-  <div>
-    <div class="font-medium">{{ context.row.original.date | date:'mediumDate' }}</div>
-  </div>
+  <div class="font-medium whitespace-nowrap">{{ context.row.original.date | date:'mediumDate' }}</div>
 </ng-template>
 <ng-template #projectCell let-context>
-  <div>
+  <div class="min-w-[10rem]">
     <div class="font-medium">{{ context.row.original.projectName || '—' }}</div>
+    @if (context.row.original.taskTitle) {
+      <div class="text-xs text-muted-foreground">{{ context.row.original.taskTitle }}</div>
+    }
     @if (context.row.original.description) {
       <div class="text-xs text-muted-foreground line-clamp-1">{{ context.row.original.description }}</div>
     }
   </div>
 </ng-template>
+<ng-template #timeCell let-context>
+  <span class="text-muted-foreground whitespace-nowrap">{{ formatTimeRange(context.row.original) }}</span>
+</ng-template>
 <ng-template #hoursCell let-context>
-  <span class="font-semibold">{{ context.row.original.hours | number:'1.1-1' }}h</span>
+  <span class="font-semibold tabular-nums">{{ context.row.original.hours | number:'1.1-1' }}h</span>
+</ng-template>
+<ng-template #employeeCell let-context>
+  <span>{{ context.row.original.employeeName || '—' }}</span>
 </ng-template>
 <ng-template #statusCell let-context>
-  <app-badge [variant]="statusVariant(context.row.original.status)">
-    {{ context.row.original.status }}
-  </app-badge>
+  <div class="space-y-1">
+    <app-badge [variant]="statusVariant(context.row.original.status)">
+      {{ statusLabelKey(context.row.original.status) | translate }}
+    </app-badge>
+    @if (context.row.original.status === 'REJECTED' && context.row.original.rejectedReason) {
+      <p class="max-w-[12rem] text-xs text-muted-foreground line-clamp-2" [title]="context.row.original.rejectedReason">
+        {{ context.row.original.rejectedReason }}
+      </p>
+    }
+  </div>
 </ng-template>
 <ng-template #actionsCell let-context>
-  <app-time-entry-row-actions
-    [entry]="context.row.original"
-    [showEdit]="canEditEntry(context.row.original)"
-    [showSubmit]="canSubmitEntry(context.row.original)"
-    [showApprove]="canApproveEntry(context.row.original)"
-    [processing]="processingId() === context.row.original.id"
-    (submitEntry)="submitEntry.emit($event)"
-    (approve)="approve.emit($event)"
-    (reject)="reject.emit($event)" />
+  @if (hasRowActions(context.row.original)) {
+    <app-time-entry-row-actions
+      [entry]="context.row.original"
+      [showEdit]="canEditEntry(context.row.original)"
+      [showSubmit]="canSubmitEntry(context.row.original)"
+      [showApprove]="canApproveEntry(context.row.original)"
+      [processing]="processingId() === context.row.original.id"
+      (submitEntry)="submitEntry.emit($event)"
+      (approve)="approve.emit($event)"
+      (reject)="reject.emit($event)" />
+  }
 </ng-template>

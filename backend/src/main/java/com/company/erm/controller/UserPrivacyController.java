@@ -11,6 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.company.erm.dto.privacy.ErasureRequestResponseDTO;
 import com.company.erm.service.UserPrivacyService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "User Privacy", description = "Personal data export and erasure")
 @RestController
 @RequestMapping("/api/v1/users/me")
 @PreAuthorize("isAuthenticated()")
@@ -22,16 +27,22 @@ public class UserPrivacyController {
         this.userPrivacyService = userPrivacyService;
     }
 
+    @Operation(summary = "Export Personal Data")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping("/data-export")
     public ResponseEntity<byte[]> exportPersonalData(Authentication authentication) {
         return userPrivacyService.exportPersonalData(authentication.getName());
     }
 
+    @Operation(summary = "Request Erasure")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping("/erasure-request")
     public ResponseEntity<ErasureRequestResponseDTO> requestErasure(Authentication authentication) {
         return ResponseEntity.ok(userPrivacyService.requestErasure(authentication.getName()));
     }
 
+    @Operation(summary = "Get Erasure Request")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping("/erasure-request")
     public ResponseEntity<ErasureRequestResponseDTO> getErasureRequest(Authentication authentication) {
         ErasureRequestResponseDTO response = userPrivacyService.getErasureRequest(authentication.getName());

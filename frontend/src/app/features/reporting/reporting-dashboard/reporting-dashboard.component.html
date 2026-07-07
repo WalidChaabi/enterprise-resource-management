@@ -2,11 +2,6 @@
   <div class="page-header">
     <h1 class="page-title">{{ 'reporting.title' | translate }}</h1>
     <p class="page-description">{{ 'reporting.subtitle' | translate }}</p>
-    @if (!upgradeRequired()) {
-      <a routerLink="/reports/capacity" class="mt-2 inline-flex text-sm font-medium text-primary hover:underline">
-        {{ 'capacity.openDashboard' | translate }} →
-      </a>
-    }
   </div>
 
   @if (upgradeRequired()) {
@@ -23,141 +18,268 @@
     </app-alert>
   }
 
-  <div class="flex flex-wrap gap-2 border-b border-border pb-1">
-    @for (tab of tabs; track tab.id) {
-      <button
-        type="button"
-        class="rounded-md px-4 py-2 text-sm font-medium transition-colors"
-        [class.bg-primary]="activeTab() === tab.id"
-        [class.text-primary-foreground]="activeTab() === tab.id"
-        [class.text-muted-foreground]="activeTab() !== tab.id"
-        [class.hover:bg-muted]="activeTab() !== tab.id"
-        (click)="setTab(tab.id)">
-        {{ tab.labelKey | translate }}
-      </button>
-    }
-  </div>
-
   @if (error()) {
     <app-alert variant="destructive">{{ error() }}</app-alert>
   }
 
-  @if (activeTab() === 'overview') {
+  <app-tabs class="gap-6" [value]="activeTab()" (valueChange)="onTabChange($event)">
+    <app-tabs-list class="max-w-full overflow-x-auto">
+      @for (tab of tabs; track tab.id) {
+        <app-tabs-trigger [value]="tab.id">
+          {{ tab.labelKey | translate }}
+        </app-tabs-trigger>
+      }
+    </app-tabs-list>
+
+    <app-tabs-content value="overview" class="mt-0 space-y-5">
     @if (loading()) {
-      <app-card>
-        <app-card-content class="p-12">
-          <div class="flex flex-col items-center justify-center gap-3 text-muted-foreground">
-            <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-            <p>{{ 'reporting.loading' | translate }}</p>
+      <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <app-card>
+            <app-card-content class="px-4 py-3">
+              <app-skeleton [width]="'50%'" [height]="'h-3'" />
+              <app-skeleton [width]="'35%'" [height]="'h-7'" [className]="'mt-2'" />
+            </app-card-content>
+          </app-card>
+        }
+      </div>
+      <div class="grid grid-cols-1 gap-4 xl:grid-cols-[1.55fr_1fr]">
+        <app-card>
+          <app-card-content class="space-y-3 p-5">
+            @for (i of [1, 2, 3]; track i) {
+              <app-skeleton [width]="'100%'" [height]="'h-12'" />
+            }
+          </app-card-content>
+        </app-card>
+        <app-card>
+          <app-card-content class="p-5">
+            <app-skeleton [width]="'100%'" [height]="'h-[220px]'" />
+          </app-card-content>
+        </app-card>
+      </div>
+    } @else if (dashboard()) {
+      <div class="flex flex-col gap-6">
+      <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        @for (metric of metricCards(); track metric.titleKey) {
+          <a
+            [routerLink]="metric.route"
+            class="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+            <app-card class="h-full border-border/70 transition-[box-shadow] duration-150 hover:shadow-card-hover">
+              <app-card-content class="px-4 py-3.5">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0 flex-1">
+                    <p class="text-xs font-medium text-muted-foreground">{{ metric.titleKey | translate }}</p>
+                    <p class="mt-1 text-xl font-semibold tabular-nums leading-none" [class]="metric.valueClass ?? 'text-foreground'">
+                      {{ metric.value }}
+                    </p>
+                    <p class="mt-1.5 text-xs leading-snug text-muted-foreground line-clamp-2">
+                      {{ metric.hintKey | translate:metric.hintParams }}
+                    </p>
+                  </div>
+                  <div class="icon-container h-8 w-8 shrink-0">
+                    <lucide-icon [img]="metric.icon" [size]="16" />
+                  </div>
+                </div>
+              </app-card-content>
+            </app-card>
+          </a>
+        }
+      </div>
+
+      @if (!upgradeRequired()) {
+        <div class="grid gap-4 sm:grid-cols-2">
+          <a
+            routerLink="/reports/capacity"
+            class="group block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            <app-card class="h-full border-primary/25 bg-primary/5 transition-[box-shadow] duration-150 hover:shadow-card-hover">
+              <app-card-content class="flex items-center justify-between gap-4 px-4 py-3.5">
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-foreground">{{ 'reporting.quickLinks.capacityTitle' | translate }}</p>
+                  <p class="mt-0.5 text-xs text-muted-foreground">{{ 'reporting.quickLinks.capacityDescription' | translate }}</p>
+                </div>
+                <div class="flex shrink-0 items-center gap-2 text-primary">
+                  <div class="icon-container h-8 w-8">
+                    <lucide-icon [img]="Activity" [size]="16" />
+                  </div>
+                  <lucide-icon [img]="ArrowRight" [size]="16" class="transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </app-card-content>
+            </app-card>
+          </a>
+          <button
+            type="button"
+            class="group block w-full rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            (click)="onTabChange('time')">
+            <app-card class="h-full border-border/70 transition-[box-shadow] duration-150 hover:shadow-card-hover">
+              <app-card-content class="flex items-center justify-between gap-4 px-4 py-3.5">
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-foreground">{{ 'reporting.quickLinks.timeTitle' | translate }}</p>
+                  <p class="mt-0.5 text-xs text-muted-foreground">{{ 'reporting.quickLinks.timeDescription' | translate }}</p>
+                </div>
+                <div class="flex shrink-0 items-center gap-2 text-muted-foreground">
+                  <div class="icon-container h-8 w-8">
+                    <lucide-icon [img]="Clock" [size]="16" />
+                  </div>
+                  <lucide-icon [img]="ArrowRight" [size]="16" class="transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </app-card-content>
+            </app-card>
+          </button>
+        </div>
+      }
+
+      <div class="grid grid-cols-1 items-start gap-4 xl:grid-cols-[1.55fr_1fr]">
+        <app-card class="border-border/70">
+          <app-card-header class="p-5 pb-2">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <app-card-title>{{ 'reporting.actions.title' | translate }}</app-card-title>
+                <app-card-description>{{ 'reporting.actions.subtitle' | translate }}</app-card-description>
+              </div>
+              @if (pendingActionsCount() > 0) {
+                <app-badge variant="secondary">{{ pendingActionsCount() }}</app-badge>
+              }
+            </div>
+          </app-card-header>
+          <app-card-content class="px-5 pb-5 pt-0">
+            @if (operationalItems().length > 0) {
+              <div class="space-y-1.5">
+                @for (item of operationalItems(); track item.labelKey) {
+                  <a
+                    [routerLink]="item.route"
+                    class="flex items-center justify-between gap-3 rounded-lg border border-border/50 bg-muted/30 px-3 py-2.5 transition-colors hover:border-border hover:bg-accent/50">
+                    <div class="flex min-w-0 flex-1 items-center gap-3">
+                      <app-badge [variant]="priorityBadgeVariant(item.priority)">
+                        {{ priorityLabelKey(item.priority) | translate }}
+                      </app-badge>
+                      <div class="min-w-0">
+                        <p class="text-sm font-medium leading-snug text-foreground">{{ item.labelKey | translate }}</p>
+                        <p class="text-xs text-muted-foreground">{{ item.descriptionKey | translate }}</p>
+                      </div>
+                    </div>
+                    <div class="flex shrink-0 items-center gap-2">
+                      <span class="text-xs font-medium tabular-nums text-muted-foreground">{{ item.count }}</span>
+                      <lucide-icon [img]="ArrowRight" [size]="15" class="text-muted-foreground" />
+                    </div>
+                  </a>
+                }
+              </div>
+            } @else {
+              <div class="flex items-center gap-3 rounded-lg border border-border/50 bg-muted/20 px-3 py-3">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+                  <lucide-icon [img]="CheckCircle2" [size]="16" class="text-muted-foreground" />
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-foreground">{{ 'reporting.actions.allCaughtUp' | translate }}</p>
+                  <p class="text-xs text-muted-foreground">{{ 'reporting.actions.allCaughtUpDescription' | translate }}</p>
+                </div>
+              </div>
+            }
+
+            <div class="mt-4 grid grid-cols-3 gap-3 border-t border-border/60 pt-4">
+              <div class="rounded-lg border border-border/60 bg-muted/20 px-3 py-3">
+                <p class="text-xs font-medium text-muted-foreground">{{ 'reporting.operationalSummary.pendingTime' | translate }}</p>
+                <p class="mt-1 text-xl font-semibold tabular-nums">{{ dashboard()!.pendingTimeEntries }}</p>
+              </div>
+              <div class="rounded-lg border border-border/60 bg-muted/20 px-3 py-3">
+                <p class="text-xs font-medium text-muted-foreground">{{ 'reporting.operationalSummary.pendingLeave' | translate }}</p>
+                <p class="mt-1 text-xl font-semibold tabular-nums">{{ dashboard()!.pendingLeaveRequests }}</p>
+              </div>
+              <div class="rounded-lg border border-border/60 bg-muted/20 px-3 py-3">
+                <p class="text-xs font-medium text-muted-foreground">{{ 'reporting.operationalSummary.onHold' | translate }}</p>
+                <p class="mt-1 text-xl font-semibold tabular-nums">{{ dashboard()!.projectsOnHold }}</p>
+              </div>
+            </div>
+          </app-card-content>
+        </app-card>
+
+        <app-card class="flex h-full flex-col border-border/70">
+          <app-card-header class="p-5 pb-2">
+            <app-card-title>{{ 'reporting.charts.projectStatusTitle' | translate }}</app-card-title>
+            <app-card-description>{{ 'reporting.charts.projectStatusSubtitle' | translate }}</app-card-description>
+          </app-card-header>
+          <app-card-content class="flex flex-1 flex-col px-5 pb-5 pt-0">
+            @if (hasProjectChartData()) {
+              <div class="min-h-[220px] flex-1 pt-1">
+                <app-chart type="doughnut" [data]="projectStatusChartData()" [options]="doughnutChartOptions()" />
+              </div>
+            } @else {
+              <div class="flex min-h-[220px] flex-1 flex-col items-center justify-center text-center">
+                <div class="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                  <lucide-icon [img]="FolderKanban" [size]="18" class="text-muted-foreground" />
+                </div>
+                <p class="text-sm text-muted-foreground">{{ 'reporting.charts.empty' | translate }}</p>
+              </div>
+            }
+          </app-card-content>
+        </app-card>
+      </div>
+
+      <app-card class="border-border/70">
+        <app-card-header class="p-5 pb-2">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <app-card-title>{{ 'reporting.allocation.title' | translate }}</app-card-title>
+              <app-card-description>{{ 'reporting.allocation.subtitle' | translate }}</app-card-description>
+            </div>
+            @if (!upgradeRequired()) {
+              <a routerLink="/reports/capacity" class="text-sm font-medium text-primary hover:underline">
+                {{ 'reporting.allocation.viewCapacity' | translate }}
+              </a>
+            }
+          </div>
+        </app-card-header>
+        <app-card-content class="px-5 pb-5 pt-0">
+          <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            @for (stat of allocationStats(); track stat.labelKey) {
+              <div class="rounded-lg border border-border/60 bg-muted/20 px-4 py-3.5">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-xs font-medium text-muted-foreground">{{ stat.labelKey | translate }}</p>
+                    <p class="mt-1 text-2xl font-semibold tabular-nums" [class]="stat.valueClass">{{ stat.value }}</p>
+                  </div>
+                  <div class="icon-container h-8 w-8 shrink-0">
+                    <lucide-icon [img]="stat.icon" [size]="16" />
+                  </div>
+                </div>
+              </div>
+            }
           </div>
         </app-card-content>
       </app-card>
-    } @else if (dashboard()) {
-      <div class="grid-stats">
-        <app-card class="h-full flex flex-col">
-          <app-card-content class="p-6 flex flex-col flex-1">
-            <p class="text-sm font-medium text-muted-foreground mb-1">{{ 'reporting.metrics.activeProjects' | translate }}</p>
-            <p class="stat-value mb-1">{{ dashboard()!.activeProjects }}</p>
-            <p class="text-xs text-muted-foreground">{{ dashboard()!.totalProjects }} {{ 'reporting.metrics.totalProjects' | translate }}</p>
-          </app-card-content>
-        </app-card>
-        <app-card class="h-full flex flex-col">
-          <app-card-content class="p-6 flex flex-col flex-1">
-            <p class="text-sm font-medium text-muted-foreground mb-1">{{ 'reporting.metrics.activeEmployees' | translate }}</p>
-            <p class="stat-value mb-1">{{ dashboard()!.activeEmployees }}</p>
-            <p class="text-xs text-muted-foreground">{{ dashboard()!.totalEmployees }} {{ 'reporting.metrics.totalEmployees' | translate }}</p>
-          </app-card-content>
-        </app-card>
-        <app-card class="h-full flex flex-col">
-          <app-card-content class="p-6 flex flex-col flex-1">
-            <p class="text-sm font-medium text-muted-foreground mb-1">{{ 'reporting.metrics.hoursThisWeek' | translate }}</p>
-            <p class="stat-value mb-1">{{ dashboard()!.totalHoursThisWeek | number:'1.0-1' }}</p>
-            <p class="text-xs text-muted-foreground">{{ dashboard()!.totalHoursThisMonth | number:'1.0-1' }}h {{ 'reporting.metrics.thisMonth' | translate }}</p>
-          </app-card-content>
-        </app-card>
-        <app-card class="h-full flex flex-col">
-          <app-card-content class="p-6 flex flex-col flex-1">
-            <p class="text-sm font-medium text-muted-foreground mb-1">{{ 'reporting.metrics.budgetUtilization' | translate }}</p>
-            <p class="stat-value mb-1">{{ dashboard()!.budgetUtilization | number:'1.0-0' }}%</p>
-            <p class="text-xs text-muted-foreground">${{ dashboard()!.totalCost | number:'1.0-0' }} / ${{ dashboard()!.totalBudget | number:'1.0-0' }}</p>
-            <div class="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
-              <div class="h-full rounded-full bg-primary transition-all duration-200" [style.width.%]="dashboard()!.budgetUtilization"></div>
-            </div>
-          </app-card-content>
-        </app-card>
-      </div>
 
-      <div class="grid gap-6 grid-cols-1 xl:grid-cols-[2fr_1fr]">
-        <app-card>
-          <app-card-header>
-            <app-card-title>{{ 'reporting.operationalSummary.title' | translate }}</app-card-title>
-            <app-card-description>{{ 'reporting.operationalSummary.subtitle' | translate }}</app-card-description>
-          </app-card-header>
-          <app-card-content>
-            <div class="grid gap-4 sm:grid-cols-3">
-              <div class="rounded-lg border border-border bg-muted/30 p-5">
-                <p class="text-xs font-medium text-muted-foreground mb-2">{{ 'reporting.operationalSummary.pendingTime' | translate }}</p>
-                <p class="text-2xl font-bold">{{ dashboard()!.pendingTimeEntries }}</p>
-                <p class="text-xs text-muted-foreground">{{ dashboard()!.approvedTimeEntries }} {{ 'reporting.operationalSummary.approved' | translate }}</p>
-              </div>
-              <div class="rounded-lg border border-border bg-muted/30 p-5">
-                <p class="text-xs font-medium text-muted-foreground mb-2">{{ 'reporting.operationalSummary.pendingLeave' | translate }}</p>
-                <p class="text-2xl font-bold">{{ dashboard()!.pendingLeaveRequests }}</p>
-                <p class="text-xs text-muted-foreground">{{ dashboard()!.upcomingLeaveRequests }} {{ 'reporting.operationalSummary.upcoming' | translate }}</p>
-              </div>
-              <div class="rounded-lg border border-border bg-muted/30 p-5">
-                <p class="text-xs font-medium text-muted-foreground mb-2">{{ 'reporting.operationalSummary.onHold' | translate }}</p>
-                <p class="text-2xl font-bold">{{ dashboard()!.projectsOnHold }}</p>
-                <p class="text-xs text-muted-foreground">{{ dashboard()!.completedProjects }} {{ 'reporting.operationalSummary.completed' | translate }}</p>
-              </div>
-            </div>
-          </app-card-content>
-        </app-card>
-
-        <app-card>
-          <app-card-header>
-            <app-card-title>{{ 'reporting.allocation.title' | translate }}</app-card-title>
-            <app-card-description>{{ 'reporting.allocation.subtitle' | translate }}</app-card-description>
-          </app-card-header>
-          <app-card-content class="space-y-3">
-            <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
-              <span class="text-sm text-muted-foreground">{{ 'reporting.allocation.available' | translate }}</span>
-              <span class="text-sm font-semibold">{{ allocation()?.availableEmployees ?? 0 }}</span>
-            </div>
-            <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
-              <span class="text-sm text-muted-foreground">{{ 'reporting.allocation.overallocated' | translate }}</span>
-              <span class="text-sm font-semibold">{{ allocation()?.overallocatedEmployees ?? 0 }}</span>
-            </div>
-            <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
-              <span class="text-sm text-muted-foreground">{{ 'reporting.allocation.underutilized' | translate }}</span>
-              <span class="text-sm font-semibold">{{ allocation()?.underutilizedEmployees ?? 0 }}</span>
-            </div>
-            <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
-              <span class="text-sm text-muted-foreground">{{ 'reporting.allocation.understaffedProjects' | translate }}</span>
-              <span class="text-sm font-semibold">{{ allocation()?.understaffedProjects ?? 0 }}</span>
-            </div>
-          </app-card-content>
-        </app-card>
-      </div>
-
-      <div class="grid gap-6 lg:grid-cols-2">
-        <app-card>
-          <app-card-header>
+      <div class="grid gap-4 lg:grid-cols-2">
+        <app-card class="border-border/70">
+          <app-card-header class="p-5 pb-2">
             <app-card-title>{{ 'reporting.overallocated.title' | translate }}</app-card-title>
             <app-card-description>{{ 'reporting.overallocated.subtitle' | translate }}</app-card-description>
           </app-card-header>
-          <app-card-content>
+          <app-card-content class="px-5 pb-5 pt-0">
             @if (topOverallocatedEmployees().length === 0) {
-              <p class="text-sm text-muted-foreground py-6 text-center">{{ 'reporting.overallocated.empty' | translate }}</p>
+              <div class="flex flex-col items-center justify-center py-8 text-center">
+                <div class="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                  <lucide-icon [img]="CheckCircle2" [size]="18" class="text-muted-foreground" />
+                </div>
+                <p class="text-sm text-muted-foreground">{{ 'reporting.overallocated.empty' | translate }}</p>
+              </div>
             } @else {
               <div class="space-y-3">
                 @for (employee of topOverallocatedEmployees(); track employee.employeeId) {
-                  <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-4">
-                    <div>
-                      <p class="text-sm font-medium">{{ employee.employeeName }}</p>
-                      <p class="text-xs text-muted-foreground">{{ employee.jobTitle || '—' }}</p>
+                  <div class="rounded-lg border border-border/50 bg-muted/20 px-3 py-3">
+                    <div class="mb-2 flex items-center justify-between gap-3">
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-medium text-foreground">{{ employee.employeeName }}</p>
+                        <p class="truncate text-xs text-muted-foreground">{{ employee.jobTitle || '—' }}</p>
+                      </div>
+                      <span class="shrink-0 text-sm font-semibold tabular-nums text-destructive">
+                        {{ employee.utilizationPercentage | number:'1.0-0' }}%
+                      </span>
                     </div>
-                    <p class="text-lg font-bold text-red-500">{{ employee.utilizationPercentage | number:'1.0-0' }}%</p>
+                    <div class="h-1.5 overflow-hidden rounded-full bg-muted">
+                      <div
+                        class="h-full rounded-full bg-destructive transition-all duration-300"
+                        [style.width.%]="utilizationBarWidth(employee.utilizationPercentage)"></div>
+                    </div>
                   </div>
                 }
               </div>
@@ -165,23 +287,39 @@
           </app-card-content>
         </app-card>
 
-        <app-card>
-          <app-card-header>
+        <app-card class="border-border/70">
+          <app-card-header class="p-5 pb-2">
             <app-card-title>{{ 'reporting.understaffed.title' | translate }}</app-card-title>
             <app-card-description>{{ 'reporting.understaffed.subtitle' | translate }}</app-card-description>
           </app-card-header>
-          <app-card-content>
+          <app-card-content class="px-5 pb-5 pt-0">
             @if (topUnderstaffedProjects().length === 0) {
-              <p class="text-sm text-muted-foreground py-6 text-center">{{ 'reporting.understaffed.empty' | translate }}</p>
+              <div class="flex flex-col items-center justify-center py-8 text-center">
+                <div class="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                  <lucide-icon [img]="CheckCircle2" [size]="18" class="text-muted-foreground" />
+                </div>
+                <p class="text-sm text-muted-foreground">{{ 'reporting.understaffed.empty' | translate }}</p>
+              </div>
             } @else {
               <div class="space-y-3">
                 @for (project of topUnderstaffedProjects(); track project.projectId) {
-                  <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-4">
-                    <div>
-                      <p class="text-sm font-medium">{{ project.projectName }}</p>
-                      <p class="text-xs text-muted-foreground">{{ project.assignedMembersCount }} {{ 'reporting.understaffed.members' | translate }}</p>
+                  <div class="rounded-lg border border-border/50 bg-muted/20 px-3 py-3">
+                    <div class="mb-2 flex items-center justify-between gap-3">
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-medium text-foreground">{{ project.projectName }}</p>
+                        <p class="text-xs text-muted-foreground">
+                          {{ project.assignedMembersCount }} {{ 'reporting.understaffed.members' | translate }}
+                        </p>
+                      </div>
+                      <span class="shrink-0 text-sm font-semibold tabular-nums text-amber-600 dark:text-amber-400">
+                        {{ project.gapHours | number:'1.0-0' }}h
+                      </span>
                     </div>
-                    <p class="text-lg font-bold text-orange-500">{{ project.gapHours | number:'1.0-0' }}h</p>
+                    <div class="h-1.5 overflow-hidden rounded-full bg-muted">
+                      <div
+                        class="h-full rounded-full bg-amber-500 transition-all duration-300"
+                        [style.width.%]="gapBarWidth(project)"></div>
+                    </div>
                   </div>
                 }
               </div>
@@ -189,212 +327,352 @@
           </app-card-content>
         </app-card>
       </div>
+      </div>
     }
-  }
+    </app-tabs-content>
 
-  @if (activeTab() === 'time') {
-    <div class="space-y-6">
-      <app-card>
-        <app-card-content class="p-6">
-          <div class="flex flex-wrap items-end gap-4">
+    <app-tabs-content value="time" class="mt-0 space-y-5">
+      <app-card class="border-border/70">
+        <app-card-header class="p-5 pb-3">
+          <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <label class="text-sm font-medium">{{ 'reporting.time.startDate' | translate }}</label>
-              <input type="date" class="mt-1 flex h-10 rounded-md border border-input bg-background px-3 text-sm"
-                [ngModel]="startDate()" (ngModelChange)="startDate.set($event)" />
+              <app-card-title>{{ 'reporting.time.filterTitle' | translate }}</app-card-title>
+              <app-card-description>{{ 'reporting.time.filterSubtitle' | translate }}</app-card-description>
             </div>
-            <div>
-              <label class="text-sm font-medium">{{ 'reporting.time.endDate' | translate }}</label>
-              <input type="date" class="mt-1 flex h-10 rounded-md border border-input bg-background px-3 text-sm"
-                [ngModel]="endDate()" (ngModelChange)="endDate.set($event)" />
+            <a routerLink="/time-entries" class="text-sm font-medium text-primary hover:underline">
+              {{ 'reporting.time.viewTimeEntries' | translate }}
+            </a>
+          </div>
+        </app-card-header>
+        <app-card-content class="space-y-4 px-5 pb-5 pt-0">
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              app-button
+              size="sm"
+              [variant]="activeDatePreset() === 'thisWeek' ? 'default' : 'outline'"
+              (click)="applyDatePreset('thisWeek')">
+              {{ 'reporting.time.thisWeek' | translate }}
+            </button>
+            <button
+              type="button"
+              app-button
+              size="sm"
+              [variant]="activeDatePreset() === 'thisMonth' ? 'default' : 'outline'"
+              (click)="applyDatePreset('thisMonth')">
+              {{ 'reporting.time.thisMonth' | translate }}
+            </button>
+            <button
+              type="button"
+              app-button
+              size="sm"
+              [variant]="activeDatePreset() === 'lastMonth' ? 'default' : 'outline'"
+              (click)="applyDatePreset('lastMonth')">
+              {{ 'reporting.time.lastMonth' | translate }}
+            </button>
+          </div>
+          <div class="flex flex-wrap items-end gap-4 rounded-lg border border-border/60 bg-muted/20 p-4">
+            <div class="min-w-[12rem] flex-1 space-y-1.5">
+              <label class="text-xs font-medium text-muted-foreground">{{ 'reporting.time.startDate' | translate }}</label>
+              <app-date-picker
+                class="w-full"
+                [ngModel]="startDate()"
+                (ngModelChange)="onStartDateChange($event)"
+                [placeholder]="'reporting.time.startDate' | translate" />
             </div>
-            <app-button (click)="applyTimeFilter()" [disabled]="timeLoading()">
+            <div class="min-w-[12rem] flex-1 space-y-1.5">
+              <label class="text-xs font-medium text-muted-foreground">{{ 'reporting.time.endDate' | translate }}</label>
+              <app-date-picker
+                class="w-full"
+                [ngModel]="endDate()"
+                (ngModelChange)="onEndDateChange($event)"
+                [placeholder]="'reporting.time.endDate' | translate" />
+            </div>
+            <button type="button" app-button (click)="applyTimeFilter()" [disabled]="timeLoading()">
               {{ 'reporting.time.applyFilter' | translate }}
-            </app-button>
+            </button>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-muted-foreground">
+            <lucide-icon [img]="CalendarDays" [size]="14" />
+            <span>{{ startDate() | date:'mediumDate' }} – {{ endDate() | date:'mediumDate' }}</span>
           </div>
         </app-card-content>
       </app-card>
 
       @if (timeLoading()) {
-        <app-card>
-          <app-card-content class="p-12 text-center text-muted-foreground">{{ 'reporting.loading' | translate }}</app-card-content>
-        </app-card>
+        <div class="grid gap-4 sm:grid-cols-3">
+          @for (i of [1, 2, 3]; track i) {
+            <app-card class="border-border/70">
+              <app-card-content class="px-4 py-3.5">
+                <app-skeleton [width]="'50%'" [height]="'h-3'" />
+                <app-skeleton [width]="'35%'" [height]="'h-7'" [className]="'mt-2'" />
+              </app-card-content>
+            </app-card>
+          }
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          @for (i of [1, 2]; track i) {
+            <app-card class="border-border/70">
+              <app-card-content class="space-y-3 p-5">
+                @for (j of [1, 2, 3, 4]; track j) {
+                  <app-skeleton [width]="'100%'" [height]="'h-12'" />
+                }
+              </app-card-content>
+            </app-card>
+          }
+        </div>
       } @else {
-        @if (timeSummary(); as summary) {
+        @if (timeMetricCards().length > 0) {
           <div class="grid gap-4 sm:grid-cols-3">
-            <app-card>
-              <app-card-content class="p-6">
-                <p class="text-sm text-muted-foreground">{{ 'reporting.time.totalHours' | translate }}</p>
-                <p class="text-2xl font-bold">{{ summary.totalHours | number:'1.1-1' }}h</p>
-              </app-card-content>
-            </app-card>
-            <app-card>
-              <app-card-content class="p-6">
-                <p class="text-sm text-muted-foreground">{{ 'reporting.time.entriesCount' | translate }}</p>
-                <p class="text-2xl font-bold">{{ summary.entriesCount }}</p>
-              </app-card-content>
-            </app-card>
-            <app-card>
-              <app-card-content class="p-6">
-                <p class="text-sm text-muted-foreground">{{ 'reporting.time.avgPerEntry' | translate }}</p>
-                <p class="text-2xl font-bold">{{ summary.averageHoursPerEntry | number:'1.1-1' }}h</p>
-              </app-card-content>
-            </app-card>
+            @for (metric of timeMetricCards(); track metric.titleKey) {
+              <app-card class="border-border/70">
+                <app-card-content class="px-4 py-3.5">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 flex-1">
+                      <p class="text-xs font-medium text-muted-foreground">{{ metric.titleKey | translate }}</p>
+                      <p class="mt-1 text-xl font-semibold tabular-nums leading-none" [class]="metric.valueClass ?? 'text-foreground'">
+                        {{ metric.value }}
+                      </p>
+                      <p class="mt-1.5 text-xs leading-snug text-muted-foreground">{{ metric.hintKey | translate }}</p>
+                    </div>
+                    <div class="icon-container h-8 w-8 shrink-0">
+                      <lucide-icon [img]="metric.icon" [size]="16" />
+                    </div>
+                  </div>
+                </app-card-content>
+              </app-card>
+            }
           </div>
         }
 
-        <div class="grid gap-6 lg:grid-cols-2">
-          <app-card>
-            <app-card-header>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <app-card class="border-border/70">
+            <app-card-header class="p-5 pb-2">
               <app-card-title>{{ 'reporting.time.byProject' | translate }}</app-card-title>
+              <app-card-description>{{ 'reporting.time.byProjectSubtitle' | translate }}</app-card-description>
             </app-card-header>
-            <app-card-content class="p-0">
+            <app-card-content class="px-5 pb-5 pt-0">
               @if (timeByProject().length === 0) {
-                <p class="p-6 text-sm text-muted-foreground text-center">{{ 'reporting.time.noData' | translate }}</p>
+                <div class="flex flex-col items-center justify-center py-10 text-center">
+                  <div class="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                    <lucide-icon [img]="BarChart3" [size]="18" class="text-muted-foreground" />
+                  </div>
+                  <p class="text-sm font-medium text-foreground">{{ 'reporting.time.noData' | translate }}</p>
+                  <p class="mt-1 text-xs text-muted-foreground">{{ 'reporting.time.noDataHint' | translate }}</p>
+                </div>
               } @else {
-                <div class="overflow-x-auto">
-                  <table class="w-full text-sm">
-                    <thead>
-                      <tr class="border-b text-left text-muted-foreground">
-                        <th class="px-4 py-3">{{ 'reporting.time.project' | translate }}</th>
-                        <th class="px-4 py-3">{{ 'reporting.time.hours' | translate }}</th>
-                        <th class="px-4 py-3">{{ 'reporting.time.entries' | translate }}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @for (row of timeByProject(); track row.id) {
-                        <tr class="border-b">
-                          <td class="px-4 py-3 font-medium">{{ row.name }}</td>
-                          <td class="px-4 py-3">{{ row.totalHours | number:'1.1-1' }}h</td>
-                          <td class="px-4 py-3">{{ row.entriesCount }}</td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
+                <div class="space-y-3">
+                  @for (row of timeByProject(); track row.id) {
+                    <div class="rounded-lg border border-border/50 bg-muted/20 px-3 py-3">
+                      <div class="mb-2 flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                          <p class="truncate text-sm font-medium text-foreground">{{ row.name }}</p>
+                          <p class="text-xs text-muted-foreground">
+                            {{ row.entriesCount }} {{ 'reporting.time.entries' | translate }}
+                          </p>
+                        </div>
+                        <span class="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                          {{ row.totalHours | number:'1.1-1' }}h
+                        </span>
+                      </div>
+                      <div class="h-1.5 overflow-hidden rounded-full bg-muted">
+                        <div
+                          class="h-full rounded-full bg-primary transition-all duration-300"
+                          [style.width.%]="timeHoursBarWidth(row, timeByProject())"></div>
+                      </div>
+                    </div>
+                  }
                 </div>
               }
             </app-card-content>
           </app-card>
 
-          <app-card>
-            <app-card-header>
+          <app-card class="border-border/70">
+            <app-card-header class="p-5 pb-2">
               <app-card-title>{{ 'reporting.time.byEmployee' | translate }}</app-card-title>
+              <app-card-description>{{ 'reporting.time.byEmployeeSubtitle' | translate }}</app-card-description>
             </app-card-header>
-            <app-card-content class="p-0">
+            <app-card-content class="px-5 pb-5 pt-0">
               @if (timeByEmployee().length === 0) {
-                <p class="p-6 text-sm text-muted-foreground text-center">{{ 'reporting.time.noData' | translate }}</p>
+                <div class="flex flex-col items-center justify-center py-10 text-center">
+                  <div class="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                    <lucide-icon [img]="Users" [size]="18" class="text-muted-foreground" />
+                  </div>
+                  <p class="text-sm font-medium text-foreground">{{ 'reporting.time.noData' | translate }}</p>
+                  <p class="mt-1 text-xs text-muted-foreground">{{ 'reporting.time.noDataHint' | translate }}</p>
+                </div>
               } @else {
-                <div class="overflow-x-auto">
-                  <table class="w-full text-sm">
-                    <thead>
-                      <tr class="border-b text-left text-muted-foreground">
-                        <th class="px-4 py-3">{{ 'reporting.time.employee' | translate }}</th>
-                        <th class="px-4 py-3">{{ 'reporting.time.hours' | translate }}</th>
-                        <th class="px-4 py-3">{{ 'reporting.time.entries' | translate }}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @for (row of timeByEmployee(); track row.id) {
-                        <tr class="border-b">
-                          <td class="px-4 py-3 font-medium">{{ row.name }}</td>
-                          <td class="px-4 py-3">{{ row.totalHours | number:'1.1-1' }}h</td>
-                          <td class="px-4 py-3">{{ row.entriesCount }}</td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
+                <div class="space-y-3">
+                  @for (row of timeByEmployee(); track row.id) {
+                    <div class="rounded-lg border border-border/50 bg-muted/20 px-3 py-3">
+                      <div class="mb-2 flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                          <p class="truncate text-sm font-medium text-foreground">{{ row.name }}</p>
+                          <p class="text-xs text-muted-foreground">
+                            {{ row.entriesCount }} {{ 'reporting.time.entries' | translate }}
+                          </p>
+                        </div>
+                        <span class="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                          {{ row.totalHours | number:'1.1-1' }}h
+                        </span>
+                      </div>
+                      <div class="h-1.5 overflow-hidden rounded-full bg-muted">
+                        <div
+                          class="h-full rounded-full bg-primary transition-all duration-300"
+                          [style.width.%]="timeHoursBarWidth(row, timeByEmployee())"></div>
+                      </div>
+                    </div>
+                  }
                 </div>
               }
             </app-card-content>
           </app-card>
         </div>
       }
-    </div>
-  }
+    </app-tabs-content>
 
-  @if (activeTab() === 'leave') {
-    @if (leaveLoading()) {
-      <app-card>
-        <app-card-content class="p-12 text-center text-muted-foreground">{{ 'reporting.loading' | translate }}</app-card-content>
-      </app-card>
-    } @else {
-      <div class="grid gap-6 lg:grid-cols-2">
-        <app-card>
-          <app-card-header>
-            <app-card-title>{{ 'reporting.leave.balanceTitle' | translate }}</app-card-title>
-            <app-card-description>{{ 'reporting.leave.balanceSubtitle' | translate }}</app-card-description>
-          </app-card-header>
-          <app-card-content class="p-0">
-            @if (leaveBalances().length === 0) {
-              <p class="p-6 text-sm text-muted-foreground text-center">{{ 'reporting.leave.noBalance' | translate }}</p>
-            } @else {
-              <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                  <thead>
-                    <tr class="border-b text-left text-muted-foreground">
-                      <th class="px-4 py-3">{{ 'reporting.leave.employee' | translate }}</th>
-                      <th class="px-4 py-3">{{ 'reporting.leave.approved' | translate }}</th>
-                      <th class="px-4 py-3">{{ 'reporting.leave.pending' | translate }}</th>
-                      <th class="px-4 py-3">{{ 'reporting.leave.thisYear' | translate }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+    <app-tabs-content value="leave" class="mt-0 space-y-5">
+      @if (leaveLoading()) {
+        <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+          @for (i of [1, 2, 3, 4]; track i) {
+            <app-card class="border-border/70">
+              <app-card-content class="px-4 py-3.5">
+                <app-skeleton [width]="'55%'" [height]="'h-3'" />
+                <app-skeleton [width]="'35%'" [height]="'h-7'" [className]="'mt-2'" />
+              </app-card-content>
+            </app-card>
+          }
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          @for (i of [1, 2]; track i) {
+            <app-card class="border-border/70">
+              <app-card-content class="p-5">
+                <app-skeleton [width]="'100%'" [height]="'h-48'" />
+              </app-card-content>
+            </app-card>
+          }
+        </div>
+      } @else {
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <p class="text-sm text-muted-foreground">{{ 'reporting.leave.pageSubtitle' | translate }}</p>
+          <a routerLink="/leave-requests" class="text-sm font-medium text-primary hover:underline">
+            {{ 'reporting.leave.viewLeaveRequests' | translate }}
+          </a>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+          @for (metric of leaveMetricCards(); track metric.titleKey) {
+            <app-card class="border-border/70">
+              <app-card-content class="px-4 py-3.5">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0 flex-1">
+                    <p class="text-xs font-medium text-muted-foreground">{{ metric.titleKey | translate }}</p>
+                    <p class="mt-1 text-xl font-semibold tabular-nums leading-none" [class]="metric.valueClass ?? 'text-foreground'">
+                      {{ metric.value }}
+                    </p>
+                    <p class="mt-1.5 text-xs leading-snug text-muted-foreground">{{ metric.hintKey | translate }}</p>
+                  </div>
+                  <div class="icon-container h-8 w-8 shrink-0">
+                    <lucide-icon [img]="metric.icon" [size]="16" />
+                  </div>
+                </div>
+              </app-card-content>
+            </app-card>
+          }
+        </div>
+
+        <div class="grid gap-4 lg:grid-cols-2">
+          <app-card class="border-border/70">
+            <app-card-header class="p-5 pb-2">
+              <app-card-title>{{ 'reporting.leave.balanceTitle' | translate }}</app-card-title>
+              <app-card-description>{{ 'reporting.leave.balanceSubtitle' | translate }}</app-card-description>
+            </app-card-header>
+            <app-card-content class="px-5 pb-5 pt-0">
+              @if (leaveBalances().length === 0) {
+                <div class="flex flex-col items-center justify-center py-10 text-center">
+                  <div class="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                    <lucide-icon [img]="Calendar" [size]="18" class="text-muted-foreground" />
+                  </div>
+                  <p class="text-sm font-medium text-foreground">{{ 'reporting.leave.noBalance' | translate }}</p>
+                  <p class="mt-1 text-xs text-muted-foreground">{{ 'reporting.leave.noBalanceDescription' | translate }}</p>
+                </div>
+              } @else {
+                <app-table>
+                  <app-table-header>
+                    <app-table-row>
+                      <app-table-head class="px-3">{{ 'reporting.leave.employee' | translate }}</app-table-head>
+                      <app-table-head class="px-3 text-right">{{ 'reporting.leave.approved' | translate }}</app-table-head>
+                      <app-table-head class="px-3 text-right">{{ 'reporting.leave.pending' | translate }}</app-table-head>
+                      <app-table-head class="px-3 text-right">{{ 'reporting.leave.thisYear' | translate }}</app-table-head>
+                    </app-table-row>
+                  </app-table-header>
+                  <app-table-body>
                     @for (row of leaveBalances(); track row.employeeId) {
-                      <tr class="border-b">
-                        <td class="px-4 py-3">
-                          <p class="font-medium">{{ row.employeeName }}</p>
+                      <app-table-row>
+                        <app-table-cell class="px-3 py-3">
+                          <p class="font-medium text-foreground">{{ row.employeeName }}</p>
                           <p class="text-xs text-muted-foreground">{{ row.employeeEmail }}</p>
-                        </td>
-                        <td class="px-4 py-3">{{ row.totalDaysApproved }}</td>
-                        <td class="px-4 py-3">{{ row.totalDaysPending }}</td>
-                        <td class="px-4 py-3">{{ row.totalDaysThisYear }}</td>
-                      </tr>
+                        </app-table-cell>
+                        <app-table-cell class="px-3 py-3 text-right tabular-nums">{{ row.totalDaysApproved }}</app-table-cell>
+                        <app-table-cell class="px-3 py-3 text-right tabular-nums">
+                          @if (row.totalDaysPending > 0) {
+                            <app-badge variant="secondary">{{ row.totalDaysPending }}</app-badge>
+                          } @else {
+                            <span class="text-muted-foreground">0</span>
+                          }
+                        </app-table-cell>
+                        <app-table-cell class="px-3 py-3 text-right tabular-nums font-medium">{{ row.totalDaysThisYear }}</app-table-cell>
+                      </app-table-row>
                     }
-                  </tbody>
-                </table>
-              </div>
-            }
-          </app-card-content>
-        </app-card>
+                  </app-table-body>
+                </app-table>
+              }
+            </app-card-content>
+          </app-card>
 
-        <app-card>
-          <app-card-header>
-            <app-card-title>{{ 'reporting.leave.upcomingTitle' | translate }}</app-card-title>
-            <app-card-description>{{ 'reporting.leave.upcomingSubtitle' | translate }}</app-card-description>
-          </app-card-header>
-          <app-card-content class="p-0">
-            @if (upcomingLeave().length === 0) {
-              <p class="p-6 text-sm text-muted-foreground text-center">{{ 'reporting.leave.noUpcoming' | translate }}</p>
-            } @else {
-              <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                  <thead>
-                    <tr class="border-b text-left text-muted-foreground">
-                      <th class="px-4 py-3">{{ 'reporting.leave.employee' | translate }}</th>
-                      <th class="px-4 py-3">{{ 'reporting.leave.dates' | translate }}</th>
-                      <th class="px-4 py-3">{{ 'reporting.leave.days' | translate }}</th>
-                      <th class="px-4 py-3">{{ 'reporting.leave.status' | translate }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (row of upcomingLeave(); track row.leaveRequestId) {
-                      <tr class="border-b">
-                        <td class="px-4 py-3 font-medium">{{ row.employeeName }}</td>
-                        <td class="px-4 py-3 text-muted-foreground">
-                          {{ row.startDate | date:'mediumDate' }} – {{ row.endDate | date:'mediumDate' }}
-                        </td>
-                        <td class="px-4 py-3">{{ row.totalDays }}</td>
-                        <td class="px-4 py-3">
-                          <app-badge variant="secondary">{{ row.status }}</app-badge>
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            }
-          </app-card-content>
-        </app-card>
-      </div>
-    }
-  }
+          <app-card class="border-border/70">
+            <app-card-header class="p-5 pb-2">
+              <app-card-title>{{ 'reporting.leave.upcomingTitle' | translate }}</app-card-title>
+              <app-card-description>{{ 'reporting.leave.upcomingSubtitle' | translate }}</app-card-description>
+            </app-card-header>
+            <app-card-content class="px-5 pb-5 pt-0">
+              @if (upcomingLeave().length === 0) {
+                <div class="flex flex-col items-center justify-center py-10 text-center">
+                  <div class="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                    <lucide-icon [img]="Plane" [size]="18" class="text-muted-foreground" />
+                  </div>
+                  <p class="text-sm font-medium text-foreground">{{ 'reporting.leave.noUpcoming' | translate }}</p>
+                  <p class="mt-1 text-xs text-muted-foreground">{{ 'reporting.leave.noUpcomingDescription' | translate }}</p>
+                </div>
+              } @else {
+                <div class="space-y-2">
+                  @for (row of upcomingLeave(); track row.leaveRequestId) {
+                    <div class="rounded-lg border border-border/50 bg-muted/20 px-3 py-3">
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                          <p class="truncate text-sm font-medium text-foreground">{{ row.employeeName }}</p>
+                          <p class="mt-0.5 text-xs text-muted-foreground">
+                            {{ row.startDate | date:'mediumDate' }} – {{ row.endDate | date:'mediumDate' }}
+                          </p>
+                          @if (row.leaveType) {
+                            <p class="mt-1 text-xs text-muted-foreground">{{ row.leaveType }}</p>
+                          }
+                        </div>
+                        <div class="flex shrink-0 flex-col items-end gap-1.5">
+                          <app-badge [variant]="leaveStatusVariant(row.status)">{{ row.status }}</app-badge>
+                          <span class="text-sm font-semibold tabular-nums text-foreground">
+                            {{ row.totalDays }} {{ 'reporting.leave.days' | translate }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </app-card-content>
+          </app-card>
+        </div>
+      }
+    </app-tabs-content>
+  </app-tabs>
 </div>

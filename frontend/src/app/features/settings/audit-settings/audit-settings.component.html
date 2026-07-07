@@ -1,11 +1,6 @@
-<div class="mt-6 space-y-6">
-  <div>
-    <h2 class="text-xl font-semibold text-foreground">{{ 'settings.audit.title' | translate }}</h2>
-    <p class="text-sm text-muted-foreground">{{ 'settings.audit.subtitle' | translate }}</p>
-  </div>
-
+<app-settings-page-layout [wide]="true">
   @if (error()) {
-    <app-alert variant="destructive">{{ error() }}</app-alert>
+    <app-alert variant="destructive" role="alert">{{ error() }}</app-alert>
   }
 
   <app-card>
@@ -24,28 +19,26 @@
           type="text"
           [(ngModel)]="actionFilter"
           [placeholder]="'settings.audit.filterAction' | translate"
-          class="h-9 rounded-md border border-input bg-background px-3 text-sm" />
+          class="h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
         <input
           type="text"
           [(ngModel)]="entityTypeFilter"
           [placeholder]="'settings.audit.filterEntity' | translate"
-          class="h-9 rounded-md border border-input bg-background px-3 text-sm" />
-        <app-button type="button" variant="secondary" (click)="applyFilters()">
+          class="h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+        <app-button type="button" variant="outline" (click)="applyFilters()">
           {{ 'settings.audit.applyFilters' | translate }}
         </app-button>
       </div>
 
       @if (loading()) {
-        <div class="flex justify-center py-12">
-          <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-        </div>
+        <p class="text-sm text-muted-foreground">{{ 'common.loading' | translate }}</p>
       } @else if (events().length === 0) {
-        <p class="py-8 text-center text-sm text-muted-foreground">{{ 'settings.audit.empty' | translate }}</p>
+        <p class="text-sm text-muted-foreground">{{ 'settings.audit.empty' | translate }}</p>
       } @else {
         <div class="overflow-x-auto">
-          <table class="w-full min-w-[760px] text-sm">
+          <table class="w-full text-sm">
             <thead>
-              <tr class="border-b border-border text-left text-muted-foreground">
+              <tr class="border-b text-left text-xs text-muted-foreground">
                 <th class="pb-3 pr-4 font-medium">{{ 'settings.audit.when' | translate }}</th>
                 <th class="pb-3 pr-4 font-medium">{{ 'settings.audit.actor' | translate }}</th>
                 <th class="pb-3 pr-4 font-medium">{{ 'settings.audit.action' | translate }}</th>
@@ -55,18 +48,15 @@
             </thead>
             <tbody>
               @for (event of events(); track event.id) {
-                <tr class="border-b border-border/60 align-top">
-                  <td class="py-3 pr-4 whitespace-nowrap">{{ event.createdAt | date:'medium' }}</td>
-                  <td class="py-3 pr-4">{{ event.actorEmail }}</td>
-                  <td class="py-3 pr-4">
-                    <app-badge variant="secondary">{{ event.action }}</app-badge>
+                <tr class="border-b border-border/50">
+                  <td class="py-3 pr-4 whitespace-nowrap text-muted-foreground">
+                    {{ event.createdAt | date: 'medium' }}
                   </td>
+                  <td class="py-3 pr-4">{{ event.actorEmail || event.actorId }}</td>
                   <td class="py-3 pr-4">
-                    <div>{{ event.entityType }}</div>
-                    @if (event.entityId) {
-                      <div class="text-xs text-muted-foreground font-mono">{{ event.entityId }}</div>
-                    }
+                    <app-badge variant="outline">{{ event.action }}</app-badge>
                   </td>
+                  <td class="py-3 pr-4">{{ event.entityType }} #{{ event.entityId }}</td>
                   <td class="py-3 max-w-xs truncate text-xs text-muted-foreground font-mono">
                     {{ event.payloadJson || '—' }}
                   </td>
@@ -76,20 +66,20 @@
           </table>
         </div>
 
-        <div class="flex items-center justify-between pt-2">
-          <p class="text-sm text-muted-foreground">
-            {{ 'settings.audit.page' | translate }} {{ page() + 1 }} / {{ totalPages() || 1 }}
-          </p>
-          <div class="flex gap-2">
-            <app-button type="button" variant="outline" [disabled]="page() === 0" (click)="previousPage()">
-              {{ 'common.back' | translate }}
+        @if (totalPages() > 1) {
+          <div class="flex items-center justify-between pt-2">
+            <app-button type="button" variant="outline" size="sm" [disabled]="page() === 0" (click)="previousPage()">
+              {{ 'common.previous' | translate }}
             </app-button>
-            <app-button type="button" variant="outline" [disabled]="page() >= totalPages() - 1" (click)="nextPage()">
-              {{ 'common.continue' | translate }}
+            <span class="text-sm text-muted-foreground">
+              {{ 'settings.audit.page' | translate }} {{ page() + 1 }} / {{ totalPages() }}
+            </span>
+            <app-button type="button" variant="outline" size="sm" [disabled]="page() >= totalPages() - 1" (click)="nextPage()">
+              {{ 'common.next' | translate }}
             </app-button>
           </div>
-        </div>
+        }
       }
     </app-card-content>
   </app-card>
-</div>
+</app-settings-page-layout>

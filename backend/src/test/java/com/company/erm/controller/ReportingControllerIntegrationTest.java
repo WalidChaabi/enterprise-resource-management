@@ -1,6 +1,7 @@
 package com.company.erm.controller;
 
 import com.company.erm.entity.Department;
+import com.company.erm.entity.Employee;
 import com.company.erm.entity.Organization;
 import com.company.erm.entity.Project;
 import com.company.erm.entity.ProjectStatus;
@@ -8,6 +9,7 @@ import com.company.erm.entity.Role;
 import com.company.erm.entity.User;
 import com.company.erm.entity.UserRole;
 import com.company.erm.repository.DepartmentRepository;
+import com.company.erm.repository.EmployeeRepository;
 import com.company.erm.repository.OrganizationRepository;
 import com.company.erm.repository.ProjectRepository;
 import com.company.erm.repository.RoleRepository;
@@ -30,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -55,6 +58,9 @@ class ReportingControllerIntegrationTest {
     private DepartmentRepository departmentRepository;
 
     @Autowired
+    private EmployeeRepository employeeRepository;
+
+    @Autowired
     private RoleRepository roleRepository;
 
     @Autowired
@@ -75,6 +81,7 @@ class ReportingControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         projectRepository.deleteAll();
+        employeeRepository.deleteAll();
         userRoleRepository.deleteAll();
         userRepository.deleteAll();
         roleRepository.deleteAll();
@@ -121,8 +128,8 @@ class ReportingControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /reports/dashboard should return 403 for user without reporting role")
-    void getDashboard_shouldReturn403_forUnauthorizedUser() throws Exception {
+    @DisplayName("GET /reports/dashboard should return personal stats for employee")
+    void getDashboard_shouldReturn200_forEmployee() throws Exception {
         Department department = departmentRepository.findAll().get(0);
         Role employeeRole = TestDataFactory.createRole(organization, "EMPLOYEE", "Employee");
         roleRepository.save(employeeRole);
@@ -130,10 +137,22 @@ class ReportingControllerIntegrationTest {
         User employee = TestDataFactory.createUser(organization, department, "emp@example.com", "password123", passwordEncoder);
         userRepository.save(employee);
         userRoleRepository.save(TestDataFactory.createUserRole(employee, employeeRole));
+
+        Employee employeeProfile = new Employee();
+        employeeProfile.setId(UUID.randomUUID());
+        employeeProfile.setOrganization(organization);
+        employeeProfile.setUser(employee);
+        employeeProfile.setEmployeeCode("EMP-TEST");
+        employeeProfile.setJobTitle("Engineer");
+        employeeProfile.setActive(true);
+        employeeRepository.save(employeeProfile);
+
         String employeeToken = jwtTokenProvider.generateToken(employee.getId(), employee.getEmail(), organization.getId());
 
         mockMvc.perform(get("/api/v1/organizations/{organizationId}/reports/dashboard", organization.getId())
                         .header("Authorization", "Bearer " + employeeToken))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalEmployees").value(1))
+                .andExpect(jsonPath("$.alerts").isArray());
     }
 }

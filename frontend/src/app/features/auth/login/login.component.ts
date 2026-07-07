@@ -12,6 +12,7 @@ import { ButtonComponent } from '../../../shared/components/ui/button/button.com
 import { CardComponent, CardHeaderComponent, CardTitleComponent, CardDescriptionComponent, CardContentComponent, CardFooterComponent } from '../../../shared/components/ui/card/card.component';
 import { environment } from '../../../../environments/environment';
 import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '../../../core/config/demo-accounts';
+import { getFieldErrorKey } from '../../../shared/utils/form-errors';
 
 /**
  * Enterprise-grade login component
@@ -49,7 +50,8 @@ export class LoginComponent {
   readonly errorMessage = signal<string>('');
   readonly loading = signal<boolean>(false);
   readonly showPassword = signal<boolean>(false);
-  readonly showDemoCredentials = signal<boolean>(false); // Collapsible demo section
+  readonly showDemoCredentials = signal<boolean>(false);
+  readonly ssoProviders = signal<string[]>([]);
   readonly demoAccessEnabled = environment.showDemoAccess;
   readonly demoAccounts = DEMO_ACCOUNTS;
   readonly demoPassword = DEMO_PASSWORD;
@@ -87,6 +89,25 @@ export class LoginComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+
+    this.loginForm.get('email')?.valueChanges.subscribe((email) => {
+      if (email && this.loginForm.get('email')?.valid) {
+        this.loadSsoProviders(email);
+      } else {
+        this.ssoProviders.set([]);
+      }
+    });
+  }
+
+  loadSsoProviders(email: string): void {
+    this.authService.getSsoProviders(email).subscribe({
+      next: (response) => this.ssoProviders.set(response.providers ?? []),
+      error: () => this.ssoProviders.set([]),
+    });
+  }
+
+  startSso(provider: string): void {
+    this.authService.startSsoLogin(provider);
   }
 
   /**
@@ -111,12 +132,20 @@ export class LoginComponent {
 
     // Submit authentication request
     this.authService.login(credentials).subscribe({
-      next: () => {
-        // Success: Navigate to return URL or dashboard
-        // Enterprise pattern: Respect returnUrl for deep linking
+      next: (response) => {
+        if (response.mfaRequired && response.mfaToken) {
+          this.loading.set(false);
+          this.loginForm.enable();
+          void this.router.navigate(['/login/mfa'], {
+            queryParams: {
+              token: response.mfaToken,
+              returnUrl: this.route.snapshot.queryParams['returnUrl'] || '/dashboard',
+            },
+          });
+          return;
+        }
         const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
         this.router.navigateByUrl(returnUrl);
-        // Note: loading state will be cleared on navigation
       },
       error: (error: ErrorResponse) => {
         // Error handling: Extract meaningful message
@@ -180,20 +209,11 @@ export class LoginComponent {
    * Enterprise pattern: Clear, actionable, non-aggressive
    */
   getFieldError(fieldName: string): string {
-    const field = this.loginForm.get(fieldName);
-    if (!field?.errors || !field.touched) return '';
-
-    if (field.errors['required']) {
-      return `auth.login.${fieldName}Required`;
-    }
-    if (field.errors['email']) {
-      return 'auth.login.emailInvalid';
-    }
-    if (field.errors['minlength']) {
-      return 'auth.login.passwordMinLength';
-    }
-
-    return '';
+    return getFieldErrorKey(this.loginForm.get(fieldName), {
+      required: `auth.login.${fieldName}Required`,
+      email: 'auth.login.emailInvalid',
+      minlength: 'auth.login.passwordMinLength',
+    });
   }
 
 

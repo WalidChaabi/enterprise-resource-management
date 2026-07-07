@@ -8,6 +8,9 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
 import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
+import {
+  SettingsPageLayoutComponent,
+} from '../components';
 
 @Component({
     selector: 'app-billing-settings',
@@ -22,15 +25,11 @@ import { BadgeComponent } from '../../../shared/components/ui/badge/badge.compon
         CardTitleComponent,
         CardContentComponent,
         AlertComponent,
-        BadgeComponent
+        BadgeComponent,
+        SettingsPageLayoutComponent,
     ],
     template: `
-    <div class="mt-6 space-y-6">
-      <div>
-        <h2 class="text-xl font-semibold text-foreground">{{ 'settings.billing.title' | translate }}</h2>
-        <p class="text-sm text-muted-foreground">{{ 'settings.billing.subtitle' | translate }}</p>
-      </div>
-
+    <app-settings-page-layout>
       @if (checkoutMessage()) {
         <app-alert [variant]="checkoutMessageVariant()">{{ checkoutMessage() }}</app-alert>
       }
@@ -160,7 +159,7 @@ import { BadgeComponent } from '../../../shared/components/ui/badge/badge.compon
           </div>
         </div>
       }
-    </div>
+    </app-settings-page-layout>
   `
 })
 export class BillingSettingsComponent implements OnInit {

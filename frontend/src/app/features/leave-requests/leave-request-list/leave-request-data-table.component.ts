@@ -5,45 +5,37 @@ import {
   computed,
   input,
   output,
-  signal,
   viewChild,
 } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import {
   CellContext,
   ColumnDef,
-  ColumnFiltersState,
-  FlexRenderDirective,
   HeaderContext,
   SortingState,
-  VisibilityState,
-  createAngularTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
 } from '@tanstack/angular-table';
-import { FormsModule } from '@angular/forms';
-import { LeaveRequest, LeaveRequestStatus } from '@/core/models/leave-request.model';
+import {
+  LeaveRequest,
+  LeaveRequestStatus,
+  LeaveRequestStatusFilter,
+  LeaveType,
+} from '@/core/models/leave-request.model';
 import { TranslatePipe } from '@/core/pipes/translate.pipe';
 import { BadgeComponent, BadgeVariant } from '@/shared/components/ui/badge/badge.component';
 import { DataTableColumnHeaderComponent } from '@/shared/components/data-table/data-table-column-header.component';
-import { DataTablePaginationComponent } from '@/shared/components/data-table/data-table-pagination.component';
-import { DataTableViewOptionsComponent } from '@/shared/components/data-table/data-table-view-options.component';
+import { EntityDataTableComponent } from '@/shared/components/entity-data-table/entity-data-table.component';
+import { createEntityTableState } from '@/shared/components/entity-data-table/entity-table-state';
 import { LeaveRequestRowActionsComponent } from './leave-request-row-actions.component';
 
 @Component({
   selector: 'app-leave-request-data-table',
   imports: [
     CommonModule,
-    FormsModule,
-    FlexRenderDirective,
     TranslatePipe,
     DatePipe,
     BadgeComponent,
+    EntityDataTableComponent,
     DataTableColumnHeaderComponent,
-    DataTablePaginationComponent,
-    DataTableViewOptionsComponent,
     LeaveRequestRowActionsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +45,7 @@ export class LeaveRequestDataTableComponent {
   readonly data = input.required<LeaveRequest[]>();
   readonly canApprove = input(false);
   readonly processingId = input<string | null>(null);
+  readonly statusFilter = input<LeaveRequestStatusFilter>('ALL');
 
   readonly approve = output<LeaveRequest>();
   readonly reject = output<LeaveRequest>();
@@ -74,10 +67,11 @@ export class LeaveRequestDataTableComponent {
   readonly statusCell = viewChild.required<TemplateRef<{ $implicit: CellContext<LeaveRequest, unknown> }>>('statusCell');
   readonly actionsCell = viewChild.required<TemplateRef<{ $implicit: CellContext<LeaveRequest, unknown> }>>('actionsCell');
 
-  readonly filterValue = signal('');
-  readonly sorting = signal<SortingState>([]);
-  readonly columnFilters = signal<ColumnFiltersState>([]);
-  readonly columnVisibility = signal<VisibilityState>({});
+  readonly filteredData = computed(() => {
+    const filter = this.statusFilter();
+    if (filter === 'ALL') return this.data();
+    return this.data().filter((request) => request.status === filter);
+  });
 
   readonly columns = computed<ColumnDef<LeaveRequest, unknown>[]>(() => [
     {
@@ -98,12 +92,14 @@ export class LeaveRequestDataTableComponent {
       header: () => this.startDateHeader(),
       cell: () => this.startDateCell(),
       enableSorting: true,
+      sortingFn: 'datetime',
     },
     {
       accessorKey: 'endDate',
       header: () => this.endDateHeader(),
       cell: () => this.endDateCell(),
       enableSorting: true,
+      sortingFn: 'datetime',
     },
     {
       accessorKey: 'days',
@@ -126,36 +122,28 @@ export class LeaveRequestDataTableComponent {
     },
   ]);
 
-  readonly table = createAngularTable<LeaveRequest>(() => ({
-    data: this.data(),
-    columns: this.columns(),
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(this.sorting()) : updater;
-      this.sorting.set(next);
-    },
-    onColumnFiltersChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(this.columnFilters()) : updater;
-      this.columnFilters.set(next);
-    },
-    onColumnVisibilityChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(this.columnVisibility()) : updater;
-      this.columnVisibility.set(next);
-    },
-    state: {
-      sorting: this.sorting(),
-      columnFilters: this.columnFilters(),
-      columnVisibility: this.columnVisibility(),
-    },
-  }));
+  private readonly tableState = createEntityTableState<LeaveRequest>({
+    data: () => this.filteredData(),
+    columns: () => this.columns(),
+    initialSorting: [{ id: 'startDate', desc: true }] as SortingState,
+    matchesFilter: (request, query) =>
+      [
+        request.employeeName,
+        request.leaveType,
+        request.status,
+        request.reason,
+        request.startDate,
+        request.endDate,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(query),
+  });
 
-  onFilterChange(value: string): void {
-    this.filterValue.set(value);
-    this.table.getColumn('employee')?.setFilterValue(value);
-  }
+  readonly filterValue = this.tableState.filterValue;
+  readonly table = this.tableState.table;
+  readonly onFilterChange = this.tableState.onFilterChange;
 
   statusVariant(status: LeaveRequestStatus): BadgeVariant {
     switch (status) {
@@ -171,11 +159,27 @@ export class LeaveRequestDataTableComponent {
     }
   }
 
+  statusLabelKey(status: LeaveRequestStatus): string {
+    return `leaveRequests.statuses.${status.toLowerCase()}`;
+  }
+
+  leaveTypeLabelKey(type: LeaveType): string {
+    return `leaveRequests.types.${type.toLowerCase()}`;
+  }
+
   canApproveRequest(request: LeaveRequest): boolean {
     return this.canApprove() && request.status === LeaveRequestStatus.PENDING;
   }
 
+  canEditRequest(request: LeaveRequest): boolean {
+    return request.status === LeaveRequestStatus.PENDING;
+  }
+
   canCancelRequest(request: LeaveRequest): boolean {
     return request.status === LeaveRequestStatus.PENDING;
+  }
+
+  hasRowActions(request: LeaveRequest): boolean {
+    return this.canEditRequest(request) || this.canApproveRequest(request) || this.canCancelRequest(request);
   }
 }

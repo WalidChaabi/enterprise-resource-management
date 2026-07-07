@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
 import { LeaveRequest, LeaveRequestCreateDTO, LeaveRequestUpdateDTO } from '../models/leave-request.model';
@@ -24,7 +24,7 @@ export class LeaveRequestService {
     return orgId;
   }
 
-  getLeaveRequests(params?: { employeeId?: string; status?: string; startDate?: string; endDate?: string; page?: number; size?: number }): Observable<any> {
+  getLeaveRequests(params?: { employeeId?: string; status?: string; startDate?: string; endDate?: string; page?: number; size?: number }): Observable<LeaveRequest[]> {
     const orgId = this.getOrgId();
     let httpParams = new HttpParams();
     
@@ -47,7 +47,14 @@ export class LeaveRequestService {
       httpParams = httpParams.set('size', params.size.toString());
     }
 
-    return this.api.get<LeaveRequest[]>(API_ENDPOINTS.LEAVE_REQUESTS(orgId), httpParams);
+    return this.api.get<unknown>(API_ENDPOINTS.LEAVE_REQUESTS(orgId), httpParams).pipe(
+      map((response) => {
+        const rows = Array.isArray(response)
+          ? response
+          : ((response as { content?: LeaveRequest[] })?.content ?? []);
+        return rows;
+      })
+    );
   }
 
   getLeaveRequest(leaveRequestId: string): Observable<LeaveRequest> {

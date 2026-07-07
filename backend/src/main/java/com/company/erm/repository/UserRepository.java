@@ -1,5 +1,6 @@
 package com.company.erm.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -55,6 +56,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     long countSearchActiveByOrganizationIdAndQuery(@Param("orgId") UUID orgId, @Param("query") String query);
 
     long countByOrganizationIdAndActiveTrue(UUID organizationId);
+
+    long countByOrganizationId(UUID organizationId);
+
+    @Query("SELECT u FROM User u WHERE u.organization.id = :organizationId AND u.active = true")
+    List<User> findActiveByOrganizationId(@Param("organizationId") UUID organizationId);
 }
 
 

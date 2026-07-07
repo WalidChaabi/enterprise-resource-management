@@ -36,6 +36,12 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
             @Param("query") String query,
             Pageable pageable);
 
+    @Query("SELECT t FROM Task t WHERE t.project.id = :projectId AND t.project.organization.id = :organizationId")
+    Page<Task> findPageByProjectIdAndOrganizationId(
+            @Param("projectId") UUID projectId,
+            @Param("organizationId") UUID organizationId,
+            Pageable pageable);
+
     @Query("SELECT COUNT(t) FROM Task t WHERE t.project.organization.id = :orgId AND " +
            "(LOWER(t.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(COALESCE(t.description, '')) LIKE LOWER(CONCAT('%', :query, '%')))")

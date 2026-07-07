@@ -25,9 +25,14 @@ import java.util.UUID;
  * - Multi-tenant isolation enforced at service layer
  * - Role-based access control via @PreAuthorize
  */
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "Employees", description = "Employee profiles")
 @RestController
 @RequestMapping("/api/v1/organizations/{organizationId}/employees")
-@PreAuthorize("hasAnyRole('HR_ADMIN', 'ORG_ADMIN', 'DEPARTMENT_MANAGER')")
+@PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'HR_ADMIN', 'ORG_ADMIN', 'DEPARTMENT_MANAGER')")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
@@ -46,8 +51,10 @@ public class EmployeeController {
      * @param authentication Current authenticated user
      * @return Created employee with 201 status
      */
+    @Operation(summary = "Create Employee")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping
-    @PreAuthorize("hasAnyRole('HR_ADMIN', 'ORG_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'HR_ADMIN', 'ORG_ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<EmployeeResponseDTO> createEmployee(
             @PathVariable UUID organizationId,
@@ -82,6 +89,8 @@ public class EmployeeController {
      * @param authentication Current authenticated user
      * @return Employee details
      */
+    @Operation(summary = "Get Employee")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping("/{employeeId}")
     public ResponseEntity<EmployeeResponseDTO> getEmployee(
             @PathVariable UUID organizationId,
@@ -111,6 +120,8 @@ public class EmployeeController {
      * @param authentication Current authenticated user
      * @return Updated employee
      */
+    @Operation(summary = "Update Employee")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PutMapping("/{employeeId}")
     public ResponseEntity<EmployeeResponseDTO> updateEmployee(
             @PathVariable UUID organizationId,
@@ -143,6 +154,8 @@ public class EmployeeController {
      * @param authentication Current authenticated user
      * @return Paginated list of employees
      */
+    @Operation(summary = "List Employees")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping
     public ResponseEntity<Page<EmployeeResponseDTO>> listEmployees(
             @PathVariable UUID organizationId,
@@ -173,8 +186,10 @@ public class EmployeeController {
      * @param authentication Current authenticated user
      * @return 204 No Content
      */
+    @Operation(summary = "Deactivate Employee")
+    @ApiResponse(responseCode = "200", description = "Success")
     @DeleteMapping("/{employeeId}")
-    @PreAuthorize("hasAnyRole('HR_ADMIN', 'ORG_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'HR_ADMIN', 'ORG_ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deactivateEmployee(
             @PathVariable UUID organizationId,

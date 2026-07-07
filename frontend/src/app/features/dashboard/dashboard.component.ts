@@ -32,7 +32,6 @@ import {
   CardTitleComponent,
   CardDescriptionComponent,
   CardContentComponent,
-  CardFooterComponent,
 } from '../../shared/components/ui/card/card.component';
 import {
   AlertComponent,
@@ -40,7 +39,6 @@ import {
   AlertDescriptionComponent,
 } from '../../shared/components/ui/alert/alert.component';
 import { BadgeComponent, BadgeVariant } from '../../shared/components/ui/badge/badge.component';
-import { ButtonComponent } from '../../shared/components/ui/button/button.component';
 import { SkeletonComponent } from '../../shared/components/ui/skeleton/skeleton.component';
 import { ChartComponent } from '../../shared/components/chart/chart.component';
 
@@ -51,11 +49,12 @@ interface DashboardAction {
   label: string;
   description: string;
   route: string[];
+  fragment?: string;
   count?: number;
 }
 
 interface MetricCard {
-  title: string;
+  titleKey: string;
   value: string;
   hint: string;
   route: string[];
@@ -80,12 +79,10 @@ interface ActivityItem {
     CardTitleComponent,
     CardDescriptionComponent,
     CardContentComponent,
-    CardFooterComponent,
     AlertComponent,
     AlertTitleComponent,
     AlertDescriptionComponent,
     BadgeComponent,
-    ButtonComponent,
     SkeletonComponent,
     ChartComponent,
   ],
@@ -123,39 +120,40 @@ export class DashboardComponent {
     [AlertType.PROJECT_OVER_BUDGET]: DollarSign,
   };
 
-  private readonly _weeklyHoursChartData: ChartConfiguration['data'] = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        label: 'Hours',
-        data: [8, 7.5, 8.5, 7, 8, 4, 0],
-        backgroundColor: 'hsl(221, 97%, 65%)',
-        borderColor: 'transparent',
-        borderWidth: 0,
-        borderRadius: 6,
-        borderSkipped: false,
-        barThickness: 28,
-      },
-    ],
-  };
-
-  readonly weeklyHoursChartData = computed<ChartConfiguration['data']>(() => this._weeklyHoursChartData);
-
   readonly projectStatusChartData = computed<ChartConfiguration['data']>(() => {
     const dashboard = this.dashboard();
-    const activeProjects = dashboard?.activeProjects || 0;
+    if (!dashboard) {
+      return { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 0 }] };
+    }
+
+    const planning = Math.max(
+      0,
+      dashboard.totalProjects -
+        dashboard.activeProjects -
+        dashboard.completedProjects -
+        dashboard.projectsOnHold
+    );
+
+    const segments = [
+      { label: 'Active', value: dashboard.activeProjects, color: 'hsl(221, 97%, 65%)' },
+      { label: 'Planning', value: planning, color: 'hsl(219, 100%, 78%)' },
+      { label: 'On Hold', value: dashboard.projectsOnHold, color: 'hsl(38, 92%, 50%)' },
+      { label: 'Completed', value: dashboard.completedProjects, color: 'hsl(215, 20%, 65%)' },
+    ].filter((segment) => segment.value > 0);
+
+    if (segments.length === 0) {
+      return {
+        labels: ['No projects'],
+        datasets: [{ data: [1], backgroundColor: ['hsl(220, 43%, 18%)'], borderWidth: 0, spacing: 2 }],
+      };
+    }
 
     return {
-      labels: ['Active', 'Planning', 'On Hold', 'Completed'],
+      labels: segments.map((segment) => segment.label),
       datasets: [
         {
-          data: [activeProjects, 5, 2, 10],
-          backgroundColor: [
-            'hsl(221, 97%, 65%)',
-            'hsl(219, 100%, 78%)',
-            'hsl(38, 92%, 50%)',
-            'hsl(215, 20%, 65%)',
-          ],
+          data: segments.map((segment) => segment.value),
+          backgroundColor: segments.map((segment) => segment.color),
           borderWidth: 0,
           spacing: 2,
         },
@@ -163,33 +161,80 @@ export class DashboardComponent {
     };
   });
 
-  private readonly _barChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      y: {
-        beginAtZero: true,
-        border: { display: false },
-        grid: { color: 'hsl(0 0% 100% / 0.04)', drawTicks: false },
-        ticks: {
-          color: 'hsl(215, 20%, 65%)',
-          font: { size: 11 },
-          padding: 8,
-        },
+  readonly hasProjectChartData = computed(() => (this.dashboard()?.totalProjects ?? 0) > 0);
+
+  readonly weekHoursPercent = computed(() => {
+    const dashboard = this.dashboard();
+    if (!dashboard || dashboard.totalHoursThisMonth <= 0) {
+      return 0;
+    }
+    return Math.min(100, Math.round((dashboard.totalHoursThisWeek / dashboard.totalHoursThisMonth) * 100));
+  });
+
+  readonly capacityWidgets = computed(() => {
+    const data = this.capacity();
+    if (!data) return [];
+    return [
+      {
+        titleKey: 'dashboard.capacity.overallocated',
+        value: String(data.overallocatedEmployees),
+        hintKey: 'dashboard.capacity.overallocatedHint',
+        route: ['/reports', 'capacity'] as string[],
+        icon: Users,
       },
-      x: {
-        border: { display: false },
-        grid: { display: false },
-        ticks: {
-          color: 'hsl(215, 20%, 65%)',
-          font: { size: 11 },
-          padding: 8,
-        },
+      {
+        titleKey: 'dashboard.capacity.available',
+        value: String(data.availableEmployees),
+        hintKey: 'dashboard.capacity.availableHint',
+        route: ['/reports', 'capacity'] as string[],
+        icon: UserX,
       },
-    },
-  };
+      {
+        titleKey: 'dashboard.capacity.onLeave',
+        value: String(data.onLeaveEmployees),
+        hintKey: 'dashboard.capacity.onLeaveHint',
+        route: ['/reports', 'capacity'] as string[],
+        icon: Calendar,
+      },
+    ].filter((widget) => Number(widget.value) > 0);
+  });
+
+  readonly showCapacitySection = computed(
+    () => this.showCapacityWidgets() && this.capacityWidgets().length > 0
+  );
+
+  readonly setupSteps = computed(() => {
+    const dashboard = this.dashboard();
+    if (!dashboard || !this.isLowDataState()) return [];
+
+    const steps: { labelKey: string; done: boolean; route: string[] }[] = [];
+
+    if (dashboard.totalProjects === 0) {
+      steps.push({
+        labelKey: 'dashboard.setup.createProject',
+        done: false,
+        route: ['/projects', 'new'],
+      });
+    }
+
+    if (dashboard.totalEmployees === 0) {
+      steps.push({
+        labelKey: 'dashboard.setup.addEmployees',
+        done: false,
+        route: ['/employees', 'new'],
+      });
+    }
+
+    if (dashboard.totalHoursThisWeek === 0 && dashboard.totalHoursThisMonth === 0) {
+      steps.push({
+        labelKey: 'dashboard.setup.logTime',
+        done: false,
+        route: ['/time-entries'],
+      });
+    }
+
+    return steps;
+  });
 
   private readonly _doughnutChartOptions: ChartOptions<'doughnut'> = {
     responsive: true,
@@ -202,7 +247,7 @@ export class DashboardComponent {
         labels: {
           usePointStyle: true,
           pointStyle: 'circle',
-          padding: 20,
+          padding: 12,
           color: 'hsl(215, 20%, 65%)',
           font: { size: 12 },
           boxWidth: 8,
@@ -212,7 +257,6 @@ export class DashboardComponent {
     },
   };
 
-  readonly barChartOptions = computed((): ChartConfiguration['options'] => this._barChartOptions);
   readonly doughnutChartOptions = computed(
     (): ChartConfiguration['options'] => this._doughnutChartOptions as ChartConfiguration['options']
   );
@@ -223,41 +267,13 @@ export class DashboardComponent {
       this.authService.hasAnyRole(ROLES.ORG_ADMIN, ROLES.PROJECT_MANAGER, ROLES.HR_ADMIN)
   );
 
-  readonly capacityWidgets = computed(() => {
-    const data = this.capacity();
-    if (!data) return [];
-    return [
-      {
-        title: 'Overallocated',
-        value: String(data.overallocatedEmployees),
-        hint: 'Employees above 110% utilization',
-        route: ['/reports', 'capacity'] as string[],
-        icon: Users,
-      },
-      {
-        title: 'Available',
-        value: String(data.availableEmployees),
-        hint: 'On bench with no project hours',
-        route: ['/reports', 'capacity'] as string[],
-        icon: UserX,
-      },
-      {
-        title: 'On leave',
-        value: String(data.onLeaveEmployees),
-        hint: 'Approved leave this week',
-        route: ['/reports', 'capacity'] as string[],
-        icon: Calendar,
-      },
-    ];
-  });
-
   readonly metricCards = computed<MetricCard[]>(() => {
     const d = this.dashboard();
     if (!d) return [];
 
     return [
       {
-        title: 'Active Projects',
+        titleKey: 'dashboard.metrics.activeProjects',
         value: String(d.activeProjects),
         hint:
           d.activeProjects === 0 && d.totalProjects === 0
@@ -269,7 +285,7 @@ export class DashboardComponent {
         icon: FolderKanban,
       },
       {
-        title: 'Active Employees',
+        titleKey: 'dashboard.metrics.activeEmployees',
         value: String(d.activeEmployees),
         hint:
           d.activeEmployees === 0 && d.totalEmployees === 0
@@ -281,17 +297,17 @@ export class DashboardComponent {
         icon: Users,
       },
       {
-        title: 'Hours This Week',
-        value: String(d.totalHoursThisWeek),
+        titleKey: 'dashboard.metrics.hoursThisWeek',
+        value: `${d.totalHoursThisWeek}h`,
         hint:
           d.totalHoursThisWeek === 0 && d.totalHoursThisMonth === 0
             ? 'No time entries recorded yet'
             : `${d.totalHoursThisMonth}h this month`,
-        route: ['/reports'],
+        route: ['/time-entries'],
         icon: Clock,
       },
       {
-        title: 'Pending Leave',
+        titleKey: 'dashboard.metrics.pendingLeave',
         value: String(d.pendingLeaveRequests),
         hint: d.pendingLeaveRequests === 0 ? 'All requests processed' : 'Requires attention',
         route: ['/leave-requests'],
@@ -305,17 +321,6 @@ export class DashboardComponent {
     if (!dashboard) return [];
 
     const actions: DashboardAction[] = [];
-
-    const highAlerts = dashboard.alerts?.filter((a) => a.severity === 'HIGH') || [];
-    if (highAlerts.length > 0) {
-      actions.push({
-        priority: 'high',
-        label: `Review ${highAlerts.length} critical ${highAlerts.length === 1 ? 'alert' : 'alerts'}`,
-        description: 'Immediate attention required',
-        route: ['/dashboard'],
-        count: highAlerts.length,
-      });
-    }
 
     if (dashboard.pendingLeaveRequests > 0) {
       actions.push({
@@ -334,17 +339,6 @@ export class DashboardComponent {
         description: 'Pending approval',
         route: ['/time-entries'],
         count: dashboard.pendingTimeEntries,
-      });
-    }
-
-    const mediumAlerts = dashboard.alerts?.filter((a) => a.severity === 'MEDIUM') || [];
-    if (mediumAlerts.length > 0) {
-      actions.push({
-        priority: 'medium',
-        label: `Review ${mediumAlerts.length} ${mediumAlerts.length === 1 ? 'alert' : 'alerts'}`,
-        description: 'Needs attention soon',
-        route: ['/dashboard'],
-        count: mediumAlerts.length,
       });
     }
 

@@ -20,6 +20,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.company.erm.config.OAuth2SecurityCustomizer;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -32,7 +34,13 @@ public class SecurityConfig {
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
+    private OrganizationContextFilter organizationContextFilter;
+
+    @Autowired
     private LoginRateLimitFilter loginRateLimitFilter;
+
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @org.springframework.beans.factory.annotation.Value("${cors.allowed-origins}")
     private List<String> allowedOrigins;
@@ -75,6 +83,9 @@ public class SecurityConfig {
         return swaggerApiDocsEnabled && !Arrays.asList(environment.getActiveProfiles()).contains("prod");
     }
 
+    @Autowired(required = false)
+    private OAuth2SecurityCustomizer.OAuth2LoginConfigurer oauth2LoginConfigurer;
+
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
@@ -85,6 +96,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/auth/**").permitAll();
+                    if (oauth2LoginConfigurer != null) {
+                        oauth2LoginConfigurer.permitOAuthEndpoints(auth);
+                    }
                     auth.requestMatchers("/webhooks/stripe").permitAll();
                     if (isSwaggerEnabled()) {
                         auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll();
@@ -95,13 +109,14 @@ public class SecurityConfig {
                     auth.anyRequest().authenticated();
                 })
                 .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(401);
-                            response.setContentType("application/json");
-                            response.getWriter()
-                                    .write("{\"code\":\"UNAUTHORIZED\",\"details\":[\"Authentication required\"]}");
-                        }))
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                ;
+        if (oauth2LoginConfigurer != null) {
+            oauth2LoginConfigurer.apply(http);
+        }
+        http
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(organizationContextFilter, JwtAuthenticationFilter.class)
                 .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(requestCorrelationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

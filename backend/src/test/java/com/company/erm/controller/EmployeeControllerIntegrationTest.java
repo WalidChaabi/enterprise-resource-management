@@ -5,6 +5,7 @@ import com.company.erm.entity.Organization;
 import com.company.erm.entity.Role;
 import com.company.erm.entity.User;
 import com.company.erm.entity.UserRole;
+import com.company.erm.entity.UserRoleId;
 import com.company.erm.repository.DepartmentRepository;
 import com.company.erm.repository.OrganizationRepository;
 import com.company.erm.repository.RoleRepository;
@@ -196,6 +197,42 @@ class EmployeeControllerIntegrationTest {
         mockMvc.perform(get("/api/v1/organizations/{organizationId}/employees/{employeeId}", organization.getId(), nonExistentId)
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/organizations/{orgId}/employees should return 403 for another organization")
+    void listEmployees_shouldReturn403_whenUserHasNoMembershipInTargetOrg() throws Exception {
+        Organization otherOrganization = TestDataFactory.createOrganization(
+                UUID.randomUUID(), "Other Organization", "TEST-OTHER");
+        organizationRepository.save(otherOrganization);
+
+        mockMvc.perform(get("/api/v1/organizations/{organizationId}/employees", otherOrganization.getId())
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/organizations/{orgId}/employees should return 403 when JWT org differs even with membership")
+    void listEmployees_shouldReturn403_whenJwtOrganizationDoesNotMatchPath() throws Exception {
+        Organization otherOrganization = TestDataFactory.createOrganization(
+                UUID.randomUUID(), "Other Organization", "TEST-OTHER-2");
+        organizationRepository.save(otherOrganization);
+
+        Role otherOrgHrRole = TestDataFactory.createRole(otherOrganization, "HR_ADMIN", "HR Administrator");
+        roleRepository.save(otherOrgHrRole);
+
+        UserRole crossOrgAssignment = new UserRole();
+        crossOrgAssignment.setId(new UserRoleId(
+                adminUser.getId(), otherOrgHrRole.getId(), otherOrganization.getId()));
+        crossOrgAssignment.setUser(adminUser);
+        crossOrgAssignment.setRole(otherOrgHrRole);
+        crossOrgAssignment.setOrganization(otherOrganization);
+        userRoleRepository.save(crossOrgAssignment);
+
+        mockMvc.perform(get("/api/v1/organizations/{organizationId}/employees", otherOrganization.getId())
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("ORG_ACCESS_DENIED"));
     }
 
     @Test

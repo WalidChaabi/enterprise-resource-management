@@ -31,8 +31,10 @@ jobs:
       - name: Build with Maven
         run: ./mvnw clean package -DskipTests
       
-      - name: Run tests
-        run: ./mvnw test
+      - name: Run tests and coverage gate
+        run: ./mvnw verify
+        env:
+          ERM_ENCRYPTION_KEY: ci-test-encryption-key-minimum-32-characters
       
       - name: OWASP Dependency-Check
         timeout-minutes: 25
@@ -85,7 +87,6 @@ jobs:
       
       - name: npm audit (high severity)
         run: npm audit --audit-level=high
-        continue-on-error: true
       
       - name: Build
         run: npm run build -- --configuration=production
@@ -122,6 +123,7 @@ jobs:
           POSTGRES_USER=erm_user
           POSTGRES_PASSWORD=ci_smoke_pass
           JWT_SECRET=ci-smoke-jwt-secret-minimum-32-chars
+          ERM_ENCRYPTION_KEY=ci-smoke-encryption-key-minimum-32-chars
           JWT_EXPIRATION=86400000
           ERM_DEMO_DATA_ENABLED=true
           CORS_ALLOWED_ORIGINS=http://localhost:4200

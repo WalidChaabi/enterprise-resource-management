@@ -1,35 +1,41 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { SettingsService } from '../../../core/services/settings.service';
 import { ProfileSettings, ProfileSettingsUpdate } from '../../../core/models/settings.model';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
-import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
-import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
+import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, CardFooterComponent } from '../../../shared/components/ui/card/card.component';
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
+import { InputComponent } from '../../../shared/components/ui/input/input.component';
+import { ToastService } from '../../../shared/components/ui/toast/toast.service';
+import {
+  SettingsPageLayoutComponent,
+  SettingsFieldComponent,
+  SettingsFormActionsComponent,
+} from '../components';
 
 @Component({
     selector: 'app-profile-settings',
     imports: [
         CommonModule,
         ReactiveFormsModule,
+        FormsModule,
         TranslatePipe,
-        ButtonComponent,
         CardComponent,
         CardHeaderComponent,
         CardTitleComponent,
         CardContentComponent,
-        AlertComponent
+        CardFooterComponent,
+        AlertComponent,
+        InputComponent,
+        SettingsPageLayoutComponent,
+        SettingsFieldComponent,
+        SettingsFormActionsComponent,
     ],
     template: `
-    <div class="mt-6 space-y-6">
-      <div>
-        <h2 class="text-xl font-semibold text-foreground">Profile Settings</h2>
-        <p class="text-sm text-muted-foreground">Update your personal information and preferences.</p>
-      </div>
-
+    <app-settings-page-layout>
       @if (error()) {
-        <app-alert variant="destructive">{{ error() }}</app-alert>
+        <app-alert variant="destructive" role="alert">{{ error() }}</app-alert>
       }
 
       @if (loading()) {
@@ -40,72 +46,56 @@ import { AlertComponent } from '../../../shared/components/ui/alert/alert.compon
         <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
           <app-card>
             <app-card-header>
-              <app-card-title>Personal Information</app-card-title>
+              <app-card-title>{{ 'settings.profile.personalInfoTitle' | translate }}</app-card-title>
             </app-card-header>
             <app-card-content class="space-y-4">
-              <div>
-                <label class="text-sm font-medium text-foreground">Email</label>
-                <input
+              <app-settings-field
+                labelKey="settings.profile.email"
+                hintKey="settings.profile.emailHint">
+                <app-input
                   type="email"
-                  [value]="profile()?.email"
-                  disabled
-                  class="mt-1 flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">
-                <p class="mt-1 text-xs text-muted-foreground">Email cannot be changed. Contact support if needed.</p>
-              </div>
+                  [disabled]="true"
+                  [ngModel]="profile()?.email ?? ''"
+                  [ngModelOptions]="{ standalone: true }"
+                  class="bg-muted text-muted-foreground" />
+              </app-settings-field>
 
               <div class="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label for="firstName" class="text-sm font-medium text-foreground">First Name</label>
-                  <input
-                    id="firstName"
-                    type="text"
-                    formControlName="firstName"
-                    class="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                <app-settings-field
+                  labelKey="settings.profile.firstName"
+                  forId="firstName">
+                  <app-input id="firstName" formControlName="firstName" />
                   @if (profileForm.get('firstName')?.hasError('required') && profileForm.get('firstName')?.touched) {
-                    <p class="mt-1 text-xs text-destructive">First name is required.</p>
+                    <p class="text-xs text-destructive">{{ 'settings.profile.firstNameRequired' | translate }}</p>
                   }
-                </div>
+                </app-settings-field>
 
-                <div>
-                  <label for="lastName" class="text-sm font-medium text-foreground">Last Name</label>
-                  <input
-                    id="lastName"
-                    type="text"
-                    formControlName="lastName"
-                    class="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                <app-settings-field
+                  labelKey="settings.profile.lastName"
+                  forId="lastName">
+                  <app-input id="lastName" formControlName="lastName" />
                   @if (profileForm.get('lastName')?.hasError('required') && profileForm.get('lastName')?.touched) {
-                    <p class="mt-1 text-xs text-destructive">Last name is required.</p>
+                    <p class="text-xs text-destructive">{{ 'settings.profile.lastNameRequired' | translate }}</p>
                   }
-                </div>
-              </div>
-
-              <div class="flex justify-end gap-2 pt-4">
-                <button
-                  type="button"
-                  class="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
-                  (click)="resetForm()">
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  [disabled]="profileForm.invalid || saving()"
-                  class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50">
-                  @if (saving()) {
-                    <span class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
-                  }
-                  Save Changes
-                </button>
+                </app-settings-field>
               </div>
             </app-card-content>
+            <app-card-footer class="justify-end">
+              <app-settings-form-actions
+                [saving]="saving()"
+                [disabled]="profileForm.invalid"
+                (cancelled)="resetForm()" />
+            </app-card-footer>
           </app-card>
         </form>
       }
-    </div>
+    </app-settings-page-layout>
   `
 })
 export class ProfileSettingsComponent implements OnInit {
   private readonly settingsService = inject(SettingsService);
   private readonly fb = inject(FormBuilder);
+  private readonly toastService = inject(ToastService);
 
   readonly loading = signal(false);
   readonly saving = signal(false);
@@ -158,6 +148,7 @@ export class ProfileSettingsComponent implements OnInit {
       next: (updated) => {
         this.profile.set(updated);
         this.saving.set(false);
+        this.toastService.successI18n('settings.toast.profileSaved', 'settings.toast.profileSavedDescription');
       },
       error: (err) => {
         this.error.set(err.details?.[0] || 'Failed to update profile');

@@ -11,6 +11,7 @@ import { ButtonComponent } from '../../../shared/components/ui/button/button.com
 import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
 import { InputComponent } from '../../../shared/components/ui/input/input.component';
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
+import { getFieldErrorKey } from '../../../shared/utils/form-errors';
 
 @Component({
     selector: 'app-employee-form',
@@ -229,12 +230,8 @@ export class EmployeeFormComponent implements OnInit {
   }
 
   getFieldError(fieldName: string): string {
-    const field = this.form.get(fieldName);
-    if (field?.errors && field.touched) {
-      if (field.errors['required']) {
-        return `${fieldName} is required`;
-      }
-    }
-    return '';
+    return getFieldErrorKey(this.form.get(fieldName), {
+      required: `employees.form.errors.${fieldName}Required`,
+    });
   }
 }

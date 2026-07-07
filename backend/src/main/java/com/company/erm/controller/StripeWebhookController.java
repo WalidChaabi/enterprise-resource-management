@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.company.erm.service.StripeBillingService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "Stripe Webhooks", description = "Stripe billing event receiver")
 @RestController
 @RequestMapping("/webhooks/stripe")
 public class StripeWebhookController {
@@ -19,6 +24,8 @@ public class StripeWebhookController {
         this.stripeBillingService = stripeBillingService;
     }
 
+    @Operation(summary = "Handle Stripe Webhook")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping
     public ResponseEntity<Void> handleStripeWebhook(
             @RequestBody String payload,

@@ -5,9 +5,15 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { SettingsService } from '../../../core/services/settings.service';
 import { NotificationPreferences, NotificationPreferencesUpdate } from '../../../core/models/settings.model';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
-import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
-import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
+import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, CardFooterComponent } from '../../../shared/components/ui/card/card.component';
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
+import { ToastService } from '../../../shared/components/ui/toast/toast.service';
+import {
+  SettingsPageLayoutComponent,
+  SettingsRowComponent,
+  SettingsFormActionsComponent,
+} from '../components';
+import { SwitchComponent } from '../../../shared/components/ui/switch/switch.component';
 
 @Component({
     selector: 'app-notification-preferences',
@@ -16,22 +22,21 @@ import { AlertComponent } from '../../../shared/components/ui/alert/alert.compon
         ReactiveFormsModule,
         TranslatePipe,
         LucideAngularModule,
-        ButtonComponent,
         CardComponent,
         CardHeaderComponent,
         CardTitleComponent,
         CardContentComponent,
-        AlertComponent
+        CardFooterComponent,
+        AlertComponent,
+        SettingsPageLayoutComponent,
+        SettingsRowComponent,
+        SettingsFormActionsComponent,
+        SwitchComponent,
     ],
     template: `
-    <div class="mt-6 space-y-6">
-      <div>
-        <h2 class="text-xl font-semibold text-foreground">{{ 'settings.notifications.title' | translate }}</h2>
-        <p class="text-sm text-muted-foreground">{{ 'settings.notifications.subtitle' | translate }}</p>
-      </div>
-
+    <app-settings-page-layout>
       @if (error()) {
-        <app-alert variant="destructive">{{ error() }}</app-alert>
+        <app-alert variant="destructive" role="alert">{{ error() }}</app-alert>
       }
 
       @if (loading()) {
@@ -45,56 +50,33 @@ import { AlertComponent } from '../../../shared/components/ui/alert/alert.compon
               <app-card-title>{{ 'settings.notifications.channels' | translate }}</app-card-title>
             </app-card-header>
             <app-card-content class="space-y-4">
-              <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-4">
-                <div class="flex-1 pr-4">
-                  <label class="text-sm font-medium text-foreground">{{ 'settings.notifications.emailEnabled' | translate }}</label>
-                  <p class="text-xs text-muted-foreground mt-0.5">{{ 'settings.notifications.emailEnabledHint' | translate }}</p>
-                </div>
-                <label class="relative inline-flex cursor-pointer items-center">
-                  <input type="checkbox" formControlName="emailEnabled" class="peer sr-only">
-                  <div class="peer h-6 w-11 rounded-full bg-muted transition-colors peer-checked:bg-primary">
-                    <div class="absolute left-[2px] top-[2px] h-5 w-5 rounded-full bg-background shadow-sm transition-transform peer-checked:translate-x-5"></div>
-                  </div>
-                </label>
-              </div>
+              <app-settings-row
+                labelKey="settings.notifications.emailEnabled"
+                descriptionKey="settings.notifications.emailEnabledHint">
+                <app-switch formControlName="emailEnabled" />
+              </app-settings-row>
 
-              <div class="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-4">
-                <div class="flex-1 pr-4">
-                  <label class="text-sm font-medium text-foreground">{{ 'settings.notifications.inAppEnabled' | translate }}</label>
-                  <p class="text-xs text-muted-foreground mt-0.5">{{ 'settings.notifications.inAppEnabledHint' | translate }}</p>
-                </div>
-                <label class="relative inline-flex cursor-pointer items-center">
-                  <input type="checkbox" formControlName="inAppEnabled" class="peer sr-only">
-                  <div class="peer h-6 w-11 rounded-full bg-muted transition-colors peer-checked:bg-primary">
-                    <div class="absolute left-[2px] top-[2px] h-5 w-5 rounded-full bg-background shadow-sm transition-transform peer-checked:translate-x-5"></div>
-                  </div>
-                </label>
-              </div>
+              <app-settings-row
+                labelKey="settings.notifications.inAppEnabled"
+                descriptionKey="settings.notifications.inAppEnabledHint">
+                <app-switch formControlName="inAppEnabled" />
+              </app-settings-row>
             </app-card-content>
+            <app-card-footer class="justify-end">
+              <app-settings-form-actions
+                [saving]="saving()"
+                (cancelled)="resetForm()" />
+            </app-card-footer>
           </app-card>
-
-          <div class="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              class="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-6 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
-              (click)="resetForm()">
-              {{ 'common.cancel' | translate }}
-            </button>
-            <app-button type="submit" [disabled]="saving()">
-              @if (saving()) {
-                <lucide-icon name="loader-2" [size]="16" class="animate-spin mr-2" />
-              }
-              {{ 'common.save' | translate }}
-            </app-button>
-          </div>
         </form>
       }
-    </div>
+    </app-settings-page-layout>
   `
 })
 export class NotificationPreferencesComponent implements OnInit {
   private readonly settingsService = inject(SettingsService);
   private readonly fb = inject(FormBuilder);
+  private readonly toastService = inject(ToastService);
 
   readonly loading = signal(false);
   readonly saving = signal(false);
@@ -143,6 +125,7 @@ export class NotificationPreferencesComponent implements OnInit {
       next: (updated) => {
         this.preferences.set(updated);
         this.saving.set(false);
+        this.toastService.successI18n('settings.toast.notificationsSaved', 'settings.toast.notificationsSavedDescription');
       },
       error: (err) => {
         this.error.set(err.details?.[0] || 'Failed to update notification preferences');

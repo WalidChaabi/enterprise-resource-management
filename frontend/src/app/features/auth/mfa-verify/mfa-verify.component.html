@@ -1,0 +1,30 @@
+<div class="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+  <app-card class="w-full max-w-md shadow-lg">
+    <app-card-header class="text-center">
+      <app-card-title>{{ 'auth.mfa.title' | translate }}</app-card-title>
+      <app-card-description>{{ 'auth.mfa.subtitle' | translate }}</app-card-description>
+    </app-card-header>
+    <app-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+        <div class="space-y-2">
+          <label for="code" class="text-sm font-medium">{{ 'auth.mfa.code' | translate }}</label>
+          <input
+            id="code"
+            formControlName="code"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            class="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm tracking-widest"
+            [placeholder]="'auth.mfa.codePlaceholder' | translate" />
+        </div>
+
+        @if (errorMessage()) {
+          <p class="text-sm text-destructive">{{ errorMessage() | translate }}</p>
+        }
+
+        <app-button type="submit" class="w-full" [disabled]="loading() || form.invalid">
+          {{ 'auth.mfa.verify' | translate }}
+        </app-button>
+      </form>
+    </app-card-content>
+  </app-card>
+</div>

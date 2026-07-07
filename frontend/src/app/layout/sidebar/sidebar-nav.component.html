@@ -34,21 +34,41 @@
                   [routerLink]="item.route"
                   routerLinkActive
                   #rla="routerLinkActive"
-                  [routerLinkActiveOptions]="item.route[0] === '/dashboard' ? { exact: true } : { exact: false }"
+                  [routerLinkActiveOptions]="item.exactMatch || item.route[0] === '/dashboard' ? { exact: true } : { exact: false }"
                   [class]="navItemClass(rla.isActive, isCollapsed() && !sidebar.isMobile())"
                   (click)="handleNavigate()"
-                  [attr.aria-label]="isCollapsed() && !sidebar.isMobile() ? (item.label | translate) : undefined"
-                  [title]="isCollapsed() && !sidebar.isMobile() ? (item.label | translate) : undefined">
-                  <lucide-icon [img]="item.icon" [size]="16" class="shrink-0" />
+                  [attr.aria-label]="linkTitle(item.label, item.indicator)"
+                  [title]="linkTitle(item.label, item.indicator)">
+                  <span class="relative shrink-0">
+                    <lucide-icon [img]="item.icon" [size]="16" class="shrink-0" />
+                    @if (showIndicator(item.indicator) && isCollapsed() && !sidebar.isMobile()) {
+                      <span
+                        class="absolute -right-0.5 -top-0.5 size-2 rounded-full"
+                        [class]="dotClass(item.indicator)"
+                        [attr.aria-hidden]="true"></span>
+                    }
+                  </span>
                   @if (!isCollapsed() || sidebar.isMobile()) {
                     <span class="flex-1 truncate">{{ item.label | translate }}</span>
                   }
-                  @if (item.indicator && item.indicator.count > 0 && (!isCollapsed() || sidebar.isMobile())) {
-                    <span
-                      class="ml-auto shrink-0 rounded px-1.5 py-0.5 text-xs font-medium"
-                      [class]="badgeClass(item.indicator.priority)">
-                      {{ item.indicator.count > 99 ? '99+' : item.indicator.count }}
-                    </span>
+                  @if (showIndicator(item.indicator) && (!isCollapsed() || sidebar.isMobile())) {
+                    @if (item.indicator.kind === 'approval') {
+                      <span
+                        class="ml-auto shrink-0 rounded px-1.5 py-0.5 text-xs font-medium tabular-nums"
+                        [class]="badgeClass(item.indicator)"
+                        [attr.title]="indicatorTooltip(item.indicator)"
+                        [attr.aria-label]="indicatorTooltip(item.indicator)">
+                        {{ item.indicator.count > 99 ? '99+' : item.indicator.count }}
+                      </span>
+                    } @else {
+                      <span
+                        class="ml-auto flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold"
+                        [class]="badgeClass(item.indicator)"
+                        [attr.title]="indicatorTooltip(item.indicator)"
+                        [attr.aria-label]="indicatorTooltip(item.indicator)">
+                        !
+                      </span>
+                    }
                   }
                 </a>
               </app-sidebar-menu-item>

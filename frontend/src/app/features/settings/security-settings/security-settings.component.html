@@ -1,0 +1,133 @@
+<app-settings-page-layout>
+  @if (loading()) {
+    <p class="settings-description">{{ 'common.loading' | translate }}</p>
+  } @else {
+    @if (error()) {
+      <app-alert variant="destructive" role="alert">{{ error() | translate }}</app-alert>
+    }
+
+    <div class="flex flex-col gap-6" [class.pb-28]="orgSettingsDirty() && isOrgAdmin()">
+      @if (isOrgAdmin()) {
+        <form [formGroup]="orgSettingsForm" (ngSubmit)="saveOrgSettings()">
+          <div class="flex flex-col gap-6">
+            <app-settings-card
+              titleKey="settings.security.authTitle"
+              descriptionKey="settings.security.authDescription"
+              icon="shield">
+              @if (!hasConfiguredSsoProviders()) {
+                <app-settings-info-callout
+                  titleKey="settings.security.ssoNotConfiguredTitle"
+                  descriptionKey="settings.security.ssoNotConfiguredDescription" />
+              }
+
+              <app-settings-item
+                labelKey="settings.security.ssoEnabled"
+                descriptionKey="settings.security.ssoEnabledHint">
+                <app-switch formControlName="ssoEnabled" [ariaLabel]="'settings.security.ssoEnabled' | translate" />
+              </app-settings-item>
+
+              <app-settings-item labelKey="settings.security.ssoProvider">
+                <app-form-select
+                  id="ssoProviderSelect"
+                  formControlName="ssoProvider"
+                  [options]="ssoProviderOptions()"
+                  class="min-w-[11rem]" />
+              </app-settings-item>
+            </app-settings-card>
+
+            <app-settings-card
+              titleKey="settings.security.mfaPolicyTitle"
+              descriptionKey="settings.security.mfaPolicyDescription"
+              icon="key-round">
+              <app-settings-item
+                labelKey="settings.security.requireMfa"
+                descriptionKey="settings.security.requireMfaHint">
+                <app-switch formControlName="requireMfa" [ariaLabel]="'settings.security.requireMfa' | translate" />
+              </app-settings-item>
+            </app-settings-card>
+          </div>
+
+          <app-settings-action-bar
+            [visible]="orgSettingsDirty()"
+            [saving]="saving()"
+            (cancelled)="resetOrgSettings()"
+            (save)="saveOrgSettings()" />
+        </form>
+      } @else {
+        <app-settings-card titleKey="settings.security.orgTitle" [divided]="false">
+          <p class="settings-description py-1">{{ 'settings.security.orgAdminOnly' | translate }}</p>
+        </app-settings-card>
+      }
+
+      <app-settings-card
+        titleKey="settings.security.mfaTitle"
+        descriptionKey="settings.security.mfaDescription"
+        icon="smartphone"
+        [divided]="false">
+        <div class="space-y-5">
+          <app-settings-item labelKey="settings.security.mfaStatus">
+            <div class="flex flex-wrap items-center justify-end gap-2">
+              <app-badge [variant]="userMfaEnabled() ? 'default' : 'secondary'">
+                {{ userMfaEnabled() ? ('common.enabled' | translate) : ('common.disabled' | translate) }}
+              </app-badge>
+              @if (userMfaEnabled()) {
+                <span class="settings-description text-xs">
+                  {{ unusedBackupCodes() }} {{ 'settings.security.backupCodesRemaining' | translate }}
+                </span>
+              }
+            </div>
+          </app-settings-item>
+
+          @if (!userMfaEnabled()) {
+            @if (!setupSecret()) {
+              <app-button variant="outline" (click)="beginMfaSetup()">
+                {{ 'settings.security.enableMfa' | translate }}
+              </app-button>
+            } @else {
+              <div class="space-y-4 rounded-lg border border-border/60 bg-muted/10 p-4">
+                <p class="settings-description">{{ 'settings.security.scanQr' | translate }}</p>
+                <a [href]="qrUri()" target="_blank" rel="noopener" class="break-all text-xs text-primary hover:underline">
+                  {{ qrUri() }}
+                </a>
+                <app-settings-field
+                  labelKey="auth.mfa.code"
+                  forId="mfaVerificationCode">
+                  <app-input
+                    id="mfaVerificationCode"
+                    type="text"
+                    [placeholder]="'auth.mfa.codePlaceholder' | translate"
+                    class="tracking-widest"
+                    [ngModel]="verificationCode()"
+                    (ngModelChange)="verificationCode.set($event)" />
+                </app-settings-field>
+                <app-button (click)="confirmMfaSetup()" [disabled]="!verificationCode()">
+                  {{ 'settings.security.confirmMfa' | translate }}
+                </app-button>
+              </div>
+            }
+          } @else {
+            <div class="flex flex-wrap gap-2">
+              <app-button variant="outline" (click)="regenerateCodes()">
+                {{ 'settings.security.regenerateBackupCodes' | translate }}
+              </app-button>
+              <app-button variant="destructive" (click)="disableMfa()">
+                {{ 'settings.security.disableMfa' | translate }}
+              </app-button>
+            </div>
+          }
+
+          @if (backupCodes().length) {
+            <div class="rounded-lg border border-primary/20 bg-primary/5 p-4" role="status" aria-live="polite">
+              <p class="text-sm font-medium text-foreground">{{ 'settings.security.backupCodesTitle' | translate }}</p>
+              <div class="mt-3 grid grid-cols-2 gap-2 font-mono text-sm">
+                @for (code of backupCodes(); track code) {
+                  <span>{{ code }}</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </app-settings-card>
+    </div>
+  }
+</app-settings-page-layout>

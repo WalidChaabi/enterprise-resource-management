@@ -33,6 +33,11 @@ import java.util.stream.Collectors;
  * 
  * Permissions: All authenticated users (with entity-specific restrictions)
  */
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "Search", description = "Global search and CSV export")
 @RestController
 @RequestMapping("/api/v1/organizations/{organizationId}/search")
 public class SearchController {
@@ -60,8 +65,10 @@ public class SearchController {
      * @param authentication Current authenticated user
      * @return Search results with pagination
      */
+    @Operation(summary = "Search")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("@organizationSecurity.hasOrgAccess(#organizationId)")
     public ResponseEntity<SearchResultDTO> search(
             @PathVariable UUID organizationId,
             @RequestParam String query,
@@ -108,8 +115,10 @@ public class SearchController {
      * @param authentication Current authenticated user
      * @return CSV file download
      */
+    @Operation(summary = "Export To CSV")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping("/export/csv")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("@organizationSecurity.hasOrgAccess(#organizationId)")
     public ResponseEntity<byte[]> exportToCSV(
             @PathVariable UUID organizationId,
             @RequestParam String query,
@@ -165,8 +174,10 @@ public class SearchController {
      * @param authentication Current authenticated user
      * @return PDF file download
      */
+    @Operation(summary = "Export To PDF")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping("/export/pdf")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("@organizationSecurity.hasOrgAccess(#organizationId)")
     public ResponseEntity<byte[]> exportToPDF(
             @PathVariable UUID organizationId,
             @RequestParam String query,

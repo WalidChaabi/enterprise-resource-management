@@ -17,6 +17,11 @@ import com.company.erm.dto.privacy.ErasureProcessRequestDTO;
 import com.company.erm.dto.privacy.ErasureRequestResponseDTO;
 import com.company.erm.service.UserPrivacyService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "Organization Privacy", description = "Org-level privacy and data export")
 @RestController
 @RequestMapping("/api/v1/organizations/{organizationId}/privacy")
 @PreAuthorize("isAuthenticated()")
@@ -28,8 +33,10 @@ public class OrganizationPrivacyController {
         this.userPrivacyService = userPrivacyService;
     }
 
+    @Operation(summary = "List Pending Erasure Requests")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping("/erasure-requests")
-    @PreAuthorize("hasRole('ORG_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN')")
     public ResponseEntity<List<ErasureRequestResponseDTO>> listPendingErasureRequests(
             @PathVariable UUID organizationId,
             Authentication authentication) {
@@ -37,8 +44,10 @@ public class OrganizationPrivacyController {
                 userPrivacyService.listPendingErasureRequests(organizationId, authentication.getName()));
     }
 
+    @Operation(summary = "Approve Erasure Request")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping("/erasure-requests/{requestId}/approve")
-    @PreAuthorize("hasRole('ORG_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN')")
     public ResponseEntity<ErasureRequestResponseDTO> approveErasureRequest(
             @PathVariable UUID organizationId,
             @PathVariable UUID requestId,
@@ -49,8 +58,10 @@ public class OrganizationPrivacyController {
                 organizationId, requestId, authentication.getName(), notes));
     }
 
+    @Operation(summary = "Reject Erasure Request")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping("/erasure-requests/{requestId}/reject")
-    @PreAuthorize("hasRole('ORG_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN')")
     public ResponseEntity<ErasureRequestResponseDTO> rejectErasureRequest(
             @PathVariable UUID organizationId,
             @PathVariable UUID requestId,
@@ -61,8 +72,10 @@ public class OrganizationPrivacyController {
                 organizationId, requestId, authentication.getName(), notes));
     }
 
+    @Operation(summary = "Process Employee Erasure")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping("/users/{userId}/erasure")
-    @PreAuthorize("hasAnyRole('ORG_ADMIN', 'HR_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN', 'HR_ADMIN')")
     public ResponseEntity<ErasureRequestResponseDTO> processEmployeeErasure(
             @PathVariable UUID organizationId,
             @PathVariable UUID userId,

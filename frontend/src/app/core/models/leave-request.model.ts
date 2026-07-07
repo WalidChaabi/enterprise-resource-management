@@ -9,6 +9,8 @@ export enum LeaveRequestStatus {
   CANCELLED = 'CANCELLED'
 }
 
+export type LeaveRequestStatusFilter = 'ALL' | LeaveRequestStatus;
+
 export enum LeaveType {
   VACATION = 'VACATION',
   SICK = 'SICK',

@@ -5,7 +5,6 @@ import {
   computed,
   input,
   output,
-  signal,
   viewChild,
 } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
@@ -13,40 +12,29 @@ import { RouterModule } from '@angular/router';
 import {
   CellContext,
   ColumnDef,
-  ColumnFiltersState,
   HeaderContext,
   SortingState,
-  VisibilityState,
-  createAngularTable,
-  FlexRenderDirective,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
 } from '@tanstack/angular-table';
-import { FormsModule } from '@angular/forms';
 import { Project, ProjectStatus } from '@/core/models/project.model';
 import { TranslatePipe } from '@/core/pipes/translate.pipe';
 import { BadgeComponent, BadgeVariant } from '@/shared/components/ui/badge/badge.component';
 import { DataTableColumnHeaderComponent } from '@/shared/components/data-table/data-table-column-header.component';
-import { DataTablePaginationComponent } from '@/shared/components/data-table/data-table-pagination.component';
-import { DataTableViewOptionsComponent } from '@/shared/components/data-table/data-table-view-options.component';
+import { EntityDataTableComponent } from '@/shared/components/entity-data-table/entity-data-table.component';
+import { createEntityTableState } from '@/shared/components/entity-data-table/entity-table-state';
 import { ProjectRowActionsComponent } from './project-row-actions.component';
+import { ProjectStatusFilter } from './project-list.component';
 
 @Component({
   selector: 'app-project-data-table',
   imports: [
     CommonModule,
     RouterModule,
-    FormsModule,
-    FlexRenderDirective,
     TranslatePipe,
     CurrencyPipe,
     DatePipe,
     BadgeComponent,
+    EntityDataTableComponent,
     DataTableColumnHeaderComponent,
-    DataTablePaginationComponent,
-    DataTableViewOptionsComponent,
     ProjectRowActionsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,9 +42,8 @@ import { ProjectRowActionsComponent } from './project-row-actions.component';
 })
 export class ProjectDataTableComponent {
   readonly data = input.required<Project[]>();
-  readonly canCreate = input(false);
+  readonly statusFilter = input<ProjectStatusFilter>('ALL');
   readonly canArchive = input(false);
-  readonly createRequested = output<void>();
   readonly archiveRequested = output<string>();
 
   readonly nameHeader = viewChild.required<TemplateRef<{ $implicit: HeaderContext<Project, unknown> }>>('nameHeader');
@@ -75,10 +62,11 @@ export class ProjectDataTableComponent {
   readonly budgetCell = viewChild.required<TemplateRef<{ $implicit: CellContext<Project, unknown> }>>('budgetCell');
   readonly actionsCell = viewChild.required<TemplateRef<{ $implicit: CellContext<Project, unknown> }>>('actionsCell');
 
-  readonly filterValue = signal('');
-  readonly sorting = signal<SortingState>([]);
-  readonly columnFilters = signal<ColumnFiltersState>([]);
-  readonly columnVisibility = signal<VisibilityState>({});
+  readonly filteredData = computed(() => {
+    const filter = this.statusFilter();
+    if (filter === 'ALL') return this.data();
+    return this.data().filter((project) => project.status === filter);
+  });
 
   readonly columns = computed<ColumnDef<Project, unknown>[]>(() => [
     {
@@ -104,12 +92,14 @@ export class ProjectDataTableComponent {
       header: () => this.startDateHeader(),
       cell: () => this.startDateCell(),
       enableSorting: true,
+      sortingFn: 'datetime',
     },
     {
       accessorKey: 'deadline',
       header: () => this.deadlineHeader(),
       cell: () => this.deadlineCell(),
       enableSorting: true,
+      sortingFn: 'datetime',
     },
     {
       accessorKey: 'budget',
@@ -126,36 +116,21 @@ export class ProjectDataTableComponent {
     },
   ]);
 
-  readonly table = createAngularTable<Project>(() => ({
-    data: this.data(),
-    columns: this.columns(),
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(this.sorting()) : updater;
-      this.sorting.set(next);
-    },
-    onColumnFiltersChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(this.columnFilters()) : updater;
-      this.columnFilters.set(next);
-    },
-    onColumnVisibilityChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(this.columnVisibility()) : updater;
-      this.columnVisibility.set(next);
-    },
-    state: {
-      sorting: this.sorting(),
-      columnFilters: this.columnFilters(),
-      columnVisibility: this.columnVisibility(),
-    },
-  }));
+  private readonly tableState = createEntityTableState<Project>({
+    data: () => this.filteredData(),
+    columns: () => this.columns(),
+    initialSorting: [{ id: 'name', desc: false }] as SortingState,
+    matchesFilter: (project, query) =>
+      [project.name, project.description, project.managerName, project.status]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(query),
+  });
 
-  onFilterChange(value: string): void {
-    this.filterValue.set(value);
-    this.table.getColumn('name')?.setFilterValue(value);
-  }
+  readonly filterValue = this.tableState.filterValue;
+  readonly table = this.tableState.table;
+  readonly onFilterChange = this.tableState.onFilterChange;
 
   getStatusVariant(status: ProjectStatus): BadgeVariant {
     switch (status) {

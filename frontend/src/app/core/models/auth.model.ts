@@ -27,6 +27,41 @@ export interface AuthResponse {
   roles: string[];
 }
 
+export interface LoginResponse {
+  mfaRequired: boolean;
+  mfaToken?: string;
+  session?: AuthResponse;
+}
+
+export interface MfaVerifyRequest {
+  mfaToken: string;
+  code: string;
+}
+
+export interface SsoProvidersResponse {
+  providers: string[];
+}
+
+export interface SecuritySettings {
+  ssoEnabled: boolean;
+  requireMfa: boolean;
+  ssoProvider?: string;
+  userMfaEnabled: boolean;
+  unusedBackupCodes: number;
+  availableSsoProviders: string[];
+}
+
+export interface MfaSetupResponse {
+  secret: string;
+  qrCodeUri: string;
+  issuer: string;
+  accountName: string;
+}
+
+export interface MfaBackupCodesResponse {
+  codes: string[];
+}
+
 export interface User {
   id: string;
   email: string;

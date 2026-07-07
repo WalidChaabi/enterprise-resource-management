@@ -28,7 +28,10 @@
     "noDescription": "No description",
     "notSet": "Not set",
     "back": "Back",
-    "continue": "Continue"
+    "continue": "Continue",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "confirm": "Confirm"
   },
   "app": {
     "title": "Enterprise Resource Management",
@@ -68,7 +71,19 @@
         "default": "Login failed. Please check your credentials and try again."
       },
       "forgotPassword": "Forgot password?",
-      "createAccount": "Create an account"
+      "createAccount": "Create an account",
+      "orContinueWith": "Or continue with",
+      "continueGoogle": "Continue with Google",
+      "continueMicrosoft": "Continue with Microsoft"
+    },
+    "mfa": {
+      "title": "Two-factor authentication",
+      "subtitle": "Enter the 6-digit code from your authenticator app or a backup code.",
+      "code": "Verification code",
+      "codePlaceholder": "000000 or XXXX-XXXX",
+      "verify": "Verify",
+      "invalidCode": "Invalid verification code. Try again.",
+      "invalidSession": "Your verification session expired. Please sign in again."
     },
     "signup": {
       "progress": "Step {{current}} of {{total}}",
@@ -133,6 +148,11 @@
       "people": "People",
       "insights": "Insights"
     },
+    "indicators": {
+      "pendingTimeEntries": "{{count}} time entries awaiting your approval",
+      "pendingLeaveRequests": "{{count}} leave requests awaiting your approval",
+      "projectAlerts": "{{count}} project alerts need attention"
+    },
     "userMenu": {
       "open": "Open user menu",
       "account": "Account",
@@ -183,13 +203,97 @@
     "capacity": {
       "title": "Team capacity this week",
       "subtitle": "Utilization, bench, and leave at a glance",
-      "viewAll": "Open capacity dashboard"
-    }
+      "viewAll": "Open capacity dashboard",
+      "overallocated": "Overallocated",
+      "overallocatedHint": "Employees above 110% utilization",
+      "available": "Available",
+      "availableHint": "On bench with no project hours",
+      "onLeave": "On leave",
+      "onLeaveHint": "Approved leave this week"
+    },
+    "lowDataWelcome": "Welcome, {{name}}. Let's get your organization set up.",
+    "attention": {
+      "title": "Items need your attention",
+      "pendingLeave": "{{count}} leave request(s) awaiting approval",
+      "pendingTime": "{{count}} time entry(ies) awaiting approval",
+      "criticalAlerts": "{{count}} critical alert(s)"
+    },
+    "metrics": {
+      "activeProjects": "Active projects",
+      "activeEmployees": "Active employees",
+      "hoursThisWeek": "Hours this week",
+      "pendingLeave": "Pending leave"
+    },
+    "actions": {
+      "title": "Needs your attention",
+      "subtitle": "Approvals and setup tasks",
+      "allCaughtUp": "You're all caught up",
+      "allCaughtUpDescription": "No pending approvals or critical alerts right now.",
+      "logTime": "Log time",
+      "reviewTime": "Review time entries",
+      "reviewLeave": "Review leave",
+      "viewReports": "View reports"
+    },
+    "activity": {
+      "title": "Recent activity",
+      "subtitle": "Latest updates across your organization",
+      "empty": "Activity will appear here as your team works."
+    },
+    "alerts": {
+      "title": "Alerts",
+      "subtitle": "Issues that may need your attention",
+      "viewProject": "View project"
+    },
+    "charts": {
+      "hoursTitle": "Time tracking",
+      "hoursSubtitle": "Approved hours and pending approvals",
+      "thisWeek": "This week",
+      "thisMonth": "This month",
+      "pendingApproval": "Pending approval",
+      "approvedEntries": "Approved entries",
+      "projectStatusTitle": "Project status",
+      "projectStatusSubtitle": "Distribution of active projects",
+      "planning": "Planning",
+      "active": "Active",
+      "onHold": "On hold",
+      "completed": "Completed"
+    },
+    "quickLinks": {
+      "title": "Quick links",
+      "subtitle": "Jump to common workflows",
+      "createProject": "Create and manage your projects",
+      "addEmployees": "Add team members to your organization",
+      "viewAnalytics": "View analytics and insights",
+      "getStarted": "Get started by setting up your organization"
+    },
+    "setup": {
+      "title": "Get started",
+      "subtitle": "Complete these steps to set up your workspace",
+      "createProject": "Create your first project",
+      "addEmployees": "Add employees to your organization",
+      "logTime": "Record your first time entry"
+    },
+    "errorTitle": "Unable to load dashboard",
+    "errorDescription": "Failed to load dashboard data"
   },
   "employees": {
     "title": "Employees",
     "newEmployee": "New Employee",
     "editTitle": "Edit Employee",
+    "emptyTitle": "No employees yet",
+    "emptyDescription": "Add your first employee to start building your team and assigning work.",
+    "emptyRestricted": "Employee management is restricted to HR administrators and organization administrators.",
+    "stats": {
+      "total": "Total employees",
+      "active": "Active",
+      "departments": "Departments",
+      "unassigned": "Unassigned",
+      "employees": "employees"
+    },
+    "filters": {
+      "all": "All",
+      "filtered": "Filtered view"
+    },
     "table": {
       "name": "Name",
       "email": "Email",
@@ -197,7 +301,8 @@
       "department": "Department",
       "status": "Status",
       "actions": "Actions",
-      "filter": "Filter employees..."
+      "filter": "Search employees, emails, titles, or departments...",
+      "noResults": "No matching employees."
     },
     "form": {
       "details": "Employee Details",
@@ -211,7 +316,10 @@
       "department": "Department",
       "selectDepartment": "Select a department",
       "selectEmployee": "Select an employee",
-      "active": "Active"
+      "active": "Active",
+      "errors": {
+        "userIdRequired": "User ID is required."
+      }
     },
     "detail": {
       "title": "Employee Details",
@@ -228,6 +336,16 @@
       "salary": "Salary",
       "employeeCode": "Employee Code",
       "roles": "Roles"
+    },
+    "toast": {
+      "createdTitle": "Employee created",
+      "createdDescription": "The employee has been added to your organization.",
+      "updatedTitle": "Employee updated",
+      "updatedDescription": "Employee details have been saved.",
+      "roleAssignedTitle": "Role assigned",
+      "roleAssignedDescription": "The role has been assigned to this employee.",
+      "roleRemovedTitle": "Role removed",
+      "roleRemovedDescription": "The role has been removed from this employee."
     }
   },
   "roles": {
@@ -243,13 +361,29 @@
     "newDepartment": "New Department",
     "editTitle": "Edit Department",
     "emptyState": "No departments found. Create your first department!",
+    "emptyTitle": "No departments yet",
+    "emptyDescription": "Create a department to organize your team and assign managers.",
+    "stats": {
+      "total": "Total departments",
+      "totalEmployees": "Total employees",
+      "withManager": "With manager",
+      "empty": "Empty",
+      "departments": "departments"
+    },
+    "filters": {
+      "all": "All",
+      "staffed": "Staffed",
+      "empty": "Empty",
+      "filtered": "Filtered view"
+    },
     "table": {
       "name": "Name",
       "description": "Description",
       "manager": "Manager",
       "employees": "Employees",
       "actions": "Actions",
-      "filter": "Filter departments..."
+      "filter": "Search departments, managers, or descriptions...",
+      "noResults": "No matching departments."
     },
     "form": {
       "details": "Department Details",
@@ -258,7 +392,10 @@
       "description": "Description",
       "descriptionPlaceholder": "Optional: Describe the department...",
       "manager": "Department Manager",
-      "selectManager": "Select a department manager"
+      "selectManager": "Select a department manager",
+      "errors": {
+        "nameRequired": "Department name is required."
+      }
     },
     "detail": {
       "title": "Department Details",
@@ -267,6 +404,10 @@
       "description": "Description",
       "manager": "Manager",
       "employeeCount": "Employee Count"
+    },
+    "toast": {
+      "createdTitle": "Department created",
+      "createdDescription": "The department has been added to your organization."
     }
   },
   "projects": {
@@ -275,8 +416,28 @@
     "archive": "Archive",
     "archiveConfirm": "Archive this project? It will be hidden from active lists but data is retained.",
     "confirmArchive": "Archive project",
+    "toast": {
+      "archivedTitle": "Project archived",
+      "archivedDescription": "The project has been hidden from active lists.",
+      "createdTitle": "Project created",
+      "createdDescription": "The project has been successfully created."
+    },
     "editTitle": "Edit Project",
     "emptyState": "No projects found. Create your first project!",
+    "emptyTitle": "No projects yet",
+    "emptyDescription": "Create a project to organize work, assign members, and track progress.",
+    "stats": {
+      "total": "Total projects",
+      "active": "Active",
+      "planning": "Planning",
+      "onHold": "On hold",
+      "totalBudget": "Total budget",
+      "projects": "projects"
+    },
+    "filters": {
+      "all": "All",
+      "filtered": "Filtered view"
+    },
     "table": {
       "name": "Name",
       "description": "Description",
@@ -285,7 +446,9 @@
       "startDate": "Start Date",
       "deadline": "Deadline",
       "budget": "Budget",
-      "filter": "Filter projects..."
+      "manager": "Manager",
+      "filter": "Search projects, managers, or descriptions...",
+      "noResults": "No matching projects."
     },
     "status": {
       "planning": "Planning",
@@ -306,7 +469,11 @@
       "deadline": "Deadline",
       "budget": "Budget",
       "manager": "Project Manager",
-      "selectManager": "Select a project manager"
+      "selectManager": "Select a project manager",
+      "errors": {
+        "nameRequired": "Project name is required.",
+        "budgetMin": "Budget must be zero or greater."
+      }
     },
     "detail": {
       "title": "Project Details",
@@ -362,7 +529,12 @@
       "selectAssignee": "Select an assignee",
       "dueDate": "Due Date",
       "estimatedHours": "Estimated Hours",
-      "estimatedHoursHint": "Enter estimated hours for this task"
+      "estimatedHoursHint": "Enter estimated hours for this task",
+      "errors": {
+        "nameRequired": "Task name is required.",
+        "statusRequired": "Status is required.",
+        "estimatedHoursMin": "Estimated hours must be zero or greater."
+      }
     },
     "detail": {
       "title": "Task Details",
@@ -387,11 +559,28 @@
     "table": {
       "date": "Date",
       "project": "Project",
+      "timeRange": "Time",
       "hours": "Hours",
+      "employee": "Employee",
       "status": "Status",
       "actions": "Actions",
-      "filter": "Filter by project...",
+      "filter": "Search projects, people, or notes...",
       "noResults": "No matching time entries."
+    },
+    "statuses": {
+      "draft": "Draft",
+      "submitted": "Pending approval",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "filters": {
+      "all": "All",
+      "filtered": "filtered view"
+    },
+    "pendingBanner": {
+      "title": "Time entries awaiting your approval",
+      "description": "{{count}} submitted entries need review.",
+      "action": "Review pending"
     },
     "stats": {
       "totalHours": "Total Hours",
@@ -405,17 +594,47 @@
       "project": "Project",
       "selectProject": "Select a project",
       "date": "Date",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "quickDuration": "Quick duration",
+      "totalHours": "Total duration",
       "hours": "Hours",
       "hoursHint": "Enter hours worked (0.25 to 24 hours)",
       "description": "Description",
-      "descriptionPlaceholder": "Optional: Describe the work performed..."
+      "descriptionPlaceholder": "Optional: Describe the work performed...",
+      "presets": {
+        "halfDay": "4 hours",
+        "standard": "7.5 hours",
+        "fullDay": "8 hours"
+      },
+      "loadProjectsError": "Failed to load projects.",
+      "loadError": "Failed to load time entry.",
+      "saveError": "Failed to save time entry.",
+      "projectRequired": "Project is required.",
+      "endAfterStart": "End time must be after start time.",
+      "errors": {
+        "projectIdRequired": "Project is required.",
+        "entryDateRequired": "Date is required.",
+        "startTimeRequired": "Start time is required.",
+        "endTimeRequired": "End time is required."
+      }
     },
     "submit": "Submit",
     "approve": "Approve",
     "reject": "Reject",
     "rejectionReason": "Rejection Reason",
     "rejectionReasonPlaceholder": "Optional: Provide a reason for rejection...",
-    "confirmReject": "Confirm Reject"
+    "confirmReject": "Confirm Reject",
+    "toast": {
+      "createdTitle": "Time entry created",
+      "createdDescription": "Your draft is ready to submit when you are.",
+      "submittedTitle": "Submitted for approval",
+      "submittedDescription": "Your manager will review this entry.",
+      "approvedTitle": "Time entry approved",
+      "approvedDescription": "The entry has been marked as approved.",
+      "rejectedTitle": "Time entry rejected",
+      "rejectedDescription": "The employee can edit and resubmit the entry."
+    }
   },
   "leaveRequests": {
     "title": "Leave Requests",
@@ -432,8 +651,31 @@
       "days": "Days",
       "status": "Status",
       "actions": "Actions",
-      "filter": "Filter by employee...",
+      "filter": "Search employees, types, or dates...",
       "noResults": "No matching leave requests."
+    },
+    "statuses": {
+      "pending": "Pending approval",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "filters": {
+      "all": "All",
+      "filtered": "filtered view"
+    },
+    "pendingBanner": {
+      "title": "Leave requests awaiting your approval",
+      "description": "{{count}} pending requests need review.",
+      "action": "Review pending"
+    },
+    "stats": {
+      "totalRequests": "Total requests",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "requests": "requests",
+      "days": "days"
     },
     "types": {
       "vacation": "Vacation",
@@ -451,7 +693,13 @@
       "totalDays": "Total Days",
       "days": "days",
       "reason": "Reason",
-      "reasonPlaceholder": "Optional: Provide a reason for your leave request..."
+      "reasonPlaceholder": "Optional: Provide a reason for your leave request...",
+      "errors": {
+        "leaveTypeRequired": "Leave type is required.",
+        "startDateRequired": "Start date is required.",
+        "endDateRequired": "End date is required.",
+        "endAfterStart": "End date must be on or after start date."
+      }
     },
     "approve": "Approve",
     "reject": "Reject",
@@ -461,6 +709,16 @@
     "confirmReject": "Confirm Reject",
     "cancelConfirm": "Are you sure you want to cancel this leave request?",
     "confirmCancel": "Confirm Cancel",
+    "toast": {
+      "createdTitle": "Leave request created",
+      "createdDescription": "Your leave request has been submitted.",
+      "approvedTitle": "Leave request approved",
+      "approvedDescription": "The leave request has been approved.",
+      "rejectedTitle": "Leave request rejected",
+      "rejectedDescription": "The employee has been notified.",
+      "cancelledTitle": "Leave request cancelled",
+      "cancelledDescription": "The leave request has been cancelled."
+    },
     "balance": {
       "approved": "Approved days",
       "pending": "Pending days",
@@ -488,7 +746,43 @@
       "totalEmployees": "total employees",
       "hoursThisWeek": "Hours This Week",
       "thisMonth": "this month",
-      "budgetUtilization": "Budget Utilization"
+      "budgetUtilization": "Budget Utilization",
+      "projectsHint": "{{total}} total projects",
+      "employeesHint": "{{total}} total employees",
+      "hoursHint": "{{month}}h this month",
+      "budgetHint": "${{cost}} / ${{budget}}"
+    },
+    "quickLinks": {
+      "capacityTitle": "Capacity dashboard",
+      "capacityDescription": "Team utilization, availability, and roster",
+      "timeTitle": "Time reports",
+      "timeDescription": "Hours by project and employee"
+    },
+    "actions": {
+      "title": "Needs attention",
+      "subtitle": "Items that may need your review",
+      "pendingLeave": "Pending leave requests",
+      "pendingLeaveHint": "Awaiting approval",
+      "pendingTime": "Pending time entries",
+      "pendingTimeHint": "Awaiting approval",
+      "projectsOnHold": "Projects on hold",
+      "projectsOnHoldHint": "Paused or blocked work",
+      "allCaughtUp": "All caught up",
+      "allCaughtUpDescription": "No pending approvals or blocked projects"
+    },
+    "priority": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "charts": {
+      "projectStatusTitle": "Project status",
+      "projectStatusSubtitle": "Distribution across lifecycle stages",
+      "active": "Active",
+      "planning": "Planning",
+      "onHold": "On Hold",
+      "completed": "Completed",
+      "empty": "No projects yet"
     },
     "operationalSummary": {
       "title": "Operational Summary",
@@ -506,7 +800,8 @@
       "available": "Available",
       "overallocated": "Overallocated",
       "underutilized": "Underutilized",
-      "understaffedProjects": "Understaffed Projects"
+      "understaffedProjects": "Understaffed Projects",
+      "viewCapacity": "View capacity dashboard"
     },
     "overallocated": {
       "title": "Overallocated Employees",
@@ -523,18 +818,40 @@
       "startDate": "Start date",
       "endDate": "End date",
       "applyFilter": "Apply",
+      "filterTitle": "Date range",
+      "filterSubtitle": "Filter logged hours for a custom or preset period",
+      "thisWeek": "This week",
+      "thisMonth": "This month",
+      "lastMonth": "Last month",
+      "viewTimeEntries": "View time entries",
       "totalHours": "Total hours",
+      "totalHoursHint": "Logged in selected period",
       "entriesCount": "Entries",
+      "entriesHint": "Submitted time records",
       "avgPerEntry": "Avg per entry",
+      "avgHint": "Average hours per record",
       "byProject": "Hours by project",
+      "byProjectSubtitle": "Share of hours across projects",
       "byEmployee": "Hours by employee",
+      "byEmployeeSubtitle": "Share of hours across team members",
       "project": "Project",
       "employee": "Employee",
       "hours": "Hours",
       "entries": "Entries",
-      "noData": "No time entries in this period"
+      "noData": "No time entries in this period",
+      "noDataHint": "Try a wider date range or log time for this period"
     },
     "leave": {
+      "pageSubtitle": "Organization-wide leave usage and upcoming time off",
+      "viewLeaveRequests": "View leave requests",
+      "summaryEmployees": "Employees tracked",
+      "summaryEmployeesHint": "With leave balance data",
+      "summaryPending": "Pending days",
+      "summaryPendingHint": "Awaiting approval",
+      "summaryUpcoming": "Upcoming requests",
+      "summaryUpcomingHint": "Scheduled time off ahead",
+      "summaryApprovedYear": "Days this year",
+      "summaryApprovedYearHint": "Approved leave year to date",
       "balanceTitle": "Leave balance",
       "balanceSubtitle": "Approved, pending, and year-to-date usage",
       "upcomingTitle": "Upcoming leave",
@@ -544,13 +861,67 @@
       "pending": "Pending",
       "thisYear": "This year",
       "dates": "Dates",
-      "days": "Days",
+      "days": "days",
       "status": "Status",
       "noBalance": "No leave balance data",
-      "noUpcoming": "No upcoming leave"
+      "noBalanceDescription": "Leave balances appear once employees submit requests",
+      "noUpcoming": "No upcoming leave",
+      "noUpcomingDescription": "No approved or pending leave scheduled ahead"
     }
   },
   "settings": {
+    "title": "Settings",
+    "subtitle": "Manage account, organization, and security preferences.",
+    "navLabel": "Settings sections",
+    "actionBar": {
+      "label": "Unsaved settings actions",
+      "unsavedTitle": "Unsaved changes",
+      "unsavedDescription": "You have unsaved changes.",
+      "saveChanges": "Save changes"
+    },
+    "tabs": {
+      "profile": "Profile",
+      "security": "Security",
+      "organization": "Organization",
+      "notifications": "Notifications",
+      "roles": "Roles & permissions",
+      "billing": "Billing",
+      "audit": "Audit log",
+      "privacy": "Privacy",
+      "webhooks": "Webhooks"
+    },
+    "profile": {
+      "title": "Profile settings",
+      "subtitle": "Update your personal information and preferences.",
+      "personalInfoTitle": "Personal information",
+      "emailHint": "Email cannot be changed. Contact support if needed.",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "firstNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required.",
+      "email": "Email"
+    },
+    "organization": {
+      "title": "Organization settings",
+      "subtitle": "Manage your organization details and workspace settings.",
+      "infoTitle": "Organization information",
+      "name": "Organization name",
+      "nameRequired": "Organization name is required.",
+      "description": "Description"
+    },
+    "roles": {
+      "title": "Roles & permissions",
+      "subtitleAdmin": "Manage roles and permissions for your organization.",
+      "subtitleView": "View roles available in your organization. Role management is restricted to administrators."
+    },
+    "toast": {
+      "profileSaved": "Profile updated",
+      "profileSavedDescription": "Your personal information has been saved.",
+      "organizationSaved": "Organization updated",
+      "organizationSavedDescription": "Organization settings have been saved.",
+      "notificationsSaved": "Preferences saved",
+      "notificationsSavedDescription": "Your notification preferences have been updated."
+    },
     "notifications": {
       "title": "Notification Preferences",
       "subtitle": "Choose how you receive updates and alerts.",
@@ -625,6 +996,10 @@
       "loading": "Loading…",
       "approve": "Approve & anonymize",
       "reject": "Reject",
+      "confirmDeletionTitle": "Request account deletion?",
+      "confirmDeletionDescription": "An administrator must approve before your personal data is anonymized.",
+      "confirmApproveTitle": "Approve deletion request?",
+      "confirmApproveDescription": "This will permanently anonymize the user's personal data. This action cannot be undone.",
       "approveSuccess": "Account anonymized successfully.",
       "rejectSuccess": "Deletion request rejected.",
       "adminError": "Failed to process deletion request."
@@ -647,6 +1022,8 @@
       "cancelEdit": "Cancel",
       "edit": "Edit",
       "delete": "Delete",
+      "deleteTitle": "Delete webhook?",
+      "deleteDescription": "Delete webhook endpoint {{url}}? This cannot be undone.",
       "endpointsTitle": "Configured endpoints",
       "noEndpoints": "No webhook endpoints yet.",
       "deliveriesTitle": "Recent deliveries",
@@ -671,29 +1048,95 @@
         "timeentrySubmitted": "Time entry submitted",
         "employeeCreated": "Employee created"
       }
+    },
+    "security": {
+      "tab": "Security",
+      "title": "Security",
+      "subtitle": "Manage sign-in methods, MFA, and organization security policies.",
+      "orgTitle": "Organization security",
+      "orgDescription": "Configure SSO and MFA requirements for your organization.",
+      "orgAdminOnly": "Organization security policies are managed by your organization administrator.",
+      "authTitle": "Authentication",
+      "authDescription": "Control how users sign in to your organization.",
+      "mfaPolicyTitle": "Multi-factor authentication",
+      "mfaPolicyDescription": "Require an additional verification step for all organization members.",
+      "ssoEnabled": "Enable SSO login",
+      "ssoEnabledHint": "Allow users to sign in with Google or Microsoft when configured.",
+      "ssoNotConfiguredTitle": "No SSO provider configured",
+      "ssoNotConfiguredDescription": "Google or Microsoft OAuth has not yet been configured. Once configured, users will be able to authenticate using SSO.",
+      "ssoNotConfigured": "No SSO providers are configured on the server yet. You can still save this preference; login buttons appear once Google or Microsoft OAuth is enabled.",
+      "requireMfa": "Require MFA for all users",
+      "requireMfaHint": "Users without MFA will be prompted to enroll at next sign-in.",
+      "ssoProvider": "Allowed SSO provider",
+      "providerAll": "Google and Microsoft",
+      "saved": "Security settings saved.",
+      "loadError": "Failed to load security settings.",
+      "saveError": "Failed to save security settings.",
+      "mfaTitle": "Your authenticator",
+      "mfaDescription": "Protect your account with a time-based one-time password (TOTP).",
+      "mfaStatus": "MFA status",
+      "enableMfa": "Enable MFA",
+      "confirmMfa": "Confirm and enable",
+      "disableMfa": "Disable MFA",
+      "scanQr": "Add this account to Google Authenticator, Microsoft Authenticator, or another TOTP app:",
+      "mfaEnabled": "MFA enabled successfully.",
+      "mfaDisabled": "MFA disabled.",
+      "mfaSetupError": "Could not start MFA setup.",
+      "mfaConfirmError": "Invalid code. Check your authenticator app and try again.",
+      "mfaDisableError": "Could not disable MFA.",
+      "regenerateBackupCodes": "Regenerate backup codes",
+      "backupCodesGenerated": "New backup codes generated. Store them securely.",
+      "backupCodesError": "Could not generate backup codes.",
+      "backupCodesTitle": "Backup codes (save now)",
+      "backupCodesRemaining": "backup codes remaining"
     }
   },
   "capacity": {
     "title": "Capacity & utilization",
     "subtitle": "Who is overloaded, available, or on leave for the selected week",
+    "teamMembers": "team members",
+    "thisWeek": "This week",
     "openDashboard": "Open capacity dashboard",
     "backToReports": "Back to reports",
     "previousWeek": "Previous week",
     "nextWeek": "Next week",
     "upgradeHint": "Upgrade to Starter or Pro to unlock the capacity dashboard.",
+    "emptyTitle": "No active employees",
+    "emptyDescription": "Add employees to your organization to track weekly utilization and bench capacity.",
+    "filters": {
+      "all": "All",
+      "overallocated": "Overallocated",
+      "available": "Available",
+      "onLeave": "On leave",
+      "underutilized": "Underutilized",
+      "normal": "On track"
+    },
+    "status": {
+      "overallocated": "Overallocated",
+      "available": "Available",
+      "underutilized": "Underutilized",
+      "normal": "On track"
+    },
     "metrics": {
       "overallocated": "Overallocated",
+      "overallocatedHint": "Above 110% weekly capacity",
       "available": "Available on bench",
+      "availableHint": "No project assignments",
       "onLeave": "On leave",
-      "underutilized": "Underutilized"
+      "onLeaveHint": "Approved leave this week",
+      "underutilized": "Underutilized",
+      "underutilizedHint": "Below 90% weekly capacity"
     },
     "chart": {
       "title": "Utilization by employee",
-      "subtitle": "Top employees by logged hours vs 40h capacity"
+      "subtitle": "Top employees by logged hours vs 40h capacity",
+      "empty": "No utilization data for this week"
     },
     "table": {
       "title": "Team roster",
       "subtitle": "Hours, utilization, and approved leave overlapping this week",
+      "search": "Search employees…",
+      "noResults": "No employees match the current filters",
       "employee": "Employee",
       "hours": "Hours",
       "utilization": "Utilization",

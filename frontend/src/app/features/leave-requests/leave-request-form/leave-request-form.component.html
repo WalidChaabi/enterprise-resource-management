@@ -1,7 +1,7 @@
 <div class="space-y-6">
   @if (!modalMode()) {
     <div class="flex items-center justify-between">
-      <h1 class="text-3xl font-bold tracking-tight">
+      <h1 class="text-2xl font-semibold tracking-tight text-foreground">
         {{ isEditMode() ? ('leaveRequests.editTitle' | translate) : ('leaveRequests.newLeaveRequest' | translate) }}
       </h1>
     </div>
@@ -18,199 +18,100 @@
           <app-card-title>{{ 'leaveRequests.form.details' | translate }}</app-card-title>
         </app-card-header>
         <app-card-content>
-          @if (error()) {
-            <app-alert variant="destructive" class="mb-4">{{ error() }}</app-alert>
-          }
-
-          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
-          <!-- Leave Type -->
-          <div class="space-y-2">
-            <label for="leaveType" class="text-sm font-medium">
-              {{ 'leaveRequests.form.leaveType' | translate }} <span class="text-destructive">*</span>
-            </label>
-            <select
-              id="leaveType"
-              formControlName="leaveType"
-              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-              <option value="">{{ 'leaveRequests.form.selectLeaveType' | translate }}</option>
-              @for (type of leaveTypes; track type.value) {
-                <option [value]="type.value">{{ type.label | translate }}</option>
-              }
-            </select>
-            @if (getFieldError('leaveType')) {
-              <p class="text-sm text-destructive">{{ getFieldError('leaveType') }}</p>
-            }
-          </div>
-
-          <!-- Start Date -->
-          <div class="space-y-2">
-            <label for="startDate" class="text-sm font-medium">
-              {{ 'leaveRequests.form.startDate' | translate }} <span class="text-destructive">*</span>
-            </label>
-            <input
-              id="startDate"
-              type="date"
-              formControlName="startDate"
-              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-            @if (getFieldError('startDate')) {
-              <p class="text-sm text-destructive">{{ getFieldError('startDate') }}</p>
-            }
-          </div>
-
-          <!-- End Date -->
-          <div class="space-y-2">
-            <label for="endDate" class="text-sm font-medium">
-              {{ 'leaveRequests.form.endDate' | translate }} <span class="text-destructive">*</span>
-            </label>
-            <input
-              id="endDate"
-              type="date"
-              formControlName="endDate"
-              [min]="form.get('startDate')?.value || ''"
-              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-            @if (getFieldError('endDate')) {
-              <p class="text-sm text-destructive">{{ getFieldError('endDate') }}</p>
-            }
-          </div>
-
-          <!-- Calculated Days -->
-          @if (calculateDays() > 0) {
-            <div class="rounded-md bg-muted p-3">
-              <p class="text-sm font-medium">{{ 'leaveRequests.form.totalDays' | translate }}</p>
-              <p class="text-2xl font-bold">{{ calculateDays() }} {{ 'leaveRequests.form.days' | translate }}</p>
-            </div>
-          }
-
-          <!-- Reason -->
-          <div class="space-y-2">
-            <label for="reason" class="text-sm font-medium">
-              {{ 'leaveRequests.form.reason' | translate }}
-            </label>
-            <textarea
-              id="reason"
-              formControlName="reason"
-              rows="4"
-              class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              [placeholder]="'leaveRequests.form.reasonPlaceholder' | translate"></textarea>
-          </div>
-
-          <!-- Form Actions -->
-          <div class="flex justify-end gap-2 pt-4">
-            <app-button
-              type="button"
-              variant="outline"
-              (click)="onCancel()"
-              [disabled]="saving()">
-              {{ 'common.cancel' | translate }}
-            </app-button>
-            <app-button
-              type="submit"
-              [disabled]="form.invalid || saving()">
-              @if (saving()) {
-                <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-              }
-              {{ isEditMode() ? ('common.update' | translate) : ('common.create' | translate) }}
-            </app-button>
-          </div>
-          </form>
+          <ng-container *ngTemplateOutlet="leaveRequestForm" />
         </app-card-content>
       </app-card>
     } @else {
-      @if (error()) {
-        <app-alert variant="destructive" class="mb-4">{{ error() }}</app-alert>
-      }
-
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
-        <!-- Leave Type -->
-        <div class="space-y-2">
-          <label for="leaveType-modal" class="text-sm font-medium">
-            {{ 'leaveRequests.form.leaveType' | translate }} <span class="text-destructive">*</span>
-          </label>
-          <select
-            id="leaveType-modal"
-            formControlName="leaveType"
-            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-            <option value="">{{ 'leaveRequests.form.selectLeaveType' | translate }}</option>
-            @for (type of leaveTypes; track type.value) {
-              <option [value]="type.value">{{ type.label | translate }}</option>
-            }
-          </select>
-          @if (getFieldError('leaveType')) {
-            <p class="text-sm text-destructive">{{ getFieldError('leaveType') }}</p>
-          }
-        </div>
-
-        <!-- Start Date -->
-        <div class="space-y-2">
-          <label for="startDate-modal" class="text-sm font-medium">
-            {{ 'leaveRequests.form.startDate' | translate }} <span class="text-destructive">*</span>
-          </label>
-          <input
-            id="startDate-modal"
-            type="date"
-            formControlName="startDate"
-            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-          @if (getFieldError('startDate')) {
-            <p class="text-sm text-destructive">{{ getFieldError('startDate') }}</p>
-          }
-        </div>
-
-        <!-- End Date -->
-        <div class="space-y-2">
-          <label for="endDate-modal" class="text-sm font-medium">
-            {{ 'leaveRequests.form.endDate' | translate }} <span class="text-destructive">*</span>
-          </label>
-          <input
-            id="endDate-modal"
-            type="date"
-            formControlName="endDate"
-            [min]="form.get('startDate')?.value || ''"
-            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-          @if (getFieldError('endDate')) {
-            <p class="text-sm text-destructive">{{ getFieldError('endDate') }}</p>
-          }
-        </div>
-
-        <!-- Calculated Days -->
-        @if (calculateDays() > 0) {
-          <div class="rounded-md bg-muted p-3">
-            <p class="text-sm font-medium">{{ 'leaveRequests.form.totalDays' | translate }}</p>
-            <p class="text-2xl font-bold">{{ calculateDays() }} {{ 'leaveRequests.form.days' | translate }}</p>
-          </div>
-        }
-
-        <!-- Reason -->
-        <div class="space-y-2">
-          <label for="reason-modal" class="text-sm font-medium">
-            {{ 'leaveRequests.form.reason' | translate }}
-          </label>
-          <textarea
-            id="reason-modal"
-            formControlName="reason"
-            rows="4"
-            class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            [placeholder]="'leaveRequests.form.reasonPlaceholder' | translate"></textarea>
-        </div>
-
-        <!-- Form Actions -->
-        <div class="flex justify-end gap-2 pt-4">
-          <app-button
-            type="button"
-            variant="outline"
-            (click)="onCancel()"
-            [disabled]="saving()">
-            {{ 'common.cancel' | translate }}
-          </app-button>
-          <app-button
-            type="submit"
-            [disabled]="form.invalid || saving()">
-            @if (saving()) {
-              <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-            }
-            {{ isEditMode() ? ('common.update' | translate) : ('common.create' | translate) }}
-          </app-button>
-        </div>
-      </form>
+      <ng-container *ngTemplateOutlet="leaveRequestForm" />
     }
   }
 </div>
+
+<ng-template #leaveRequestForm>
+  @if (error()) {
+    <div class="mb-4 flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+      <lucide-icon name="alert-circle" [size]="20" class="mt-0.5 flex-shrink-0 text-destructive" />
+      <p class="text-sm font-medium text-foreground">{{ error() }}</p>
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
+    <div class="flex flex-col gap-3">
+      <label [attr.for]="modalMode() ? 'leaveType-modal' : 'leaveType'" class="text-sm font-medium leading-snug text-foreground">
+        {{ 'leaveRequests.form.leaveType' | translate }} <span class="text-destructive">*</span>
+      </label>
+      <app-form-select
+        [id]="modalMode() ? 'leaveType-modal' : 'leaveType'"
+        formControlName="leaveType"
+        [options]="leaveTypeSelectOptions()"
+        [placeholder]="'leaveRequests.form.selectLeaveType' | translate"
+        class="w-full" />
+      @if (getFieldError('leaveType')) {
+        <p class="text-sm text-destructive">{{ getFieldError('leaveType') | translate }}</p>
+      }
+    </div>
+
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div class="flex flex-col gap-3">
+        <label [attr.for]="modalMode() ? 'startDate-modal' : 'startDate'" class="text-sm font-medium leading-snug text-foreground">
+          {{ 'leaveRequests.form.startDate' | translate }} <span class="text-destructive">*</span>
+        </label>
+        <app-date-picker
+          [id]="modalMode() ? 'startDate-modal' : 'startDate'"
+          formControlName="startDate"
+          [placeholder]="'leaveRequests.form.startDate' | translate" />
+        @if (getFieldError('startDate')) {
+          <p class="text-sm text-destructive">{{ getFieldError('startDate') | translate }}</p>
+        }
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <label [attr.for]="modalMode() ? 'endDate-modal' : 'endDate'" class="text-sm font-medium leading-snug text-foreground">
+          {{ 'leaveRequests.form.endDate' | translate }} <span class="text-destructive">*</span>
+        </label>
+        <app-date-picker
+          [id]="modalMode() ? 'endDate-modal' : 'endDate'"
+          formControlName="endDate"
+          [placeholder]="'leaveRequests.form.endDate' | translate" />
+        @if (getFieldError('endDate')) {
+          <p class="text-sm text-destructive">{{ getFieldError('endDate') | translate }}</p>
+        }
+      </div>
+    </div>
+
+    @if (calculateDays() > 0) {
+      <div class="rounded-lg border border-border bg-muted/30 px-4 py-3">
+        <p class="text-sm text-muted-foreground">
+          {{ 'leaveRequests.form.totalDays' | translate }}
+          <span class="ml-1 text-base font-semibold tabular-nums text-foreground">
+            {{ calculateDays() }} {{ 'leaveRequests.form.days' | translate }}
+          </span>
+        </p>
+      </div>
+    }
+
+    <div class="flex flex-col gap-3">
+      <label [attr.for]="modalMode() ? 'reason-modal' : 'reason'" class="text-sm font-medium leading-snug text-foreground">
+        {{ 'leaveRequests.form.reason' | translate }}
+      </label>
+      <textarea
+        [id]="modalMode() ? 'reason-modal' : 'reason'"
+        formControlName="reason"
+        rows="4"
+        class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        [placeholder]="'leaveRequests.form.reasonPlaceholder' | translate"></textarea>
+    </div>
+
+    <div class="flex justify-end gap-2 pt-2">
+      <app-button type="button" variant="outline" (click)="onCancel()" [disabled]="saving()">
+        {{ 'common.cancel' | translate }}
+      </app-button>
+      <app-button type="submit" [disabled]="form.invalid || saving()">
+        @if (saving()) {
+          <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+        }
+        {{ isEditMode() ? ('common.update' | translate) : ('common.create' | translate) }}
+      </app-button>
+    </div>
+  </form>
+</ng-template>

@@ -5,6 +5,9 @@ import com.company.erm.dto.TaskUpdateDTO;
 import com.company.erm.dto.TaskResponseDTO;
 import com.company.erm.service.TaskService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -24,9 +26,14 @@ import java.util.UUID;
  * - Multi-tenant isolation enforced at service layer
  * - Role-based access control via @PreAuthorize
  */
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "Tasks", description = "Project task management")
 @RestController
 @RequestMapping("/api/v1/organizations/{organizationId}/projects/{projectId}/tasks")
-@PreAuthorize("hasAnyRole('ORG_ADMIN', 'PROJECT_MANAGER', 'EMPLOYEE')")
+@PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN', 'PROJECT_MANAGER', 'EMPLOYEE')")
 public class TaskController {
 
     private final TaskService taskService;
@@ -46,6 +53,8 @@ public class TaskController {
      * @param authentication Current authenticated user
      * @return Created task with 201 status
      */
+    @Operation(summary = "Create Task")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<TaskResponseDTO> createTask(
@@ -82,6 +91,8 @@ public class TaskController {
      * @param authentication Current authenticated user
      * @return Task details
      */
+    @Operation(summary = "Get Task")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping("/{taskId}")
     public ResponseEntity<TaskResponseDTO> getTask(
             @PathVariable UUID organizationId,
@@ -111,6 +122,8 @@ public class TaskController {
      * @param authentication Current authenticated user
      * @return Updated task
      */
+    @Operation(summary = "Update Task")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PutMapping("/{taskId}")
     public ResponseEntity<TaskResponseDTO> updateTask(
             @PathVariable UUID organizationId,
@@ -140,16 +153,20 @@ public class TaskController {
      * @param authentication Current authenticated user
      * @return List of tasks
      */
+    @Operation(summary = "List Tasks")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping
-    public ResponseEntity<List<TaskResponseDTO>> listTasks(
+    public ResponseEntity<Page<TaskResponseDTO>> listTasks(
             @PathVariable UUID organizationId,
             @PathVariable UUID projectId,
+            @PageableDefault(size = 20) Pageable pageable,
             Authentication authentication) {
         
         String currentUserEmail = authentication.getName();
-        List<TaskResponseDTO> tasks = taskService.listTasksByProject(
+        Page<TaskResponseDTO> tasks = taskService.listTasksByProject(
             organizationId,
             projectId,
+            pageable,
             currentUserEmail
         );
         
@@ -167,8 +184,10 @@ public class TaskController {
      * @param authentication Current authenticated user
      * @return 204 No Content
      */
+    @Operation(summary = "Delete Task")
+    @ApiResponse(responseCode = "200", description = "Success")
     @DeleteMapping("/{taskId}")
-    @PreAuthorize("hasAnyRole('ORG_ADMIN', 'PROJECT_MANAGER')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN', 'PROJECT_MANAGER')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteTask(
             @PathVariable UUID organizationId,

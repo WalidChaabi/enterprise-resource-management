@@ -1,13 +1,15 @@
 package com.company.erm.security;
 
-import com.company.erm.entity.Department;
-import com.company.erm.entity.Organization;
-import com.company.erm.entity.Role;
-import com.company.erm.entity.User;
-import com.company.erm.entity.UserRole;
-import com.company.erm.repository.UserRepository;
-import com.company.erm.repository.UserRoleRepository;
-import com.company.erm.util.TestDataFactory;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,23 +20,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import com.company.erm.entity.Department;
+import com.company.erm.entity.Organization;
+import com.company.erm.entity.Role;
+import com.company.erm.entity.User;
+import com.company.erm.entity.UserRole;
+import com.company.erm.repository.UserRepository;
+import com.company.erm.util.TestDataFactory;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PermissionChecker Tests")
 class PermissionCheckerTest {
 
     @Mock
-    private UserRepository userRepository;
+    private OrganizationSecurityService organizationSecurity;
 
     @Mock
-    private UserRoleRepository userRoleRepository;
+    private UserRepository userRepository;
 
     @InjectMocks
     private PermissionChecker permissionChecker;
@@ -58,114 +60,83 @@ class PermissionCheckerTest {
     }
 
     @Test
-    @DisplayName("requireRole should pass when user has an allowed role in the organization")
-    void requireRole_shouldPass_whenUserHasRole() {
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-        when(userRoleRepository.findByUser(user)).thenReturn(List.of(hrAdminUserRole));
+    @DisplayName("requireRole delegates to OrganizationSecurityService")
+    void requireRole_shouldDelegateToOrganizationSecurity() {
+        doNothing().when(organizationSecurity)
+                .requireAnyOrgRole(user.getEmail(), organization.getId(), "HR_ADMIN");
 
         permissionChecker.requireRole(organization.getId(), user.getEmail(), "HR_ADMIN");
+
+        verify(organizationSecurity).requireAnyOrgRole(user.getEmail(), organization.getId(), "HR_ADMIN");
     }
 
     @Test
-    @DisplayName("requireRole should throw when user is not found")
-    void requireRole_shouldThrow_whenUserNotFound() {
-        when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() ->
-                permissionChecker.requireRole(organization.getId(), "missing@example.com", "HR_ADMIN"))
-            .isInstanceOf(AccessDeniedException.class)
-            .hasMessage("User not found");
-    }
-
-    @Test
-    @DisplayName("requireRole should throw when user belongs to another organization")
-    void requireRole_shouldThrow_whenUserBelongsToDifferentOrganization() {
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+    @DisplayName("requireRole propagates AccessDeniedException from OrganizationSecurityService")
+    void requireRole_shouldThrow_whenOrganizationSecurityDenies() {
+        doThrow(new AccessDeniedException("User does not have access to organization: " + otherOrganization.getId()))
+                .when(organizationSecurity)
+                .requireAnyOrgRole(user.getEmail(), otherOrganization.getId(), "HR_ADMIN");
 
         assertThatThrownBy(() ->
                 permissionChecker.requireRole(otherOrganization.getId(), user.getEmail(), "HR_ADMIN"))
             .isInstanceOf(AccessDeniedException.class)
-            .hasMessage("User does not belong to organization");
+            .hasMessageContaining("does not have access to organization");
     }
 
     @Test
-    @DisplayName("requireRole should throw when user lacks the required role")
-    void requireRole_shouldThrow_whenUserLacksRole() {
-        Role employeeRole = TestDataFactory.createRole(organization, "EMPLOYEE", "Employee");
-        UserRole employeeUserRole = TestDataFactory.createUserRole(user, employeeRole);
-
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-        when(userRoleRepository.findByUser(user)).thenReturn(List.of(employeeUserRole));
-
-        assertThatThrownBy(() ->
-                permissionChecker.requireRole(organization.getId(), user.getEmail(), "ORG_ADMIN"))
-            .isInstanceOf(AccessDeniedException.class)
-            .hasMessageContaining("User does not have required role");
-    }
-
-    @Test
-    @DisplayName("hasRole should return true when requireRole would pass")
-    void hasRole_shouldReturnTrue_whenUserHasRole() {
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-        when(userRoleRepository.findByUser(user)).thenReturn(List.of(hrAdminUserRole));
+    @DisplayName("hasRole delegates to OrganizationSecurityService")
+    void hasRole_shouldDelegateToOrganizationSecurity() {
+        when(organizationSecurity.hasAnyOrgRole(user.getEmail(), organization.getId(), "HR_ADMIN"))
+                .thenReturn(true);
 
         assertThat(permissionChecker.hasRole(organization.getId(), user.getEmail(), "HR_ADMIN")).isTrue();
     }
 
     @Test
-    @DisplayName("hasRole should return false when requireRole would fail")
-    void hasRole_shouldReturnFalse_whenUserLacksRole() {
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-        when(userRoleRepository.findByUser(user)).thenReturn(List.of());
-
-        assertThat(permissionChecker.hasRole(organization.getId(), user.getEmail(), "ORG_ADMIN")).isFalse();
-    }
-
-    @Test
     @DisplayName("requireDepartmentAccess should allow HR admins for any department")
     void requireDepartmentAccess_shouldAllowHrAdmin() {
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-        when(userRoleRepository.findByUser(user)).thenReturn(List.of(hrAdminUserRole));
+        when(organizationSecurity.hasAnyOrgRole(
+                user.getEmail(), organization.getId(), RoleCode.HR_ADMIN, RoleCode.ORG_ADMIN))
+                .thenReturn(true);
 
         permissionChecker.requireDepartmentAccess(
-            organization.getId(),
-            user.getEmail(),
-            UUID.randomUUID()
-        );
+                organization.getId(),
+                user.getEmail(),
+                UUID.randomUUID());
     }
 
     @Test
     @DisplayName("requireDepartmentAccess should allow department managers for their own department")
     void requireDepartmentAccess_shouldAllowDepartmentManagerForOwnDepartment() {
-        Role managerRole = TestDataFactory.createRole(organization, "DEPARTMENT_MANAGER", "Department Manager");
-        UserRole managerUserRole = TestDataFactory.createUserRole(user, managerRole);
-
+        when(organizationSecurity.hasAnyOrgRole(
+                user.getEmail(), organization.getId(), RoleCode.HR_ADMIN, RoleCode.ORG_ADMIN))
+                .thenReturn(false);
+        when(organizationSecurity.hasAnyOrgRole(
+                user.getEmail(), organization.getId(), RoleCode.DEPARTMENT_MANAGER))
+                .thenReturn(true);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-        when(userRoleRepository.findByUser(user)).thenReturn(List.of(managerUserRole));
 
         permissionChecker.requireDepartmentAccess(
-            organization.getId(),
-            user.getEmail(),
-            department.getId()
-        );
+                organization.getId(),
+                user.getEmail(),
+                department.getId());
     }
 
     @Test
     @DisplayName("requireDepartmentAccess should deny managers for other departments")
     void requireDepartmentAccess_shouldDenyDepartmentManagerForOtherDepartment() {
-        Role managerRole = TestDataFactory.createRole(organization, "DEPARTMENT_MANAGER", "Department Manager");
-        UserRole managerUserRole = TestDataFactory.createUserRole(user, managerRole);
-
+        when(organizationSecurity.hasAnyOrgRole(
+                user.getEmail(), organization.getId(), RoleCode.HR_ADMIN, RoleCode.ORG_ADMIN))
+                .thenReturn(false);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-        when(userRoleRepository.findByUser(user)).thenReturn(List.of(managerUserRole));
 
         UUID otherDepartmentId = UUID.randomUUID();
 
         assertThatThrownBy(() ->
                 permissionChecker.requireDepartmentAccess(
-                    organization.getId(),
-                    user.getEmail(),
-                    otherDepartmentId))
+                        organization.getId(),
+                        user.getEmail(),
+                        otherDepartmentId))
             .isInstanceOf(AccessDeniedException.class)
             .hasMessageContaining("User does not have access to department");
     }
@@ -176,7 +147,9 @@ class PermissionCheckerTest {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
         assertThat(permissionChecker.getUserDepartmentId(organization.getId(), user.getEmail()))
-            .isEqualTo(department.getId());
+                .isEqualTo(department.getId());
+
+        verify(organizationSecurity).requireOrgMembership(user.getEmail(), organization.getId());
     }
 
     @Test

@@ -6,6 +6,9 @@ import com.company.erm.dto.TimeEntryResponseDTO;
 import com.company.erm.entity.TimeEntryStatus;
 import com.company.erm.service.TimeEntryService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +19,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -27,9 +29,14 @@ import java.util.UUID;
  * - Multi-tenant isolation enforced at service layer
  * - Role-based access control via @PreAuthorize
  */
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "Time Entries", description = "Time tracking entries")
 @RestController
 @RequestMapping("/api/v1/organizations/{organizationId}/time-entries")
-@PreAuthorize("hasAnyRole('ORG_ADMIN', 'PROJECT_MANAGER', 'HR_ADMIN', 'EMPLOYEE')")
+@PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN', 'PROJECT_MANAGER', 'HR_ADMIN', 'EMPLOYEE')")
 public class TimeEntryController {
 
     private final TimeEntryService timeEntryService;
@@ -48,6 +55,8 @@ public class TimeEntryController {
      * @param authentication Current authenticated user
      * @return Created time entry with 201 status
      */
+    @Operation(summary = "Create Time Entry")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<TimeEntryResponseDTO> createTimeEntry(
@@ -83,6 +92,8 @@ public class TimeEntryController {
      * @param authentication Current authenticated user
      * @return Time entry details
      */
+    @Operation(summary = "Get Time Entry")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping("/{timeEntryId}")
     public ResponseEntity<TimeEntryResponseDTO> getTimeEntry(
             @PathVariable UUID organizationId,
@@ -110,6 +121,8 @@ public class TimeEntryController {
      * @param authentication Current authenticated user
      * @return Updated time entry
      */
+    @Operation(summary = "Update Time Entry")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PutMapping("/{timeEntryId}")
     public ResponseEntity<TimeEntryResponseDTO> updateTimeEntry(
             @PathVariable UUID organizationId,
@@ -145,8 +158,10 @@ public class TimeEntryController {
      * @param authentication Current authenticated user
      * @return List of time entries
      */
+    @Operation(summary = "List Time Entries")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping
-    public ResponseEntity<List<TimeEntryResponseDTO>> listTimeEntries(
+    public ResponseEntity<Page<TimeEntryResponseDTO>> listTimeEntries(
             @PathVariable UUID organizationId,
             @RequestParam(required = false) UUID employeeId,
             @RequestParam(required = false) UUID projectId,
@@ -154,10 +169,11 @@ public class TimeEntryController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) TimeEntryStatus status,
+            @PageableDefault(size = 20) Pageable pageable,
             Authentication authentication) {
         
         String currentUserEmail = authentication.getName();
-        List<TimeEntryResponseDTO> entries = timeEntryService.listTimeEntries(
+        Page<TimeEntryResponseDTO> entries = timeEntryService.listTimeEntries(
             organizationId,
             employeeId,
             projectId,
@@ -165,6 +181,7 @@ public class TimeEntryController {
             startDate,
             endDate,
             status,
+            pageable,
             currentUserEmail
         );
         
@@ -181,6 +198,8 @@ public class TimeEntryController {
      * @param authentication Current authenticated user
      * @return Updated time entry
      */
+    @Operation(summary = "Submit Time Entry")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping("/{timeEntryId}/submit")
     public ResponseEntity<TimeEntryResponseDTO> submitTimeEntry(
             @PathVariable UUID organizationId,
@@ -207,8 +226,10 @@ public class TimeEntryController {
      * @param authentication Current authenticated user
      * @return Approved time entry
      */
+    @Operation(summary = "Approve Time Entry")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping("/{timeEntryId}/approve")
-    @PreAuthorize("hasAnyRole('ORG_ADMIN', 'PROJECT_MANAGER', 'HR_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN', 'PROJECT_MANAGER', 'HR_ADMIN')")
     public ResponseEntity<TimeEntryResponseDTO> approveTimeEntry(
             @PathVariable UUID organizationId,
             @PathVariable UUID timeEntryId,
@@ -235,8 +256,10 @@ public class TimeEntryController {
      * @param authentication Current authenticated user
      * @return Rejected time entry
      */
+    @Operation(summary = "Reject Time Entry")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping("/{timeEntryId}/reject")
-    @PreAuthorize("hasAnyRole('ORG_ADMIN', 'PROJECT_MANAGER', 'HR_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN', 'PROJECT_MANAGER', 'HR_ADMIN')")
     public ResponseEntity<TimeEntryResponseDTO> rejectTimeEntry(
             @PathVariable UUID organizationId,
             @PathVariable UUID timeEntryId,
@@ -264,6 +287,8 @@ public class TimeEntryController {
      * @param authentication Current authenticated user
      * @return 204 No Content
      */
+    @Operation(summary = "Delete Time Entry")
+    @ApiResponse(responseCode = "200", description = "Success")
     @DeleteMapping("/{timeEntryId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteTimeEntry(

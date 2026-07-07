@@ -12,6 +12,7 @@ import { ButtonComponent } from '../../../shared/components/ui/button/button.com
 import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
 import { InputComponent } from '../../../shared/components/ui/input/input.component';
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
+import { getFieldErrorKey } from '../../../shared/utils/form-errors';
 
 @Component({
     selector: 'app-task-form',
@@ -291,15 +292,9 @@ export class TaskFormComponent implements OnInit {
   }
 
   getFieldError(fieldName: string): string {
-    const field = this.form.get(fieldName);
-    if (field?.errors && field.touched) {
-      if (field.errors['required']) {
-        return `${fieldName} is required`;
-      }
-      if (field.errors['min']) {
-        return `${fieldName} must be at least ${field.errors['min'].min}`;
-      }
-    }
-    return '';
+    return getFieldErrorKey(this.form.get(fieldName), {
+      required: `tasks.form.errors.${fieldName}Required`,
+      min: `tasks.form.errors.${fieldName}Min`,
+    });
   }
 }

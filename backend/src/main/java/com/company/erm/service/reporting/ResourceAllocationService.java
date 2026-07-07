@@ -4,16 +4,13 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,13 +20,16 @@ import com.company.erm.dto.ResourceAllocationDTO;
 import com.company.erm.entity.Employee;
 import com.company.erm.entity.Project;
 import com.company.erm.entity.ProjectStatus;
-import com.company.erm.entity.TimeEntry;
 import com.company.erm.entity.TimeEntryStatus;
 import com.company.erm.entity.User;
 import com.company.erm.repository.EmployeeRepository;
 import com.company.erm.repository.ProjectRepository;
 import com.company.erm.repository.TimeEntryRepository;
 import com.company.erm.repository.UserRepository;
+import com.company.erm.repository.reporting.EmployeeHoursAggregate;
+import com.company.erm.repository.reporting.ProjectHoursAggregate;
+import com.company.erm.repository.reporting.ProjectLastActivityAggregate;
+import com.company.erm.security.OrganizationSecurityService;
 
 @Service
 @Transactional(readOnly = true)
@@ -39,38 +39,54 @@ public class ResourceAllocationService {
     private final EmployeeRepository employeeRepository;
     private final ProjectRepository projectRepository;
     private final TimeEntryRepository timeEntryRepository;
+    private final OrganizationSecurityService organizationSecurity;
 
     public ResourceAllocationService(
             UserRepository userRepository,
             EmployeeRepository employeeRepository,
             ProjectRepository projectRepository,
-            TimeEntryRepository timeEntryRepository) {
+            TimeEntryRepository timeEntryRepository,
+            OrganizationSecurityService organizationSecurity) {
         this.userRepository = userRepository;
         this.employeeRepository = employeeRepository;
         this.projectRepository = projectRepository;
         this.timeEntryRepository = timeEntryRepository;
+        this.organizationSecurity = organizationSecurity;
     }
 
     public ResourceAllocationDTO getResourceAllocation(UUID organizationId) {
-        Pageable pageable = PageRequest.of(0, 10000);
-        List<User> users = userRepository.findByOrganizationIdAndFilters(
-                organizationId, null, true, pageable).getContent();
-
+        organizationSecurity.requireOrgMembership(organizationId);
+        List<User> users = userRepository.findActiveByOrganizationId(organizationId);
         List<Project> projects = projectRepository.findByOrganizationIdAndArchivedFalse(organizationId);
-        List<TimeEntry> allEntries = timeEntryRepository.findByOrganizationId(organizationId);
 
         LocalDate now = LocalDate.now();
         LocalDate startOfWeek = now.minusDays(now.getDayOfWeek().getValue() - 1);
         BigDecimal standardCapacity = BigDecimal.valueOf(40);
 
+        Map<UUID, BigDecimal> hoursByUserId = timeEntryRepository.sumApprovedHoursByEmployeeInRange(
+                        organizationId, TimeEntryStatus.APPROVED, startOfWeek, now)
+                .stream()
+                .collect(Collectors.toMap(
+                        EmployeeHoursAggregate::getEmployeeId,
+                        EmployeeHoursAggregate::getTotalHours));
+        Map<UUID, BigDecimal> hoursByProjectId = timeEntryRepository.sumApprovedHoursByProjectInRange(
+                        organizationId, TimeEntryStatus.APPROVED, startOfWeek, now)
+                .stream()
+                .collect(Collectors.toMap(
+                        ProjectHoursAggregate::getProjectId,
+                        ProjectHoursAggregate::getTotalHours));
+        Set<UUID> projectsWithRecentEntries = new HashSet<>(
+                timeEntryRepository.findProjectIdsWithApprovedEntriesSince(organizationId, now.minusDays(7)));
+        Map<UUID, LocalDate> lastEntryByProjectId = timeEntryRepository.findLastApprovedEntryDateByProject(organizationId)
+                .stream()
+                .collect(Collectors.toMap(
+                        ProjectLastActivityAggregate::getProjectId,
+                        ProjectLastActivityAggregate::getLastEntryDate));
+
         List<EmployeeAllocationDTO> employeeAllocations = new ArrayList<>();
 
         for (User user : users) {
-            if (!user.isActive()) {
-                continue;
-            }
-
-            Employee employee = employeeRepository.findById(user.getId()).orElse(null);
+            Employee employee = employeeRepository.findByUserId(user.getId()).orElse(null);
             if (employee == null || !employee.isActive()) {
                 continue;
             }
@@ -81,14 +97,7 @@ public class ResourceAllocationService {
                                     .anyMatch(m -> m.getId().equals(employee.getId())))
                     .collect(Collectors.toList());
 
-            BigDecimal totalHoursThisWeek = allEntries.stream()
-                    .filter(te -> te.getEmployee().getId().equals(user.getId())
-                            && te.getStatus() == TimeEntryStatus.APPROVED
-                            && !te.getEntryDate().isBefore(startOfWeek)
-                            && !te.getEntryDate().isAfter(now))
-                    .map(TimeEntry::getDurationHours)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
+            BigDecimal totalHoursThisWeek = hoursByUserId.getOrDefault(user.getId(), BigDecimal.ZERO);
             BigDecimal utilization = totalHoursThisWeek.divide(standardCapacity, 4, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100));
 
@@ -134,13 +143,7 @@ public class ResourceAllocationService {
 
             Set<Employee> members = project.getMembers() != null ? project.getMembers() : new HashSet<>();
 
-            BigDecimal allocatedHoursThisWeek = allEntries.stream()
-                    .filter(te -> te.getProject().getId().equals(project.getId())
-                            && te.getStatus() == TimeEntryStatus.APPROVED
-                            && !te.getEntryDate().isBefore(startOfWeek)
-                            && !te.getEntryDate().isAfter(now))
-                    .map(TimeEntry::getDurationHours)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal allocatedHoursThisWeek = hoursByProjectId.getOrDefault(project.getId(), BigDecimal.ZERO);
 
             BigDecimal requiredHoursPerWeek = BigDecimal.ZERO;
             if (project.getStatus() == ProjectStatus.ACTIVE && !members.isEmpty()) {
@@ -148,23 +151,12 @@ public class ResourceAllocationService {
             }
 
             BigDecimal gapHours = requiredHoursPerWeek.subtract(allocatedHoursThisWeek);
-
-            boolean hasRecentTimeEntries = allEntries.stream()
-                    .anyMatch(te -> te.getProject().getId().equals(project.getId())
-                            && !te.getEntryDate().isBefore(now.minusDays(7))
-                            && te.getStatus() == TimeEntryStatus.APPROVED);
+            boolean hasRecentTimeEntries = projectsWithRecentEntries.contains(project.getId());
 
             int daysSinceLastEntry = 0;
-            if (!allEntries.isEmpty()) {
-                Optional<TimeEntry> lastEntry = allEntries.stream()
-                        .filter(te -> te.getProject().getId().equals(project.getId())
-                                && te.getStatus() == TimeEntryStatus.APPROVED)
-                        .max(Comparator.comparing(TimeEntry::getEntryDate));
-
-                if (lastEntry.isPresent()) {
-                    daysSinceLastEntry = (int) java.time.temporal.ChronoUnit.DAYS.between(
-                            lastEntry.get().getEntryDate(), now);
-                }
+            LocalDate lastEntryDate = lastEntryByProjectId.get(project.getId());
+            if (lastEntryDate != null) {
+                daysSinceLastEntry = (int) java.time.temporal.ChronoUnit.DAYS.between(lastEntryDate, now);
             }
 
             String allocationStatus;
@@ -196,8 +188,11 @@ public class ResourceAllocationService {
                     members.stream().map(Employee::getId).collect(Collectors.toList()),
                     members.stream()
                             .map(e -> {
-                                User u = userRepository.findById(e.getId()).orElse(null);
-                                return u != null ? u.getFirstName() + " " + u.getLastName() : "Unknown";
+                                User u = e.getUser();
+                                if (u == null) {
+                                    return "Unknown";
+                                }
+                                return u.getFirstName() + " " + u.getLastName();
                             })
                             .collect(Collectors.toList()),
                     requiredHoursPerWeek,

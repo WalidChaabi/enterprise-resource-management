@@ -74,10 +74,12 @@ See [AUTH_REFRESH.md](./AUTH_REFRESH.md) and [ADR-auth-session.md](./ADR-auth-se
 | Variable | Notes |
 |----------|-------|
 | `JWT_SECRET` | Min 32 characters; never commit |
+| `ERM_ENCRYPTION_KEY` | Min 32 characters; encrypts MFA secrets at rest (separate from JWT) |
 | `POSTGRES_PASSWORD` | Strong password |
 | `CORS_ALLOWED_ORIGINS` | Exact frontend origin (credentials require explicit origin) |
 | `AUTH_COOKIE_SECURE` | `true` in production |
 | `ERM_DEMO_DATA_ENABLED` | `false` in production |
+| `ERM_RATE_LIMIT_REQUESTS_PER_MINUTE` | Optional; default `10` per IP per auth endpoint |
 
 ---
 
@@ -133,7 +135,7 @@ See [backend/docs/monitoring/ACTUATOR_ENDPOINTS.md](../backend/docs/monitoring/A
 
 ### Login throttled (429)
 
-Login rate limit: **10 attempts/minute per IP**. Wait 60s or check `X-Forwarded-For` if behind a proxy.
+Auth rate limit: **10 requests/minute per IP per endpoint** (default). Applies to `POST /auth/login`, `/auth/signup`, `/auth/forgot-password`, `/auth/mfa/verify`, and `/auth/refresh`. Override with `ERM_RATE_LIMIT_REQUESTS_PER_MINUTE`. Wait 60s or check `X-Forwarded-For` if behind a proxy.
 
 ### Dashboard shows stale data after org switch
 

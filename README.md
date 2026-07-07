@@ -1,4 +1,24 @@
-# 🏢 Enterprise Resource Management (ERM)
+# Enterprise Resource Management (ERM)
+
+[![CI](https://github.com/WalidChaabi/enterprise-resource-management/actions/workflows/ci.yml/badge.svg)](https://github.com/WalidChaabi/enterprise-resource-management/actions/workflows/ci.yml)
+![Backend coverage](https://img.shields.io/badge/backend%20line%20coverage-37%25-yellow)
+![Frontend specs](https://img.shields.io/badge/frontend%20spec%20files-15+-blue)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+Multi-tenant enterprise resource management platform — employees, projects, time tracking, leave, reporting, and organization-scoped security.
+
+**Author:** [Walid Chaabi](https://github.com/WalidChaabi) · **Stack:** Spring Boot 3 · Angular 19 · PostgreSQL · Docker
+
+## Highlights
+
+- Multi-tenant authorization with org-scoped JWT and cross-tenant security tests
+- MFA, SSO, webhooks, audit events, and reporting dashboards
+- Angular frontend with shared list/table shells and i18n (EN/FR)
+- Flyway migrations, integration tests, GitHub Actions CI
+
+> Portfolio project — Phase 4 frontend hardening in progress. See [docs/PORTFOLIO_IMPLEMENTATION_ROADMAP.md](docs/PORTFOLIO_IMPLEMENTATION_ROADMAP.md).
+
+---
 
 Système de gestion des ressources d'entreprise full-stack développé avec Spring Boot et Angular.
 
@@ -38,7 +58,7 @@ enterprise-resource-management/
 ### 1. Cloner le repository
 
 ```bash
-git clone https://github.com/votre-org/enterprise-resource-management.git
+git clone https://github.com/WalidChaabi/enterprise-resource-management.git
 cd enterprise-resource-management
 ```
 
@@ -177,9 +197,9 @@ Ces identifiants proviennent des données de démo Flyway (profil `dev` uniqueme
 - RxJS
 - Chart.js
 
-## 📝 License
+## License
 
-[Votre licence ici]
+MIT — see [LICENSE](LICENSE).
 
 ## 👥 Contribution
 

@@ -15,6 +15,7 @@ import { ToastService } from '../../../shared/components/ui/toast/toast.service'
 import { FormSelectComponent, FormSelectOption } from '../../../shared/components/ui/form-select/form-select.component';
 import { DatePickerComponent } from '../../../shared/components/ui/date-picker/date-picker.component';
 import { TranslationService } from '../../../core/services/translation.service';
+import { getFieldErrorKey } from '../../../shared/utils/form-errors';
 
 @Component({
     selector: 'app-project-form',
@@ -275,15 +276,9 @@ export class ProjectFormComponent implements OnInit {
   }
 
   getFieldError(fieldName: string): string {
-    const field = this.form.get(fieldName);
-    if (field?.errors && field.touched) {
-      if (field.errors['required']) {
-        return `${fieldName} is required`;
-      }
-      if (field.errors['min']) {
-        return `${fieldName} must be at least ${field.errors['min'].min}`;
-      }
-    }
-    return '';
+    return getFieldErrorKey(this.form.get(fieldName), {
+      required: `projects.form.errors.${fieldName}Required`,
+      min: `projects.form.errors.${fieldName}Min`,
+    });
   }
 }

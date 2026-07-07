@@ -10,6 +10,7 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
+import { getFieldErrorKey } from '../../../shared/utils/form-errors';
 
 @Component({
     selector: 'app-department-form',
@@ -215,12 +216,8 @@ export class DepartmentFormComponent implements OnInit {
   }
 
   getFieldError(fieldName: string): string {
-    const field = this.form.get(fieldName);
-    if (field?.errors && field.touched) {
-      if (field.errors['required']) {
-        return `${fieldName} is required`;
-      }
-    }
-    return '';
+    return getFieldErrorKey(this.form.get(fieldName), {
+      required: `departments.form.errors.${fieldName}Required`,
+    });
   }
 }

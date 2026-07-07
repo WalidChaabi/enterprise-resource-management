@@ -45,5 +45,10 @@ export const routes: Routes = [
     path: 'webhooks',
     loadComponent: () =>
       import('./webhook-settings/webhook-settings.component').then(m => m.WebhookSettingsComponent)
+  },
+  {
+    path: 'security',
+    loadComponent: () =>
+      import('./security-settings/security-settings.component').then(m => m.SecuritySettingsComponent)
   }
 ];

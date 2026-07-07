@@ -1,5 +1,6 @@
 package com.company.erm.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,8 +28,17 @@ public class TimeEntryUpdateDTO {
     }
 
     public boolean hasUpdates() {
-        return taskId.isPresent() || entryDate.isPresent() || startTime.isPresent() 
+        return taskId.isPresent() || entryDate.isPresent() || startTime.isPresent()
             || endTime.isPresent() || description.isPresent();
     }
-}
 
+    @AssertTrue(message = "At least one field must be provided for update")
+    public boolean isHasUpdates() {
+        return hasUpdates();
+    }
+
+    @AssertTrue(message = "Description must not exceed 5000 characters")
+    public boolean isDescriptionLengthValid() {
+        return description.isEmpty() || description.get().length() <= 5000;
+    }
+}

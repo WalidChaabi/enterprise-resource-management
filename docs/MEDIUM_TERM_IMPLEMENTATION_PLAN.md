@@ -14,9 +14,9 @@
 | Phase | Focus | Duration | Priority | Status |
 |-------|--------|----------|----------|--------|
 | MT-A | Self-serve signup & org provisioning | 2–3 weeks | P0 | ✅ Code complete · QA pending |
-| MT-B | Stripe billing (plans, seats, trials) | 3–4 weeks | P0 | 🟡 In progress — core wired · seat enforcement pending |
+| MT-B | Stripe billing (plans, seats, trials) | 3–4 weeks | P0 | 🟡 In progress — core + seat enforcement wired · Stripe E2E QA pending |
 | MT-C | Plan entitlements & feature flags | 1–2 weeks | P1 | 🟡 In progress — core gating wired |
-| MT-D | SSO/OIDC + MFA (TOTP) | 3–4 weeks | P0 | ⬜ Not started |
+| MT-D | SSO/OIDC + MFA (TOTP) | 3–4 weeks | P0 | 🟡 In progress — core wired · Azure/Google QA pending |
 | MT-E | Persistent audit log + admin export | 2 weeks | P0 | 🟡 In progress — core wired |
 | MT-F | GDPR export & erasure | 2–3 weeks | P0 | 🟡 In progress — core wired |
 | MT-G | SMTP email for workflow events | 1–2 weeks | P1 | 🟡 In progress — core wired |
@@ -81,7 +81,7 @@
 | MT-B.3 | `POST /webhooks/stripe` — `checkout.session.completed`, `invoice.paid`, `customer.subscription.updated` | Backend | 2d | ✅ Idempotent `stripe_webhook_events` |
 | MT-B.4 | Replace hardcoded billing DTO with Stripe-backed `BillingSettingsResponseDTO` | Backend | 1d | ✅ `SettingsService.getBilling()` |
 | MT-B.5 | Billing settings: “Manage subscription” → Stripe Customer Portal | Frontend | 2d | ✅ Portal + checkout CTAs |
-| MT-B.6 | Seat count = active employees; enforce on invite/create employee | Backend | 2d | ⬜ Ties to MT-C |
+| MT-B.6 | Seat count = active employees; enforce on invite/create employee | Backend | 2d | ✅ `EntitlementService.requireSeatAvailable` in `EmployeeService` |
 | MT-B.7 | E2E smoke: mock Stripe webhook in CI (optional) | DevOps | 1d | ⬜ |
 
 **Key files:** `SettingsService`, `billing-settings.component.ts`, new `StripeWebhookController`, `application.properties` `stripe.*`.
@@ -117,22 +117,22 @@
 
 **Goal:** Pass enterprise security questionnaires for mid-market EU deals.
 
-| ID | Task | Owner | Effort | Notes |
-|----|------|-------|--------|-------|
-| MT-D.1 | Spring Security OAuth2 Client — Azure AD + Google | Backend | 3d | Per-org `identity_provider` config |
-| MT-D.2 | OIDC login callback → link or create user in org | Backend | 2d | JIT provisioning policy |
-| MT-D.3 | TOTP MFA enrollment + verify on login | Backend | 2d | `user_mfa_secrets` migration |
-| MT-D.4 | Org settings: “Require MFA for all users” toggle | Full stack | 1d | `settings/security` |
-| MT-D.5 | Login page: “Continue with Microsoft / Google” | Frontend | 1d | Hide when SSO not configured |
-| MT-D.6 | Backup codes + MFA recovery flow | Full stack | 2d | P1 within phase |
+| ID | Task | Status |
+|----|------|--------|
+| MT-D.1 | Spring Security OAuth2 Client — Azure AD + Google | ✅ Conditional `OAuth2ClientConfig` + `erm.oauth2.enabled` |
+| MT-D.2 | OIDC login callback → link or create user in org | ✅ `OidcLoginSuccessHandler` + `SsoAuthService` JIT |
+| MT-D.3 | TOTP MFA enrollment + verify on login | ✅ `MfaService`, `V22__sso_mfa_schema.sql`, `/auth/mfa/verify` |
+| MT-D.4 | Org settings: “Require MFA for all users” toggle | ✅ `/settings/security` |
+| MT-D.5 | Login page: “Continue with Microsoft / Google” | ✅ Email-based provider discovery |
+| MT-D.6 | Backup codes + MFA recovery flow | ✅ 8 backup codes on enroll + regenerate |
 
-**Key files:** `SecurityConfig`, new `OidcLoginSuccessHandler`, `features/auth/login/`, `features/settings/security-settings/` (new).
+**Key files:** `SecurityConfig`, `OidcLoginSuccessHandler`, `MfaService`, `SsoAuthService`, `features/auth/login/`, `features/auth/mfa-verify/`, `features/settings/security-settings/`.
 
 **Acceptance criteria**
 
-- [ ] Azure AD test tenant login works end-to-end
+- [ ] Azure AD test tenant login works end-to-end (set `OAUTH2_ENABLED=true` + client IDs)
 - [ ] MFA required org blocks login until TOTP verified
-- [ ] Password login still works for non-SSO orgs
+- [x] Password login still works for non-SSO orgs
 
 ---
 
@@ -395,6 +395,14 @@ SOC 2 Type II, multi-region data residency, SCIM, full leave accrual engine, AI 
 
 ## Next action
 
-1. **Merge short-term PR** and close ST QA checklist.  
-2. **Pick beachhead pricing** (audit suggests €8–12/seat; define Starter vs Pro limits for MT-C).  
-3. **Kick off MT-A** — signup API + wizard (no Stripe until MT-B).
+**Option A (pilot-ready QA)** — see [PILOT_QA_CHECKLIST.md](./PILOT_QA_CHECKLIST.md)
+
+1. **Automated gates** — `./mvnw test`, frontend prod build, Playwright smoke, Docker healthy.  
+2. **Manual QA** — work through ST + MT sections in pilot checklist on `localhost:4200`.  
+3. **Fix blockers** — log in pilot checklist § Blockers.  
+4. **Tag baseline** — `pilot-v0.1` after sign-off and commit.
+
+Legacy kickoff (if QA blocked on signup only):
+
+1. Merge short-term PR and close ST QA checklist.  
+2. Pick beachhead pricing (Starter vs Pro limits for MT-C).  

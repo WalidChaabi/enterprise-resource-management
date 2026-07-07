@@ -6,12 +6,11 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +18,8 @@ import com.company.erm.dto.CapacityDashboardDTO;
 import com.company.erm.dto.EmployeeCapacityRowDTO;
 import com.company.erm.entity.Employee;
 import com.company.erm.entity.LeaveRequest;
-import com.company.erm.entity.LeaveRequestStatus;
 import com.company.erm.entity.LeaveType;
 import com.company.erm.entity.Project;
-import com.company.erm.entity.TimeEntry;
 import com.company.erm.entity.TimeEntryStatus;
 import com.company.erm.entity.User;
 import com.company.erm.repository.EmployeeRepository;
@@ -30,6 +27,8 @@ import com.company.erm.repository.LeaveRequestRepository;
 import com.company.erm.repository.ProjectRepository;
 import com.company.erm.repository.TimeEntryRepository;
 import com.company.erm.repository.UserRepository;
+import com.company.erm.repository.reporting.EmployeeHoursAggregate;
+import com.company.erm.security.OrganizationSecurityService;
 
 @Service
 @Transactional(readOnly = true)
@@ -42,39 +41,45 @@ public class CapacityDashboardService {
     private final ProjectRepository projectRepository;
     private final TimeEntryRepository timeEntryRepository;
     private final LeaveRequestRepository leaveRequestRepository;
+    private final OrganizationSecurityService organizationSecurity;
 
     public CapacityDashboardService(
             UserRepository userRepository,
             EmployeeRepository employeeRepository,
             ProjectRepository projectRepository,
             TimeEntryRepository timeEntryRepository,
-            LeaveRequestRepository leaveRequestRepository) {
+            LeaveRequestRepository leaveRequestRepository,
+            OrganizationSecurityService organizationSecurity) {
         this.userRepository = userRepository;
         this.employeeRepository = employeeRepository;
         this.projectRepository = projectRepository;
         this.timeEntryRepository = timeEntryRepository;
         this.leaveRequestRepository = leaveRequestRepository;
+        this.organizationSecurity = organizationSecurity;
     }
 
     public CapacityDashboardDTO getCapacityDashboard(UUID organizationId, LocalDate weekStart) {
+        organizationSecurity.requireOrgMembership(organizationId);
         LocalDate resolvedWeekStart = resolveWeekStart(weekStart);
         LocalDate weekEnd = resolvedWeekStart.plusDays(6);
 
-        Pageable pageable = PageRequest.of(0, 10000);
-        List<User> users = userRepository.findByOrganizationIdAndFilters(
-                organizationId, null, true, pageable).getContent();
+        List<User> users = userRepository.findActiveByOrganizationId(organizationId);
         List<Project> projects = projectRepository.findByOrganizationIdAndArchivedFalse(organizationId);
-        List<TimeEntry> allEntries = timeEntryRepository.findByOrganizationId(organizationId);
-        List<LeaveRequest> leaveRequests = leaveRequestRepository.findByOrganizationId(organizationId);
+        Map<UUID, BigDecimal> hoursByUserId = timeEntryRepository.sumApprovedHoursByEmployeeInRange(
+                        organizationId, TimeEntryStatus.APPROVED, resolvedWeekStart, weekEnd)
+                .stream()
+                .collect(Collectors.toMap(
+                        EmployeeHoursAggregate::getEmployeeId,
+                        EmployeeHoursAggregate::getTotalHours));
+        Map<UUID, List<LeaveRequest>> leaveByUserId = leaveRequestRepository
+                .findApprovedLeaveOverlappingWeek(organizationId, resolvedWeekStart, weekEnd)
+                .stream()
+                .collect(Collectors.groupingBy(lr -> lr.getEmployee().getId()));
 
         List<EmployeeCapacityRowDTO> rows = new ArrayList<>();
 
         for (User user : users) {
-            if (!user.isActive()) {
-                continue;
-            }
-
-            Employee employee = employeeRepository.findById(user.getId()).orElse(null);
+            Employee employee = employeeRepository.findByUserId(user.getId()).orElse(null);
             if (employee == null || !employee.isActive()) {
                 continue;
             }
@@ -85,26 +90,13 @@ public class CapacityDashboardService {
                     .map(Project::getId)
                     .collect(Collectors.toSet());
 
-            BigDecimal loggedHours = allEntries.stream()
-                    .filter(te -> te.getEmployee().getId().equals(user.getId())
-                            && te.getStatus() == TimeEntryStatus.APPROVED
-                            && !te.getEntryDate().isBefore(resolvedWeekStart)
-                            && !te.getEntryDate().isAfter(weekEnd))
-                    .map(TimeEntry::getDurationHours)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
+            BigDecimal loggedHours = hoursByUserId.getOrDefault(user.getId(), BigDecimal.ZERO);
             BigDecimal utilization = loggedHours.divide(STANDARD_CAPACITY, 4, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100));
 
             String allocationStatus = resolveAllocationStatus(utilization, assignedProjectIds.isEmpty(), loggedHours);
 
-            List<LeaveRequest> employeeLeave = leaveRequests.stream()
-                    .filter(lr -> lr.getEmployee().getId().equals(user.getId())
-                            && lr.getStatus() == LeaveRequestStatus.APPROVED
-                            && !lr.getEndDate().isBefore(resolvedWeekStart)
-                            && !lr.getStartDate().isAfter(weekEnd))
-                    .toList();
-
+            List<LeaveRequest> employeeLeave = leaveByUserId.getOrDefault(user.getId(), List.of());
             int leaveDays = employeeLeave.stream()
                     .mapToInt(lr -> countOverlapDays(lr.getStartDate(), lr.getEndDate(), resolvedWeekStart, weekEnd))
                     .sum();

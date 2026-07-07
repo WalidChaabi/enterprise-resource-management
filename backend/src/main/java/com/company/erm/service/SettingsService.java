@@ -79,12 +79,6 @@ public class SettingsService {
     public ProfileSettingsResponseDTO updateProfile(String currentUserEmail, ProfileSettingsUpdateDTO updateDTO) {
         User user = getUserByEmail(currentUserEmail);
 
-        if (!user.getEmail().equalsIgnoreCase(updateDTO.getEmail())
-                && userRepository.existsByEmailAndOrganizationId(updateDTO.getEmail(), user.getOrganization().getId())) {
-            throw new BusinessException("EMAIL_ALREADY_IN_USE", "Email is already in use", HttpStatus.CONFLICT);
-        }
-
-        user.setEmail(updateDTO.getEmail());
         user.setFirstName(updateDTO.getFirstName());
         user.setLastName(updateDTO.getLastName());
         userRepository.save(user);
@@ -108,14 +102,15 @@ public class SettingsService {
         User user = getUserByEmail(currentUserEmail);
         Organization org = user.getOrganization();
 
-        if (!org.getCode().equalsIgnoreCase(updateDTO.getCode())) {
-            organizationRepository.findByCode(updateDTO.getCode()).ifPresent(existing -> {
-                throw new BusinessException("ORG_CODE_EXISTS", "Organization code already exists", HttpStatus.CONFLICT);
-            });
-        }
-
         org.setName(updateDTO.getName());
-        org.setCode(updateDTO.getCode());
+        if (updateDTO.getCode() != null && !updateDTO.getCode().isBlank()) {
+            if (!org.getCode().equalsIgnoreCase(updateDTO.getCode())) {
+                organizationRepository.findByCode(updateDTO.getCode()).ifPresent(existing -> {
+                    throw new BusinessException("ORG_CODE_EXISTS", "Organization code already exists", HttpStatus.CONFLICT);
+                });
+            }
+            org.setCode(updateDTO.getCode());
+        }
         organizationRepository.save(org);
 
         return getOrganization(currentUserEmail);

@@ -4,6 +4,10 @@ Central documentation for the Enterprise Resource Management monorepo.
 
 | Document | Description |
 |----------|-------------|
+| [PORTFOLIO_AUDIT.md](./PORTFOLIO_AUDIT.md) | Portfolio readiness audit (scores, verdict, improvement priorities) |
+| [PORTFOLIO_IMPLEMENTATION_ROADMAP.md](./PORTFOLIO_IMPLEMENTATION_ROADMAP.md) | v1.0 public release roadmap — phases, tasks, checklists, sprint plan |
+| [ADR-org-scoped-authorization.md](./ADR-org-scoped-authorization.md) | Multi-tenant authorization model (`OrganizationSecurityService`) |
+| [authorization-coverage-matrix.md](./authorization-coverage-matrix.md) | Per-controller authorization migration status |
 | [AUDIT_REPORT.md](./AUDIT_REPORT.md) | Full technical audit (architecture, security, performance, testing, DevOps) |
 | [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) | Phased roadmap for remaining work with tasks and acceptance criteria |
 | [RUNBOOK.md](./RUNBOOK.md) | Operations guide: health, logs, auth cookies, troubleshooting |

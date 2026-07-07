@@ -15,6 +15,11 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * HR profile for a {@link User} within an organization.
+ * See docs/ADR-employee-user-model.md — User is the auth/workflow identity;
+ * Employee holds HR fields and project membership keys.
+ */
 @Entity
 @Table(name = "employees", schema = "erm")
 @Getter

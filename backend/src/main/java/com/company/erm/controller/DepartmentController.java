@@ -25,9 +25,14 @@ import java.util.UUID;
  * - Multi-tenant isolation enforced at service layer
  * - Role-based access control via @PreAuthorize
  */
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "Departments", description = "Department management")
 @RestController
 @RequestMapping("/api/v1/organizations/{organizationId}/departments")
-@PreAuthorize("hasAnyRole('HR_ADMIN', 'ORG_ADMIN', 'DEPARTMENT_MANAGER')")
+@PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'HR_ADMIN', 'ORG_ADMIN', 'DEPARTMENT_MANAGER')")
 public class DepartmentController {
 
     private final DepartmentService departmentService;
@@ -41,8 +46,10 @@ public class DepartmentController {
      * 
      * Permissions: HR_ADMIN, ORG_ADMIN only
      */
+    @Operation(summary = "Create Department")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping
-    @PreAuthorize("hasAnyRole('HR_ADMIN', 'ORG_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'HR_ADMIN', 'ORG_ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<DepartmentResponseDTO> createDepartment(
             @PathVariable UUID organizationId,
@@ -68,6 +75,8 @@ public class DepartmentController {
     /**
      * Get department by ID.
      */
+    @Operation(summary = "Get Department")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping("/{departmentId}")
     public ResponseEntity<DepartmentResponseDTO> getDepartment(
             @PathVariable UUID organizationId,
@@ -89,8 +98,10 @@ public class DepartmentController {
      * 
      * Permissions: HR_ADMIN, ORG_ADMIN only
      */
+    @Operation(summary = "Update Department")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PutMapping("/{departmentId}")
-    @PreAuthorize("hasAnyRole('HR_ADMIN', 'ORG_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'HR_ADMIN', 'ORG_ADMIN')")
     public ResponseEntity<DepartmentResponseDTO> updateDepartment(
             @PathVariable UUID organizationId,
             @PathVariable UUID departmentId,
@@ -111,6 +122,8 @@ public class DepartmentController {
     /**
      * List departments with pagination and filtering.
      */
+    @Operation(summary = "List Departments")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping
     public ResponseEntity<Page<DepartmentResponseDTO>> listDepartments(
             @PathVariable UUID organizationId,
@@ -136,8 +149,10 @@ public class DepartmentController {
      * 
      * Permissions: HR_ADMIN, ORG_ADMIN only
      */
+    @Operation(summary = "Deactivate Department")
+    @ApiResponse(responseCode = "200", description = "Success")
     @DeleteMapping("/{departmentId}")
-    @PreAuthorize("hasAnyRole('HR_ADMIN', 'ORG_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'HR_ADMIN', 'ORG_ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deactivateDepartment(
             @PathVariable UUID organizationId,

@@ -30,6 +30,12 @@ export const routes: Routes = [
       import('./features/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
   },
   {
+    path: 'login/mfa',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./features/auth/mfa-verify/mfa-verify.component').then(m => m.MfaVerifyComponent)
+  },
+  {
     path: '',
     canActivate: [authGuard],
     loadComponent: () => 

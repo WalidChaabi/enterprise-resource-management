@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
+import { TranslationService } from '@/core/services/translation.service';
 
 export type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'info';
 
@@ -14,8 +15,9 @@ export interface Toast {
   providedIn: 'root'
 })
 export class ToastService {
+  private readonly translation = inject(TranslationService);
   private readonly toasts = signal<Toast[]>([]);
-  
+
   readonly toasts$ = computed(() => this.toasts());
 
   show(toast: Omit<Toast, 'id'>): string {
@@ -51,6 +53,22 @@ export class ToastService {
 
   info(title: string, description?: string, duration?: number): string {
     return this.show({ title, description, variant: 'info', duration });
+  }
+
+  successI18n(titleKey: string, descriptionKey?: string, duration?: number): string {
+    return this.success(
+      this.translation.translate(titleKey),
+      descriptionKey ? this.translation.translate(descriptionKey) : undefined,
+      duration
+    );
+  }
+
+  errorI18n(titleKey: string, descriptionKey?: string, duration?: number): string {
+    return this.error(
+      this.translation.translate(titleKey),
+      descriptionKey ? this.translation.translate(descriptionKey) : undefined,
+      duration
+    );
   }
 
   dismiss(id: string): void {

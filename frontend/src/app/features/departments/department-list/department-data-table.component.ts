@@ -4,7 +4,6 @@ import {
   TemplateRef,
   computed,
   input,
-  signal,
   viewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -12,36 +11,25 @@ import { RouterModule } from '@angular/router';
 import {
   CellContext,
   ColumnDef,
-  ColumnFiltersState,
-  FlexRenderDirective,
   HeaderContext,
   SortingState,
-  VisibilityState,
-  createAngularTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
 } from '@tanstack/angular-table';
-import { FormsModule } from '@angular/forms';
 import { Department } from '@/core/models/department.model';
 import { TranslatePipe } from '@/core/pipes/translate.pipe';
 import { DataTableColumnHeaderComponent } from '@/shared/components/data-table/data-table-column-header.component';
-import { DataTablePaginationComponent } from '@/shared/components/data-table/data-table-pagination.component';
-import { DataTableViewOptionsComponent } from '@/shared/components/data-table/data-table-view-options.component';
+import { EntityDataTableComponent } from '@/shared/components/entity-data-table/entity-data-table.component';
+import { createEntityTableState } from '@/shared/components/entity-data-table/entity-table-state';
 import { DepartmentRowActionsComponent } from './department-row-actions.component';
+import { DepartmentFilter } from './department-list.component';
 
 @Component({
   selector: 'app-department-data-table',
   imports: [
     CommonModule,
     RouterModule,
-    FormsModule,
-    FlexRenderDirective,
     TranslatePipe,
+    EntityDataTableComponent,
     DataTableColumnHeaderComponent,
-    DataTablePaginationComponent,
-    DataTableViewOptionsComponent,
     DepartmentRowActionsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,6 +37,7 @@ import { DepartmentRowActionsComponent } from './department-row-actions.componen
 })
 export class DepartmentDataTableComponent {
   readonly data = input.required<Department[]>();
+  readonly departmentFilter = input<DepartmentFilter>('ALL');
 
   readonly nameHeader = viewChild.required<TemplateRef<{ $implicit: HeaderContext<Department, unknown> }>>('nameHeader');
   readonly descriptionHeader = viewChild.required<TemplateRef<{ $implicit: HeaderContext<Department, unknown> }>>('descriptionHeader');
@@ -62,10 +51,12 @@ export class DepartmentDataTableComponent {
   readonly employeesCell = viewChild.required<TemplateRef<{ $implicit: CellContext<Department, unknown> }>>('employeesCell');
   readonly actionsCell = viewChild.required<TemplateRef<{ $implicit: CellContext<Department, unknown> }>>('actionsCell');
 
-  readonly filterValue = signal('');
-  readonly sorting = signal<SortingState>([]);
-  readonly columnFilters = signal<ColumnFiltersState>([]);
-  readonly columnVisibility = signal<VisibilityState>({});
+  readonly filteredData = computed(() => {
+    const filter = this.departmentFilter();
+    if (filter === 'ALL') return this.data();
+    if (filter === 'STAFFED') return this.data().filter((d) => (d.employeeCount ?? 0) > 0);
+    return this.data().filter((d) => (d.employeeCount ?? 0) === 0);
+  });
 
   readonly columns = computed<ColumnDef<Department, unknown>[]>(() => [
     {
@@ -101,34 +92,19 @@ export class DepartmentDataTableComponent {
     },
   ]);
 
-  readonly table = createAngularTable<Department>(() => ({
-    data: this.data(),
-    columns: this.columns(),
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(this.sorting()) : updater;
-      this.sorting.set(next);
-    },
-    onColumnFiltersChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(this.columnFilters()) : updater;
-      this.columnFilters.set(next);
-    },
-    onColumnVisibilityChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(this.columnVisibility()) : updater;
-      this.columnVisibility.set(next);
-    },
-    state: {
-      sorting: this.sorting(),
-      columnFilters: this.columnFilters(),
-      columnVisibility: this.columnVisibility(),
-    },
-  }));
+  private readonly tableState = createEntityTableState<Department>({
+    data: () => this.filteredData(),
+    columns: () => this.columns(),
+    initialSorting: [{ id: 'name', desc: false }] as SortingState,
+    matchesFilter: (dept, query) =>
+      [dept.name, dept.description, dept.managerName]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(query),
+  });
 
-  onFilterChange(value: string): void {
-    this.filterValue.set(value);
-    this.table.getColumn('name')?.setFilterValue(value);
-  }
+  readonly filterValue = this.tableState.filterValue;
+  readonly table = this.tableState.table;
+  readonly onFilterChange = this.tableState.onFilterChange;
 }

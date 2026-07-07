@@ -1,17 +1,9 @@
-<div class="mt-6 space-y-6">
-  <div>
-    <h2 class="text-xl font-semibold text-foreground">{{ 'settings.webhooks.title' | translate }}</h2>
-    <p class="text-sm text-muted-foreground">{{ 'settings.webhooks.subtitle' | translate }}</p>
-  </div>
-
+<app-settings-page-layout [wide]="true">
   @if (!hasWebhooks()) {
     <app-alert variant="default">{{ 'settings.webhooks.upgradeHint' | translate }}</app-alert>
   } @else {
     @if (error()) {
       <app-alert variant="destructive">{{ error() | translate }}</app-alert>
-    }
-    @if (success()) {
-      <app-alert variant="default">{{ success() | translate }}</app-alert>
     }
     @if (createdSecret()) {
       <app-alert variant="default">
@@ -30,33 +22,41 @@
           <app-card-description>{{ 'settings.webhooks.formHint' | translate }}</app-card-description>
         </app-card-header>
         <app-card-content>
-          <form [formGroup]="form" class="space-y-4" (ngSubmit)="save()">
-            <div class="space-y-2">
-              <label class="text-sm font-medium">{{ 'settings.webhooks.url' | translate }}</label>
-              <app-input formControlName="url" placeholder="https://example.com/webhooks/erm" />
+          <form [formGroup]="form" class="flex flex-col gap-6" (ngSubmit)="save()">
+            <div class="flex flex-col gap-3">
+              <app-settings-field labelKey="settings.webhooks.url" forId="webhook-url">
+                <app-input id="webhook-url" formControlName="url" placeholder="https://example.com/webhooks/erm" />
+              </app-settings-field>
+              <app-settings-field labelKey="settings.webhooks.description" forId="webhook-description">
+                <app-input id="webhook-description" formControlName="description" />
+              </app-settings-field>
             </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium">{{ 'settings.webhooks.description' | translate }}</label>
-              <app-input formControlName="description" />
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium">{{ 'settings.webhooks.eventsLabel' | translate }}</label>
-              <div class="space-y-2">
+            <div class="flex flex-col gap-3">
+              <label class="text-sm font-medium leading-snug text-foreground">
+                {{ 'settings.webhooks.eventsLabel' | translate }}
+              </label>
+              <div class="flex flex-col gap-3">
                 @for (option of eventOptions; track option.value) {
-                  <label class="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
+                  <div class="flex items-center gap-3">
+                    <app-checkbox
+                      [id]="eventCheckboxId(option.value)"
                       [checked]="isEventSelected(option.value)"
-                      (change)="toggleEvent(option.value, $any($event.target).checked)" />
-                    {{ option.labelKey | translate }}
-                  </label>
+                      (checkedChange)="toggleEvent(option.value, $event)" />
+                    <label
+                      [for]="eventCheckboxId(option.value)"
+                      class="cursor-pointer text-sm font-medium leading-none text-foreground">
+                      {{ option.labelKey | translate }}
+                    </label>
+                  </div>
                 }
               </div>
             </div>
-            <label class="flex items-center gap-2 text-sm">
-              <input type="checkbox" formControlName="active" />
-              {{ 'settings.webhooks.active' | translate }}
-            </label>
+            <div class="flex items-center gap-3">
+              <app-checkbox id="webhook-active" formControlName="active" />
+              <label for="webhook-active" class="cursor-pointer text-sm font-medium leading-none text-foreground">
+                {{ 'settings.webhooks.active' | translate }}
+              </label>
+            </div>
             <div class="flex gap-2">
               <app-button type="submit" [disabled]="saving()">
                 {{ saving() ? ('settings.webhooks.saving' | translate) : ('settings.webhooks.save' | translate) }}
@@ -161,4 +161,4 @@
       </app-card-content>
     </app-card>
   }
-</div>
+</app-settings-page-layout>

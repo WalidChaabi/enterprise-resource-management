@@ -4,7 +4,7 @@
 **Goal:** Product feels **finished** for early paying customers in one geography  
 **Duration:** ~6–8 weeks (1 developer) / ~4–5 weeks (2 developers)
 
-**QA before release:** [SHORT_TERM_QA_CHECKLIST.md](./SHORT_TERM_QA_CHECKLIST.md)  
+**QA before release:** [SHORT_TERM_QA_CHECKLIST.md](./SHORT_TERM_QA_CHECKLIST.md) · **Pilot gate:** [PILOT_QA_CHECKLIST.md](./PILOT_QA_CHECKLIST.md)  
 **Push / PR split:** [SHORT_TERM_PUSH_GUIDE.md](./SHORT_TERM_PUSH_GUIDE.md)
 
 ---

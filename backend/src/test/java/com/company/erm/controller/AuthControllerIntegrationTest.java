@@ -116,11 +116,12 @@ class AuthControllerIntegrationTest {
                         .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.tokenType").value("Bearer"))
-                .andExpect(jsonPath("$.email").value("test@example.com"))
-                .andExpect(jsonPath("$.roles").isArray())
-                .andExpect(jsonPath("$.roles[0]").value("HR_ADMIN"));
+                .andExpect(jsonPath("$.mfaRequired").value(false))
+                .andExpect(jsonPath("$.session.accessToken").exists())
+                .andExpect(jsonPath("$.session.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.session.email").value("test@example.com"))
+                .andExpect(jsonPath("$.session.roles").isArray())
+                .andExpect(jsonPath("$.session.roles[0]").value("HR_ADMIN"));
     }
 
     @Test

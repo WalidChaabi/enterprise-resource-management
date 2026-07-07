@@ -13,23 +13,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 
 import com.company.erm.entity.Employee;
 import com.company.erm.entity.LeaveRequest;
 import com.company.erm.entity.LeaveRequestStatus;
 import com.company.erm.entity.LeaveType;
 import com.company.erm.entity.Organization;
+import com.company.erm.entity.TimeEntryStatus;
 import com.company.erm.entity.User;
 import com.company.erm.repository.EmployeeRepository;
 import com.company.erm.repository.LeaveRequestRepository;
 import com.company.erm.repository.ProjectRepository;
 import com.company.erm.repository.TimeEntryRepository;
 import com.company.erm.repository.UserRepository;
+import com.company.erm.security.OrganizationSecurityService;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -51,6 +49,9 @@ class CapacityDashboardServiceTest {
     @Mock
     private LeaveRequestRepository leaveRequestRepository;
 
+    @Mock
+    private OrganizationSecurityService organizationSecurity;
+
     @InjectMocks
     private CapacityDashboardService capacityDashboardService;
 
@@ -58,6 +59,7 @@ class CapacityDashboardServiceTest {
     void getCapacityDashboard_marksEmployeeOnLeave() {
         UUID orgId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
+        UUID employeeId = UUID.randomUUID();
         LocalDate weekStart = LocalDate.of(2026, 6, 23);
 
         Organization org = new Organization();
@@ -71,7 +73,8 @@ class CapacityDashboardServiceTest {
         user.setActive(true);
 
         Employee employee = new Employee();
-        employee.setId(userId);
+        employee.setId(employeeId);
+        employee.setUser(user);
         employee.setOrganization(org);
         employee.setEmployeeCode("EMP-001");
         employee.setJobTitle("Developer");
@@ -85,13 +88,15 @@ class CapacityDashboardServiceTest {
         leave.setStatus(LeaveRequestStatus.APPROVED);
         leave.setTotalDays(3);
 
-        Page<User> page = new PageImpl<>(List.of(user));
-        when(userRepository.findByOrganizationIdAndFilters(eq(orgId), eq(null), eq(true), any(Pageable.class)))
-                .thenReturn(page);
-        when(employeeRepository.findById(userId)).thenReturn(java.util.Optional.of(employee));
+        when(userRepository.findActiveByOrganizationId(orgId)).thenReturn(List.of(user));
+        when(employeeRepository.findByUserId(userId)).thenReturn(java.util.Optional.of(employee));
         when(projectRepository.findByOrganizationIdAndArchivedFalse(orgId)).thenReturn(List.of());
-        when(timeEntryRepository.findByOrganizationId(orgId)).thenReturn(List.of());
-        when(leaveRequestRepository.findByOrganizationId(orgId)).thenReturn(List.of(leave));
+        when(timeEntryRepository.sumApprovedHoursByEmployeeInRange(
+                eq(orgId), eq(TimeEntryStatus.APPROVED), eq(LocalDate.of(2026, 6, 22)), eq(LocalDate.of(2026, 6, 28))))
+                .thenReturn(List.of());
+        when(leaveRequestRepository.findApprovedLeaveOverlappingWeek(
+                eq(orgId), eq(LocalDate.of(2026, 6, 22)), eq(LocalDate.of(2026, 6, 28))))
+                .thenReturn(List.of(leave));
 
         var result = capacityDashboardService.getCapacityDashboard(orgId, weekStart);
 

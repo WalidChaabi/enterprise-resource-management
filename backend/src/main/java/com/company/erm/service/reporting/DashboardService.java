@@ -4,15 +4,14 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,10 +25,14 @@ import com.company.erm.entity.ProjectStatus;
 import com.company.erm.entity.TimeEntry;
 import com.company.erm.entity.TimeEntryStatus;
 import com.company.erm.entity.User;
+import com.company.erm.entity.Employee;
+import com.company.erm.repository.EmployeeRepository;
 import com.company.erm.repository.LeaveRequestRepository;
 import com.company.erm.repository.ProjectRepository;
 import com.company.erm.repository.TimeEntryRepository;
 import com.company.erm.repository.UserRepository;
+import com.company.erm.repository.reporting.EmployeeHoursAggregate;
+import com.company.erm.security.OrganizationSecurityService;
 
 @Service
 @Transactional(readOnly = true)
@@ -39,16 +42,22 @@ public class DashboardService {
     private final TimeEntryRepository timeEntryRepository;
     private final LeaveRequestRepository leaveRequestRepository;
     private final UserRepository userRepository;
+    private final EmployeeRepository employeeRepository;
+    private final OrganizationSecurityService organizationSecurity;
 
     public DashboardService(
             ProjectRepository projectRepository,
             TimeEntryRepository timeEntryRepository,
             LeaveRequestRepository leaveRequestRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            EmployeeRepository employeeRepository,
+            OrganizationSecurityService organizationSecurity) {
         this.projectRepository = projectRepository;
         this.timeEntryRepository = timeEntryRepository;
         this.leaveRequestRepository = leaveRequestRepository;
         this.userRepository = userRepository;
+        this.employeeRepository = employeeRepository;
+        this.organizationSecurity = organizationSecurity;
     }
 
     @CacheEvict(value = "dashboard", key = "#organizationId")
@@ -56,80 +65,45 @@ public class DashboardService {
         // Cache eviction handled by annotation.
     }
 
-    @Cacheable(value = "dashboard", key = "#organizationId")
+    @Cacheable(value = "dashboard", key = "#organizationId + ':org'")
     public DashboardDTO getDashboard(UUID organizationId) {
+        organizationSecurity.requireOrgMembership(organizationId);
         List<Project> projects = projectRepository.findByOrganizationIdAndArchivedFalse(organizationId);
-        int totalProjects = projects.size();
-        int activeProjects = (int) projects.stream()
-                .filter(p -> p.getStatus() == ProjectStatus.ACTIVE)
-                .count();
-        int completedProjects = (int) projects.stream()
-                .filter(p -> p.getStatus() == ProjectStatus.COMPLETED)
-                .count();
-        int projectsOnHold = (int) projects.stream()
-                .filter(p -> p.getStatus() == ProjectStatus.ON_HOLD)
-                .count();
+        int totalProjects = (int) projectRepository.countByOrganizationIdAndArchivedFalse(organizationId);
+        int activeProjects = (int) projectRepository.countByOrganizationIdAndArchivedFalseAndStatus(
+                organizationId, ProjectStatus.ACTIVE);
+        int completedProjects = (int) projectRepository.countByOrganizationIdAndArchivedFalseAndStatus(
+                organizationId, ProjectStatus.COMPLETED);
+        int projectsOnHold = (int) projectRepository.countByOrganizationIdAndArchivedFalseAndStatus(
+                organizationId, ProjectStatus.ON_HOLD);
 
-        List<TimeEntry> allEntries = timeEntryRepository.findByOrganizationId(organizationId);
         LocalDate now = LocalDate.now();
         LocalDate startOfMonth = now.withDayOfMonth(1);
         LocalDate startOfWeek = now.minusDays(now.getDayOfWeek().getValue() - 1);
 
-        BigDecimal totalHoursThisMonth = allEntries.stream()
-                .filter(te -> te.getStatus() == TimeEntryStatus.APPROVED
-                        && !te.getEntryDate().isBefore(startOfMonth)
-                        && !te.getEntryDate().isAfter(now))
-                .map(TimeEntry::getDurationHours)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalHoursThisMonth = timeEntryRepository.sumHoursByOrganizationStatusAndDateRange(
+                organizationId, TimeEntryStatus.APPROVED, startOfMonth, now);
+        BigDecimal totalHoursThisWeek = timeEntryRepository.sumHoursByOrganizationStatusAndDateRange(
+                organizationId, TimeEntryStatus.APPROVED, startOfWeek, now);
+        int pendingTimeEntries = (int) timeEntryRepository.countByOrganizationIdAndStatus(
+                organizationId, TimeEntryStatus.SUBMITTED);
+        int approvedTimeEntries = (int) timeEntryRepository.countByOrganizationIdAndStatus(
+                organizationId, TimeEntryStatus.APPROVED);
 
-        BigDecimal totalHoursThisWeek = allEntries.stream()
-                .filter(te -> te.getStatus() == TimeEntryStatus.APPROVED
-                        && !te.getEntryDate().isBefore(startOfWeek)
-                        && !te.getEntryDate().isAfter(now))
-                .map(TimeEntry::getDurationHours)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        int pendingTimeEntries = (int) allEntries.stream()
-                .filter(te -> te.getStatus() == TimeEntryStatus.SUBMITTED)
-                .count();
-
-        int approvedTimeEntries = (int) allEntries.stream()
-                .filter(te -> te.getStatus() == TimeEntryStatus.APPROVED)
-                .count();
-
-        List<LeaveRequest> leaveRequests = leaveRequestRepository.findByOrganizationId(organizationId);
-        int pendingLeaveRequests = (int) leaveRequests.stream()
-                .filter(lr -> lr.getStatus() == LeaveRequestStatus.PENDING)
-                .count();
-
-        int approvedLeaveRequests = (int) leaveRequests.stream()
-                .filter(lr -> lr.getStatus() == LeaveRequestStatus.APPROVED)
-                .count();
+        int pendingLeaveRequests = (int) leaveRequestRepository.countByOrganizationIdAndStatus(
+                organizationId, LeaveRequestStatus.PENDING);
+        int approvedLeaveRequests = (int) leaveRequestRepository.countByOrganizationIdAndStatus(
+                organizationId, LeaveRequestStatus.APPROVED);
 
         LocalDate thirtyDaysFromNow = now.plusDays(30);
-        int upcomingLeaveRequests = (int) leaveRequests.stream()
-                .filter(lr -> lr.getStatus() == LeaveRequestStatus.APPROVED
-                        && !lr.getStartDate().isBefore(now)
-                        && !lr.getStartDate().isAfter(thirtyDaysFromNow))
-                .count();
+        int upcomingLeaveRequests = (int) leaveRequestRepository.countUpcomingApprovedLeave(
+                organizationId, now, thirtyDaysFromNow);
 
-        Pageable pageable = PageRequest.of(0, 10000);
-        List<User> employees = userRepository.findByOrganizationIdAndFilters(
-                organizationId, null, null, pageable).getContent();
-        int totalEmployees = employees.size();
-        int activeEmployees = (int) employees.stream()
-                .filter(User::isActive)
-                .count();
+        int totalEmployees = (int) userRepository.countByOrganizationId(organizationId);
+        int activeEmployees = (int) userRepository.countByOrganizationIdAndActiveTrue(organizationId);
 
-        BigDecimal totalBudget = projects.stream()
-                .map(Project::getBudget)
-                .filter(b -> b != null)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal totalCost = projects.stream()
-                .map(Project::getCost)
-                .filter(c -> c != null)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalBudget = projectRepository.sumBudgetByOrganizationIdAndArchivedFalse(organizationId);
+        BigDecimal totalCost = projectRepository.sumCostByOrganizationIdAndArchivedFalse(organizationId);
 
         BigDecimal budgetUtilization = BigDecimal.ZERO;
         if (totalBudget.compareTo(BigDecimal.ZERO) > 0) {
@@ -137,7 +111,13 @@ public class DashboardService {
                     .multiply(BigDecimal.valueOf(100));
         }
 
-        List<AlertDTO> alerts = generateAlerts(projects, allEntries);
+        List<EmployeeHoursAggregate> weeklyHours = timeEntryRepository.sumApprovedHoursByEmployeeInRange(
+                organizationId, TimeEntryStatus.APPROVED, startOfWeek, now);
+        Set<UUID> projectsWithRecentEntries = new HashSet<>(
+                timeEntryRepository.findProjectIdsWithApprovedEntriesSince(
+                        organizationId, now.minusDays(7)));
+
+        List<AlertDTO> alerts = generateAlerts(projects, projectsWithRecentEntries, weeklyHours);
 
         return new DashboardDTO(
                 totalProjects,
@@ -160,10 +140,98 @@ public class DashboardService {
         );
     }
 
-    private List<AlertDTO> generateAlerts(List<Project> projects, List<TimeEntry> allEntries) {
+    @Cacheable(value = "dashboard", key = "#organizationId + ':' + #userEmail")
+    public DashboardDTO getEmployeeDashboard(UUID organizationId, String userEmail) {
+        organizationSecurity.requireOrgMembership(userEmail, organizationId);
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new AccessDeniedException("User not found"));
+
+        Employee employee = employeeRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new AccessDeniedException("Employee profile not found"));
+
+        UUID employeeId = employee.getId();
+        List<Project> memberProjects = projectRepository.findByOrganizationIdAndArchivedFalse(organizationId).stream()
+                .filter(project -> project.getMembers() != null
+                        && project.getMembers().stream().anyMatch(member -> member.getId().equals(employeeId)))
+                .toList();
+
+        int totalProjects = memberProjects.size();
+        int activeProjects = (int) memberProjects.stream()
+                .filter(project -> project.getStatus() == ProjectStatus.ACTIVE)
+                .count();
+        int completedProjects = (int) memberProjects.stream()
+                .filter(project -> project.getStatus() == ProjectStatus.COMPLETED)
+                .count();
+        int projectsOnHold = (int) memberProjects.stream()
+                .filter(project -> project.getStatus() == ProjectStatus.ON_HOLD)
+                .count();
+
+        List<TimeEntry> myEntries = timeEntryRepository.findByEmployeeId(employeeId);
+        LocalDate now = LocalDate.now();
+        LocalDate startOfMonth = now.withDayOfMonth(1);
+        LocalDate startOfWeek = now.minusDays(now.getDayOfWeek().getValue() - 1);
+
+        BigDecimal totalHoursThisMonth = sumApprovedHours(myEntries, startOfMonth, now);
+        BigDecimal totalHoursThisWeek = sumApprovedHours(myEntries, startOfWeek, now);
+        int pendingTimeEntries = (int) myEntries.stream()
+                .filter(entry -> entry.getStatus() == TimeEntryStatus.SUBMITTED)
+                .count();
+        int approvedTimeEntries = (int) myEntries.stream()
+                .filter(entry -> entry.getStatus() == TimeEntryStatus.APPROVED)
+                .count();
+
+        List<LeaveRequest> myLeaveRequests = leaveRequestRepository.findByEmployeeId(employeeId);
+        int pendingLeaveRequests = (int) myLeaveRequests.stream()
+                .filter(request -> request.getStatus() == LeaveRequestStatus.PENDING)
+                .count();
+        int approvedLeaveRequests = (int) myLeaveRequests.stream()
+                .filter(request -> request.getStatus() == LeaveRequestStatus.APPROVED)
+                .count();
+
+        LocalDate thirtyDaysFromNow = now.plusDays(30);
+        int upcomingLeaveRequests = (int) myLeaveRequests.stream()
+                .filter(request -> request.getStatus() == LeaveRequestStatus.APPROVED
+                        && !request.getStartDate().isBefore(now)
+                        && !request.getStartDate().isAfter(thirtyDaysFromNow))
+                .count();
+
+        return new DashboardDTO(
+                totalProjects,
+                activeProjects,
+                completedProjects,
+                projectsOnHold,
+                totalHoursThisMonth,
+                totalHoursThisWeek,
+                pendingTimeEntries,
+                approvedTimeEntries,
+                pendingLeaveRequests,
+                approvedLeaveRequests,
+                upcomingLeaveRequests,
+                1,
+                user.isActive() ? 1 : 0,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                List.of()
+        );
+    }
+
+    private BigDecimal sumApprovedHours(List<TimeEntry> entries, LocalDate startDate, LocalDate endDate) {
+        return entries.stream()
+                .filter(entry -> entry.getStatus() == TimeEntryStatus.APPROVED
+                        && !entry.getEntryDate().isBefore(startDate)
+                        && !entry.getEntryDate().isAfter(endDate))
+                .map(TimeEntry::getDurationHours)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private List<AlertDTO> generateAlerts(
+            List<Project> projects,
+            Set<UUID> projectsWithRecentEntries,
+            List<EmployeeHoursAggregate> weeklyHours) {
         List<AlertDTO> alerts = new ArrayList<>();
         LocalDate now = LocalDate.now();
-        LocalDate sevenDaysAgo = now.minusDays(7);
+        BigDecimal standardCapacity = BigDecimal.valueOf(40);
 
         for (Project project : projects) {
             if (project.isArchived()) {
@@ -184,10 +252,7 @@ public class DashboardService {
             }
 
             if (project.getStatus() == ProjectStatus.ACTIVE) {
-                boolean hasRecentEntries = allEntries.stream()
-                        .anyMatch(te -> te.getProject().getId().equals(project.getId())
-                                && !te.getEntryDate().isBefore(sevenDaysAgo)
-                                && te.getStatus() == TimeEntryStatus.APPROVED);
+                boolean hasRecentEntries = projectsWithRecentEntries.contains(project.getId());
 
                 if (!hasRecentEntries && (project.getMembers() == null || !project.getMembers().isEmpty())) {
                     alerts.add(new AlertDTO(
@@ -236,29 +301,14 @@ public class DashboardService {
             }
         }
 
-        LocalDate startOfWeek = now.minusDays(now.getDayOfWeek().getValue() - 1);
-        BigDecimal standardCapacity = BigDecimal.valueOf(40);
-
-        Map<UUID, BigDecimal> employeeHours = allEntries.stream()
-                .filter(te -> te.getStatus() == TimeEntryStatus.APPROVED
-                        && !te.getEntryDate().isBefore(startOfWeek)
-                        && !te.getEntryDate().isAfter(now))
-                .collect(Collectors.groupingBy(
-                        te -> te.getEmployee().getId(),
-                        Collectors.reducing(
-                                BigDecimal.ZERO,
-                                TimeEntry::getDurationHours,
-                                BigDecimal::add
-                        )
-                ));
-
-        for (Map.Entry<UUID, BigDecimal> entry : employeeHours.entrySet()) {
-            if (entry.getValue().compareTo(standardCapacity) > 0) {
-                BigDecimal overage = entry.getValue().subtract(standardCapacity);
-                BigDecimal utilization = entry.getValue().divide(standardCapacity, 2, RoundingMode.HALF_UP)
+        for (EmployeeHoursAggregate aggregate : weeklyHours) {
+            BigDecimal hours = aggregate.getTotalHours();
+            if (hours.compareTo(standardCapacity) > 0) {
+                BigDecimal overage = hours.subtract(standardCapacity);
+                BigDecimal utilization = hours.divide(standardCapacity, 2, RoundingMode.HALF_UP)
                         .multiply(BigDecimal.valueOf(100));
 
-                User employee = userRepository.findById(entry.getKey()).orElse(null);
+                User employee = userRepository.findById(aggregate.getEmployeeId()).orElse(null);
                 if (employee != null) {
                     alerts.add(new AlertDTO(
                             AlertType.EMPLOYEE_OVERALLOCATED,
@@ -271,7 +321,7 @@ public class DashboardService {
                             employee.getId(),
                             employee.getFirstName() + " " + employee.getLastName(),
                             String.format("Working %.1f hours/week (%.1f hours over capacity)",
-                                    entry.getValue(), overage)
+                                    hours, overage)
                     ));
                 }
             }

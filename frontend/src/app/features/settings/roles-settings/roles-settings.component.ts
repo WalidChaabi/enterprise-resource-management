@@ -10,6 +10,10 @@ import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComp
 import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
 import { SkeletonComponent } from '../../../shared/components/ui/skeleton/skeleton.component';
 
+import {
+  SettingsPageLayoutComponent,
+} from '../components';
+
 @Component({
     selector: 'app-roles-settings',
     imports: [
@@ -21,23 +25,11 @@ import { SkeletonComponent } from '../../../shared/components/ui/skeleton/skelet
         CardTitleComponent,
         CardContentComponent,
         BadgeComponent,
-        SkeletonComponent
+        SkeletonComponent,
+        SettingsPageLayoutComponent,
     ],
     template: `
-    <div class="mt-6 space-y-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-xl font-semibold text-foreground">Roles & Permissions</h2>
-          <p class="text-sm text-muted-foreground">
-            @if (canManageRoles()) {
-              Manage roles and permissions for your organization.
-            } @else {
-              View roles available in your organization. Role management is restricted to administrators.
-            }
-          </p>
-        </div>
-      </div>
-
+    <app-settings-page-layout [wide]="true">
       @if (error()) {
         <div class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
           <lucide-icon name="alert-circle" [size]="20" class="flex-shrink-0 text-destructive mt-0.5" />
@@ -113,7 +105,7 @@ import { SkeletonComponent } from '../../../shared/components/ui/skeleton/skelet
           </div>
         }
       }
-    </div>
+    </app-settings-page-layout>
   `
 })
 export class RolesSettingsComponent implements OnInit {
@@ -127,6 +119,10 @@ export class RolesSettingsComponent implements OnInit {
   readonly canManageRoles = computed(() => {
     return this.authService.hasAnyRole(ROLES.ORG_ADMIN);
   });
+
+  readonly subtitleKey = computed(() =>
+    this.canManageRoles() ? 'settings.roles.subtitleAdmin' : 'settings.roles.subtitleView',
+  );
 
   readonly currentUserRoles = computed(() => {
     return this.authService.currentUser()?.roles || [];

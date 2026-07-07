@@ -80,11 +80,9 @@ public class PasswordResetService {
         entity.setUser(user);
         entity.setTokenHash(hash(rawToken));
         entity.setExpiresAt(Instant.now().plusSeconds(TOKEN_TTL_HOURS * 3600));
-        entity.setRawToken(rawToken);
         passwordResetTokenRepository.save(entity);
 
-        log.info("Password reset requested for user {} — dev token (do not log in production mailers): {}",
-            user.getEmail(), rawToken);
+        log.info("Password reset requested for userId={} at {}", user.getId(), Instant.now());
     }
 
     private String generateRawToken() {

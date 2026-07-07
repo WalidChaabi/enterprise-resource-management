@@ -13,10 +13,18 @@ export interface TimeEntry {
   id: string;
   projectId: string;
   projectName?: string;
+  taskId?: string;
+  taskTitle?: string;
   employeeId: string;
   employeeName?: string;
+  /** ISO date (YYYY-MM-DD) — alias for entryDate */
   date: string;
+  entryDate: string;
+  startTime?: string;
+  endTime?: string;
+  /** Duration in hours — alias for durationHours */
   hours: number;
+  durationHours: number;
   description?: string;
   status: TimeEntryStatus;
   approvedById?: string;
@@ -40,3 +48,5 @@ export interface TimeEntryUpdateDTO {
   endTime?: string;
   description?: string;
 }
+
+export type TimeEntryStatusFilter = TimeEntryStatus | 'ALL';

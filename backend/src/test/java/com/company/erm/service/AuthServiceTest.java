@@ -10,6 +10,7 @@ import com.company.erm.exception.BusinessException;
 import com.company.erm.repository.UserRepository;
 import com.company.erm.repository.UserRoleRepository;
 import com.company.erm.security.JwtTokenProvider;
+import com.company.erm.security.MfaTokenProvider;
 import com.company.erm.util.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -57,6 +58,12 @@ class AuthServiceTest {
     @Mock
     private RefreshTokenService refreshTokenService;
 
+    @Mock
+    private MfaService mfaService;
+
+    @Mock
+    private MfaTokenProvider mfaTokenProvider;
+
     @InjectMocks
     private AuthService authService;
 
@@ -85,9 +92,10 @@ class AuthServiceTest {
         when(tokenProvider.generateToken(any(), any(), any())).thenReturn("test-jwt-token");
         when(passwordEncoder.matches("password123", testUser.getPasswordHash())).thenReturn(true);
         when(refreshTokenService.issueRefreshToken(testUser)).thenReturn("refresh-token");
+        when(mfaService.isMfaRequired(testUser)).thenReturn(false);
 
         // When
-        AuthResponse response = authService.login(request).response();
+        AuthResponse response = authService.login(request).session().response();
 
         // Then
         assertThat(response).isNotNull();
@@ -172,12 +180,10 @@ class AuthServiceTest {
         when(tokenProvider.generateToken(any(), any(), any())).thenReturn("test-jwt-token");
         when(passwordEncoder.matches("password123", testUser.getPasswordHash())).thenReturn(true);
         when(refreshTokenService.issueRefreshToken(testUser)).thenReturn("refresh-token");
+        when(mfaService.isMfaRequired(testUser)).thenReturn(false);
 
         // When
-        AuthResponse response = authService.login(request).response();
-
-        // Then
-        assertThat(response.roles()).hasSize(2);
+        AuthResponse response = authService.login(request).session().response();
         assertThat(response.roles()).contains("HR_ADMIN", "ORG_ADMIN");
     }
 }

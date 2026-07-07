@@ -28,7 +28,10 @@
     "noDescription": "Aucune description",
     "notSet": "Non défini",
     "back": "Retour",
-    "continue": "Continuer"
+    "continue": "Continuer",
+    "enabled": "Activé",
+    "disabled": "Désactivé",
+    "confirm": "Confirmer"
   },
   "app": {
     "title": "Gestion des Ressources d'Entreprise",
@@ -68,7 +71,19 @@
         "default": "Échec de la connexion. Veuillez vérifier vos identifiants et réessayer."
       },
       "forgotPassword": "Mot de passe oublié ?",
-      "createAccount": "Créer un compte"
+      "createAccount": "Créer un compte",
+      "orContinueWith": "Ou continuer avec",
+      "continueGoogle": "Continuer avec Google",
+      "continueMicrosoft": "Continuer avec Microsoft"
+    },
+    "mfa": {
+      "title": "Authentification à deux facteurs",
+      "subtitle": "Entrez le code à 6 chiffres de votre application d'authentification ou un code de secours.",
+      "code": "Code de vérification",
+      "codePlaceholder": "000000 ou XXXX-XXXX",
+      "verify": "Vérifier",
+      "invalidCode": "Code invalide. Réessayez.",
+      "invalidSession": "Votre session de vérification a expiré. Veuillez vous reconnecter."
     },
     "signup": {
       "progress": "Étape {{current}} sur {{total}}",
@@ -133,6 +148,11 @@
       "people": "Personnel",
       "insights": "Analyses"
     },
+    "indicators": {
+      "pendingTimeEntries": "{{count}} entrées de temps en attente de votre approbation",
+      "pendingLeaveRequests": "{{count}} demandes de congé en attente de votre approbation",
+      "projectAlerts": "{{count}} alertes projet nécessitent votre attention"
+    },
     "userMenu": {
       "open": "Ouvrir le menu utilisateur",
       "account": "Compte",
@@ -183,13 +203,97 @@
     "capacity": {
       "title": "Capacité de l'équipe cette semaine",
       "subtitle": "Utilisation, disponibilité et congés en un coup d'œil",
-      "viewAll": "Ouvrir le tableau de capacité"
-    }
+      "viewAll": "Ouvrir le tableau de capacité",
+      "overallocated": "Sur-alloués",
+      "overallocatedHint": "Employés à plus de 110 % d'utilisation",
+      "available": "Disponibles",
+      "availableHint": "Sans heures projet assignées",
+      "onLeave": "En congé",
+      "onLeaveHint": "Congés approuvés cette semaine"
+    },
+    "lowDataWelcome": "Bienvenue, {{name}}. Configurons votre organisation.",
+    "attention": {
+      "title": "Éléments nécessitant votre attention",
+      "pendingLeave": "{{count}} demande(s) de congé en attente",
+      "pendingTime": "{{count}} saisie(s) de temps en attente",
+      "criticalAlerts": "{{count}} alerte(s) critique(s)"
+    },
+    "metrics": {
+      "activeProjects": "Projets actifs",
+      "activeEmployees": "Employés actifs",
+      "hoursThisWeek": "Heures cette semaine",
+      "pendingLeave": "Congés en attente"
+    },
+    "actions": {
+      "title": "À traiter",
+      "subtitle": "Approbations et configuration",
+      "allCaughtUp": "Tout est à jour",
+      "allCaughtUpDescription": "Aucune approbation ni alerte critique pour le moment.",
+      "logTime": "Saisir du temps",
+      "reviewTime": "Voir les saisies de temps",
+      "reviewLeave": "Voir les congés",
+      "viewReports": "Voir les rapports"
+    },
+    "activity": {
+      "title": "Activité récente",
+      "subtitle": "Dernières mises à jour de votre organisation",
+      "empty": "L'activité apparaîtra ici au fil du travail de votre équipe."
+    },
+    "alerts": {
+      "title": "Alertes",
+      "subtitle": "Problèmes pouvant nécessiter votre attention",
+      "viewProject": "Voir le projet"
+    },
+    "charts": {
+      "hoursTitle": "Suivi du temps",
+      "hoursSubtitle": "Heures approuvées et approbations en attente",
+      "thisWeek": "Cette semaine",
+      "thisMonth": "Ce mois",
+      "pendingApproval": "En attente d'approbation",
+      "approvedEntries": "Entrées approuvées",
+      "projectStatusTitle": "Statut des projets",
+      "projectStatusSubtitle": "Répartition des projets",
+      "planning": "Planification",
+      "active": "Actifs",
+      "onHold": "En pause",
+      "completed": "Terminés"
+    },
+    "quickLinks": {
+      "title": "Raccourcis",
+      "subtitle": "Accéder aux actions courantes",
+      "createProject": "Créer et gérer vos projets",
+      "addEmployees": "Ajouter des membres à votre organisation",
+      "viewAnalytics": "Voir les analyses et indicateurs",
+      "getStarted": "Commencez par configurer votre organisation"
+    },
+    "setup": {
+      "title": "Premiers pas",
+      "subtitle": "Complétez ces étapes pour configurer votre espace",
+      "createProject": "Créer votre premier projet",
+      "addEmployees": "Ajouter des employés à votre organisation",
+      "logTime": "Enregistrer votre première saisie de temps"
+    },
+    "errorTitle": "Impossible de charger le tableau de bord",
+    "errorDescription": "Échec du chargement des données"
   },
   "employees": {
     "title": "Employés",
     "newEmployee": "Nouvel employé",
     "editTitle": "Modifier l'employé",
+    "emptyTitle": "Aucun employé pour le moment",
+    "emptyDescription": "Ajoutez votre premier employé pour constituer votre équipe et assigner le travail.",
+    "emptyRestricted": "La gestion des employés est réservée aux administrateurs RH et aux administrateurs d'organisation.",
+    "stats": {
+      "total": "Total employés",
+      "active": "Actifs",
+      "departments": "Départements",
+      "unassigned": "Non assignés",
+      "employees": "employés"
+    },
+    "filters": {
+      "all": "Tous",
+      "filtered": "Vue filtrée"
+    },
     "table": {
       "name": "Nom",
       "email": "Email",
@@ -197,7 +301,8 @@
       "department": "Département",
       "status": "Statut",
       "actions": "Actions",
-      "filter": "Filtrer les employés..."
+      "filter": "Rechercher employés, emails, postes ou départements...",
+      "noResults": "Aucun employé correspondant."
     },
     "form": {
       "details": "Détails de l'employé",
@@ -211,7 +316,10 @@
       "department": "Département",
       "selectDepartment": "Sélectionner un département",
       "selectEmployee": "Sélectionner un employé",
-      "active": "Actif"
+      "active": "Actif",
+      "errors": {
+        "userIdRequired": "L'ID utilisateur est requis."
+      }
     },
     "detail": {
       "title": "Détails de l'employé",
@@ -228,6 +336,16 @@
       "salary": "Salaire",
       "employeeCode": "Code employé",
       "roles": "Rôles"
+    },
+    "toast": {
+      "createdTitle": "Employé créé",
+      "createdDescription": "L'employé a été ajouté à votre organisation.",
+      "updatedTitle": "Employé mis à jour",
+      "updatedDescription": "Les informations de l'employé ont été enregistrées.",
+      "roleAssignedTitle": "Rôle assigné",
+      "roleAssignedDescription": "Le rôle a été assigné à cet employé.",
+      "roleRemovedTitle": "Rôle retiré",
+      "roleRemovedDescription": "Le rôle a été retiré de cet employé."
     }
   },
   "roles": {
@@ -243,13 +361,29 @@
     "newDepartment": "Nouveau département",
     "editTitle": "Modifier le département",
     "emptyState": "Aucun département trouvé. Créez votre premier département !",
+    "emptyTitle": "Aucun département pour le moment",
+    "emptyDescription": "Créez un département pour organiser votre équipe et assigner des responsables.",
+    "stats": {
+      "total": "Total départements",
+      "totalEmployees": "Total employés",
+      "withManager": "Avec responsable",
+      "empty": "Vides",
+      "departments": "départements"
+    },
+    "filters": {
+      "all": "Tous",
+      "staffed": "Avec effectif",
+      "empty": "Vides",
+      "filtered": "Vue filtrée"
+    },
     "table": {
       "name": "Nom",
       "description": "Description",
       "manager": "Manager",
       "employees": "Employés",
       "actions": "Actions",
-      "filter": "Filtrer les départements..."
+      "filter": "Rechercher départements, responsables ou descriptions...",
+      "noResults": "Aucun département correspondant."
     },
     "form": {
       "details": "Détails du département",
@@ -258,7 +392,10 @@
       "description": "Description",
       "descriptionPlaceholder": "Optionnel : Décrivez le département...",
       "manager": "Chef de département",
-      "selectManager": "Sélectionner un chef de département"
+      "selectManager": "Sélectionner un chef de département",
+      "errors": {
+        "nameRequired": "Le nom du département est requis."
+      }
     },
     "detail": {
       "title": "Détails du département",
@@ -267,6 +404,10 @@
       "description": "Description",
       "manager": "Manager",
       "employeeCount": "Nombre d'employés"
+    },
+    "toast": {
+      "createdTitle": "Département créé",
+      "createdDescription": "Le département a été ajouté à votre organisation."
     }
   },
   "projects": {
@@ -275,8 +416,28 @@
     "archive": "Archiver",
     "archiveConfirm": "Archiver ce projet ? Il sera masqué des listes actives mais les données seront conservées.",
     "confirmArchive": "Archiver le projet",
+    "toast": {
+      "archivedTitle": "Projet archivé",
+      "archivedDescription": "Le projet a été masqué des listes actives.",
+      "createdTitle": "Projet créé",
+      "createdDescription": "Le projet a été créé avec succès."
+    },
     "editTitle": "Modifier le projet",
     "emptyState": "Aucun projet trouvé. Créez votre premier projet !",
+    "emptyTitle": "Aucun projet pour le moment",
+    "emptyDescription": "Créez un projet pour organiser le travail, assigner des membres et suivre l'avancement.",
+    "stats": {
+      "total": "Total projets",
+      "active": "Actifs",
+      "planning": "Planification",
+      "onHold": "En pause",
+      "totalBudget": "Budget total",
+      "projects": "projets"
+    },
+    "filters": {
+      "all": "Tous",
+      "filtered": "Vue filtrée"
+    },
     "table": {
       "name": "Nom",
       "description": "Description",
@@ -285,7 +446,9 @@
       "startDate": "Date de début",
       "deadline": "Date limite",
       "budget": "Budget",
-      "filter": "Filtrer les projets..."
+      "manager": "Responsable",
+      "filter": "Rechercher projets, responsables ou descriptions...",
+      "noResults": "Aucun projet correspondant."
     },
     "status": {
       "planning": "Planification",
@@ -306,7 +469,11 @@
       "deadline": "Date limite",
       "budget": "Budget",
       "manager": "Chef de projet",
-      "selectManager": "Sélectionner un chef de projet"
+      "selectManager": "Sélectionner un chef de projet",
+      "errors": {
+        "nameRequired": "Le nom du projet est requis.",
+        "budgetMin": "Le budget doit être superieur ou egal a zero."
+      }
     },
     "detail": {
       "title": "Détails du projet",
@@ -362,7 +529,12 @@
       "selectAssignee": "Sélectionner un assigné",
       "dueDate": "Date d'échéance",
       "estimatedHours": "Heures estimées",
-      "estimatedHoursHint": "Entrez les heures estimées pour cette tâche"
+      "estimatedHoursHint": "Entrez les heures estimées pour cette tâche",
+      "errors": {
+        "nameRequired": "Le nom de la tâche est requis.",
+        "statusRequired": "Le statut est requis.",
+        "estimatedHoursMin": "Les heures estimees doivent etre superieures ou egales a zero."
+      }
     },
     "detail": {
       "title": "Détails de la tâche",
@@ -387,11 +559,28 @@
     "table": {
       "date": "Date",
       "project": "Projet",
+      "timeRange": "Horaire",
       "hours": "Heures",
+      "employee": "Employé",
       "status": "Statut",
       "actions": "Actions",
-      "filter": "Filtrer par projet...",
+      "filter": "Rechercher projets, personnes ou notes...",
       "noResults": "Aucune saisie correspondante."
+    },
+    "statuses": {
+      "draft": "Brouillon",
+      "submitted": "En attente d'approbation",
+      "approved": "Approuvée",
+      "rejected": "Rejetée"
+    },
+    "filters": {
+      "all": "Toutes",
+      "filtered": "vue filtrée"
+    },
+    "pendingBanner": {
+      "title": "Saisies en attente de votre approbation",
+      "description": "{{count}} saisies soumises à examiner.",
+      "action": "Voir en attente"
     },
     "stats": {
       "totalHours": "Heures totales",
@@ -405,17 +594,47 @@
       "project": "Projet",
       "selectProject": "Sélectionner un projet",
       "date": "Date",
+      "startTime": "Heure de début",
+      "endTime": "Heure de fin",
+      "quickDuration": "Durée rapide",
+      "totalHours": "Durée totale",
       "hours": "Heures",
       "hoursHint": "Entrez les heures travaillées (0,25 à 24 heures)",
       "description": "Description",
-      "descriptionPlaceholder": "Optionnel : Décrivez le travail effectué..."
+      "descriptionPlaceholder": "Optionnel : Décrivez le travail effectué...",
+      "presets": {
+        "halfDay": "4 heures",
+        "standard": "7,5 heures",
+        "fullDay": "8 heures"
+      },
+      "loadProjectsError": "Échec du chargement des projets.",
+      "loadError": "Échec du chargement de la saisie.",
+      "saveError": "Échec de l'enregistrement de la saisie.",
+      "projectRequired": "Le projet est obligatoire.",
+      "endAfterStart": "L'heure de fin doit être après l'heure de début.",
+      "errors": {
+        "projectIdRequired": "Le projet est obligatoire.",
+        "entryDateRequired": "La date est obligatoire.",
+        "startTimeRequired": "L'heure de début est obligatoire.",
+        "endTimeRequired": "L'heure de fin est obligatoire."
+      }
     },
     "submit": "Soumettre",
     "approve": "Approuver",
     "reject": "Rejeter",
     "rejectionReason": "Raison du rejet",
     "rejectionReasonPlaceholder": "Optionnel : Fournissez une raison pour le rejet...",
-    "confirmReject": "Confirmer le rejet"
+    "confirmReject": "Confirmer le rejet",
+    "toast": {
+      "createdTitle": "Saisie créée",
+      "createdDescription": "Votre brouillon est prêt à être soumis.",
+      "submittedTitle": "Soumise pour approbation",
+      "submittedDescription": "Votre responsable examinera cette saisie.",
+      "approvedTitle": "Saisie approuvée",
+      "approvedDescription": "La saisie a été marquée comme approuvée.",
+      "rejectedTitle": "Saisie rejetée",
+      "rejectedDescription": "L'employé peut modifier et resoumettre la saisie."
+    }
   },
   "leaveRequests": {
     "title": "Demandes de congé",
@@ -432,8 +651,31 @@
       "days": "Jours",
       "status": "Statut",
       "actions": "Actions",
-      "filter": "Filtrer par employé...",
+      "filter": "Rechercher employés, types ou dates...",
       "noResults": "Aucune demande correspondante."
+    },
+    "statuses": {
+      "pending": "En attente d'approbation",
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "cancelled": "Annulé"
+    },
+    "filters": {
+      "all": "Tous",
+      "filtered": "vue filtrée"
+    },
+    "pendingBanner": {
+      "title": "Demandes de congé en attente de votre approbation",
+      "description": "{{count}} demande(s) en attente nécessitent un examen.",
+      "action": "Examiner les demandes"
+    },
+    "stats": {
+      "totalRequests": "Total des demandes",
+      "pending": "En attente",
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "requests": "demandes",
+      "days": "jours"
     },
     "types": {
       "vacation": "Vacances",
@@ -451,7 +693,13 @@
       "totalDays": "Nombre total de jours",
       "days": "jours",
       "reason": "Raison",
-      "reasonPlaceholder": "Optionnel : Fournissez une raison pour votre demande de congé..."
+      "reasonPlaceholder": "Optionnel : Fournissez une raison pour votre demande de congé...",
+      "errors": {
+        "leaveTypeRequired": "Le type de congé est requis.",
+        "startDateRequired": "La date de début est requise.",
+        "endDateRequired": "La date de fin est requise.",
+        "endAfterStart": "La date de fin doit être postérieure ou égale à la date de début."
+      }
     },
     "approve": "Approuver",
     "reject": "Rejeter",
@@ -461,6 +709,16 @@
     "confirmReject": "Confirmer le rejet",
     "cancelConfirm": "Êtes-vous sûr de vouloir annuler cette demande de congé ?",
     "confirmCancel": "Confirmer l'annulation",
+    "toast": {
+      "createdTitle": "Demande de congé créée",
+      "createdDescription": "Votre demande de congé a été soumise.",
+      "approvedTitle": "Demande de congé approuvée",
+      "approvedDescription": "La demande de congé a été approuvée.",
+      "rejectedTitle": "Demande de congé rejetée",
+      "rejectedDescription": "L'employé a été notifié.",
+      "cancelledTitle": "Demande de congé annulée",
+      "cancelledDescription": "La demande de congé a été annulée."
+    },
     "balance": {
       "approved": "Jours approuvés",
       "pending": "Jours en attente",
@@ -488,7 +746,43 @@
       "totalEmployees": "employés au total",
       "hoursThisWeek": "Heures cette semaine",
       "thisMonth": "ce mois",
-      "budgetUtilization": "Utilisation du budget"
+      "budgetUtilization": "Utilisation du budget",
+      "projectsHint": "{{total}} projets au total",
+      "employeesHint": "{{total}} employés au total",
+      "hoursHint": "{{month}}h ce mois",
+      "budgetHint": "{{cost}} $ / {{budget}} $"
+    },
+    "quickLinks": {
+      "capacityTitle": "Tableau de capacité",
+      "capacityDescription": "Utilisation, disponibilité et effectifs",
+      "timeTitle": "Rapports temps",
+      "timeDescription": "Heures par projet et par employé"
+    },
+    "actions": {
+      "title": "À traiter",
+      "subtitle": "Éléments pouvant nécessiter votre attention",
+      "pendingLeave": "Demandes de congé en attente",
+      "pendingLeaveHint": "En attente d'approbation",
+      "pendingTime": "Saisies de temps en attente",
+      "pendingTimeHint": "En attente d'approbation",
+      "projectsOnHold": "Projets en pause",
+      "projectsOnHoldHint": "Travail suspendu ou bloqué",
+      "allCaughtUp": "Tout est à jour",
+      "allCaughtUpDescription": "Aucune approbation en attente ni projet bloqué"
+    },
+    "priority": {
+      "high": "Élevée",
+      "medium": "Moyenne",
+      "low": "Faible"
+    },
+    "charts": {
+      "projectStatusTitle": "Statut des projets",
+      "projectStatusSubtitle": "Répartition par étape du cycle de vie",
+      "active": "Actifs",
+      "planning": "Planification",
+      "onHold": "En pause",
+      "completed": "Terminés",
+      "empty": "Aucun projet pour le moment"
     },
     "operationalSummary": {
       "title": "Résumé opérationnel",
@@ -506,7 +800,8 @@
       "available": "Disponibles",
       "overallocated": "Sur-alloués",
       "underutilized": "Sous-utilisés",
-      "understaffedProjects": "Projets sous-effectifs"
+      "understaffedProjects": "Projets sous-effectifs",
+      "viewCapacity": "Voir le tableau de capacité"
     },
     "overallocated": {
       "title": "Employés sur-alloués",
@@ -523,18 +818,40 @@
       "startDate": "Date de début",
       "endDate": "Date de fin",
       "applyFilter": "Appliquer",
+      "filterTitle": "Période",
+      "filterSubtitle": "Filtrer les heures enregistrées sur une période personnalisée ou prédéfinie",
+      "thisWeek": "Cette semaine",
+      "thisMonth": "Ce mois",
+      "lastMonth": "Mois dernier",
+      "viewTimeEntries": "Voir les saisies de temps",
       "totalHours": "Heures totales",
+      "totalHoursHint": "Enregistrées sur la période sélectionnée",
       "entriesCount": "Saisies",
+      "entriesHint": "Enregistrements de temps soumis",
       "avgPerEntry": "Moy. par saisie",
+      "avgHint": "Moyenne d'heures par enregistrement",
       "byProject": "Heures par projet",
+      "byProjectSubtitle": "Répartition des heures par projet",
       "byEmployee": "Heures par employé",
+      "byEmployeeSubtitle": "Répartition des heures par membre de l'équipe",
       "project": "Projet",
       "employee": "Employé",
       "hours": "Heures",
       "entries": "Saisies",
-      "noData": "Aucune saisie sur cette période"
+      "noData": "Aucune saisie sur cette période",
+      "noDataHint": "Élargissez la période ou enregistrez du temps pour cette période"
     },
     "leave": {
+      "pageSubtitle": "Usage des congés et absences à venir dans l'organisation",
+      "viewLeaveRequests": "Voir les demandes de congé",
+      "summaryEmployees": "Employés suivis",
+      "summaryEmployeesHint": "Avec données de solde de congés",
+      "summaryPending": "Jours en attente",
+      "summaryPendingHint": "En attente d'approbation",
+      "summaryUpcoming": "Demandes à venir",
+      "summaryUpcomingHint": "Absences planifiées",
+      "summaryApprovedYear": "Jours cette année",
+      "summaryApprovedYearHint": "Congés approuvés depuis le début de l'année",
       "balanceTitle": "Solde de congés",
       "balanceSubtitle": "Usage approuvé, en attente et cumul annuel",
       "upcomingTitle": "Congés à venir",
@@ -544,13 +861,67 @@
       "pending": "En attente",
       "thisYear": "Cette année",
       "dates": "Dates",
-      "days": "Jours",
+      "days": "jours",
       "status": "Statut",
       "noBalance": "Aucune donnée de solde",
-      "noUpcoming": "Aucun congé à venir"
+      "noBalanceDescription": "Les soldes apparaissent une fois que les employés soumettent des demandes",
+      "noUpcoming": "Aucun congé à venir",
+      "noUpcomingDescription": "Aucun congé approuvé ou en attente planifié"
     }
   },
   "settings": {
+    "title": "Paramètres",
+    "subtitle": "Gérez votre compte, votre organisation et vos préférences de sécurité.",
+    "navLabel": "Sections des paramètres",
+    "actionBar": {
+      "label": "Actions des paramètres non enregistrés",
+      "unsavedTitle": "Modifications non enregistrées",
+      "unsavedDescription": "Vous avez des modifications non enregistrées.",
+      "saveChanges": "Enregistrer les modifications"
+    },
+    "tabs": {
+      "profile": "Profil",
+      "security": "Sécurité",
+      "organization": "Organisation",
+      "notifications": "Notifications",
+      "roles": "Rôles et permissions",
+      "billing": "Facturation",
+      "audit": "Journal d'audit",
+      "privacy": "Confidentialité",
+      "webhooks": "Webhooks"
+    },
+    "profile": {
+      "title": "Paramètres du profil",
+      "subtitle": "Mettez à jour vos informations personnelles et préférences.",
+      "personalInfoTitle": "Informations personnelles",
+      "emailHint": "L'e-mail ne peut pas être modifié. Contactez le support si nécessaire.",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "firstNameRequired": "Le prénom est obligatoire.",
+      "lastNameRequired": "Le nom est obligatoire.",
+      "email": "E-mail"
+    },
+    "organization": {
+      "title": "Paramètres de l'organisation",
+      "subtitle": "Gérez les détails et les paramètres de votre espace de travail.",
+      "infoTitle": "Informations sur l'organisation",
+      "name": "Nom de l'organisation",
+      "nameRequired": "Le nom de l'organisation est obligatoire.",
+      "description": "Description"
+    },
+    "roles": {
+      "title": "Rôles et permissions",
+      "subtitleAdmin": "Gérez les rôles et permissions de votre organisation.",
+      "subtitleView": "Consultez les rôles disponibles. La gestion est réservée aux administrateurs."
+    },
+    "toast": {
+      "profileSaved": "Profil mis à jour",
+      "profileSavedDescription": "Vos informations personnelles ont été enregistrées.",
+      "organizationSaved": "Organisation mise à jour",
+      "organizationSavedDescription": "Les paramètres de l'organisation ont été enregistrés.",
+      "notificationsSaved": "Préférences enregistrées",
+      "notificationsSavedDescription": "Vos préférences de notification ont été mises à jour."
+    },
     "notifications": {
       "title": "Préférences de notification",
       "subtitle": "Choisissez comment vous recevez les mises à jour et alertes.",
@@ -625,6 +996,10 @@
       "loading": "Chargement…",
       "approve": "Approuver et anonymiser",
       "reject": "Rejeter",
+      "confirmDeletionTitle": "Demander la suppression du compte ?",
+      "confirmDeletionDescription": "Un administrateur doit approuver avant que vos données personnelles soient anonymisées.",
+      "confirmApproveTitle": "Approuver la demande de suppression ?",
+      "confirmApproveDescription": "Cela anonymisera définitivement les données personnelles de l'utilisateur. Cette action est irréversible.",
       "approveSuccess": "Compte anonymisé avec succès.",
       "rejectSuccess": "Demande de suppression rejetée.",
       "adminError": "Échec du traitement de la demande."
@@ -647,6 +1022,8 @@
       "cancelEdit": "Annuler",
       "edit": "Modifier",
       "delete": "Supprimer",
+      "deleteTitle": "Supprimer le webhook ?",
+      "deleteDescription": "Supprimer l'endpoint {{url}} ? Cette action est irréversible.",
       "endpointsTitle": "Endpoints configurés",
       "noEndpoints": "Aucun endpoint webhook.",
       "deliveriesTitle": "Livraisons récentes",
@@ -671,29 +1048,95 @@
         "timeentrySubmitted": "Feuille de temps soumise",
         "employeeCreated": "Employé créé"
       }
+    },
+    "security": {
+      "tab": "Sécurité",
+      "title": "Sécurité",
+      "subtitle": "Gérez les méthodes de connexion, la MFA et les politiques de sécurité de l'organisation.",
+      "orgTitle": "Sécurité de l'organisation",
+      "orgDescription": "Configurez le SSO et l'exigence MFA pour votre organisation.",
+      "orgAdminOnly": "Les politiques de sécurité de l'organisation sont gérées par votre administrateur.",
+      "authTitle": "Authentification",
+      "authDescription": "Contrôlez comment les utilisateurs se connectent à votre organisation.",
+      "mfaPolicyTitle": "Authentification multifacteur",
+      "mfaPolicyDescription": "Exigez une étape de vérification supplémentaire pour tous les membres de l'organisation.",
+      "ssoEnabled": "Activer la connexion SSO",
+      "ssoEnabledHint": "Permet aux utilisateurs de se connecter avec Google ou Microsoft lorsque configuré.",
+      "ssoNotConfiguredTitle": "Aucun fournisseur SSO configuré",
+      "ssoNotConfiguredDescription": "OAuth Google ou Microsoft n'est pas encore configuré. Une fois configuré, les utilisateurs pourront s'authentifier via SSO.",
+      "ssoNotConfigured": "Aucun fournisseur SSO n'est configuré sur le serveur. Vous pouvez enregistrer cette préférence ; les boutons de connexion apparaîtront une fois OAuth Google ou Microsoft activé.",
+      "requireMfa": "Exiger la MFA pour tous les utilisateurs",
+      "requireMfaHint": "Les utilisateurs sans MFA devront s'inscrire à la prochaine connexion.",
+      "ssoProvider": "Fournisseur SSO autorisé",
+      "providerAll": "Google et Microsoft",
+      "saved": "Paramètres de sécurité enregistrés.",
+      "loadError": "Impossible de charger les paramètres de sécurité.",
+      "saveError": "Impossible d'enregistrer les paramètres de sécurité.",
+      "mfaTitle": "Votre authentificateur",
+      "mfaDescription": "Protégez votre compte avec un mot de passe à usage unique (TOTP).",
+      "mfaStatus": "Statut MFA",
+      "enableMfa": "Activer la MFA",
+      "confirmMfa": "Confirmer et activer",
+      "disableMfa": "Désactiver la MFA",
+      "scanQr": "Ajoutez ce compte à Google Authenticator, Microsoft Authenticator ou une autre app TOTP :",
+      "mfaEnabled": "MFA activée avec succès.",
+      "mfaDisabled": "MFA désactivée.",
+      "mfaSetupError": "Impossible de démarrer la configuration MFA.",
+      "mfaConfirmError": "Code invalide. Vérifiez votre application et réessayez.",
+      "mfaDisableError": "Impossible de désactiver la MFA.",
+      "regenerateBackupCodes": "Régénérer les codes de secours",
+      "backupCodesGenerated": "Nouveaux codes de secours générés. Conservez-les en lieu sûr.",
+      "backupCodesError": "Impossible de générer les codes de secours.",
+      "backupCodesTitle": "Codes de secours (à sauvegarder maintenant)",
+      "backupCodesRemaining": "codes de secours restants"
     }
   },
   "capacity": {
     "title": "Capacité et utilisation",
     "subtitle": "Qui est surchargé, disponible ou en congé pour la semaine sélectionnée",
+    "teamMembers": "membres de l'équipe",
+    "thisWeek": "Cette semaine",
     "openDashboard": "Ouvrir le tableau de capacité",
     "backToReports": "Retour aux rapports",
     "previousWeek": "Semaine précédente",
     "nextWeek": "Semaine suivante",
     "upgradeHint": "Passez à Starter ou Pro pour débloquer le tableau de capacité.",
-    "metrics": {
+    "emptyTitle": "Aucun employé actif",
+    "emptyDescription": "Ajoutez des employés à votre organisation pour suivre l'utilisation hebdomadaire et la capacité disponible.",
+    "filters": {
+      "all": "Tous",
       "overallocated": "Surchargés",
       "available": "Disponibles",
       "onLeave": "En congé",
-      "underutilized": "Sous-utilisés"
+      "underutilized": "Sous-utilisés",
+      "normal": "Dans la norme"
+    },
+    "status": {
+      "overallocated": "Surchargé",
+      "available": "Disponible",
+      "underutilized": "Sous-utilisé",
+      "normal": "Dans la norme"
+    },
+    "metrics": {
+      "overallocated": "Surchargés",
+      "overallocatedHint": "Au-dessus de 110 % de capacité hebdo",
+      "available": "Disponibles",
+      "availableHint": "Sans affectation projet",
+      "onLeave": "En congé",
+      "onLeaveHint": "Congé approuvé cette semaine",
+      "underutilized": "Sous-utilisés",
+      "underutilizedHint": "Sous 90 % de capacité hebdo"
     },
     "chart": {
       "title": "Utilisation par employé",
-      "subtitle": "Principaux employés selon les heures saisies vs 40h de capacité"
+      "subtitle": "Principaux employés selon les heures saisies vs 40h de capacité",
+      "empty": "Aucune donnée d'utilisation pour cette semaine"
     },
     "table": {
       "title": "Équipe",
       "subtitle": "Heures, utilisation et congés approuvés sur cette semaine",
+      "search": "Rechercher des employés…",
+      "noResults": "Aucun employé ne correspond aux filtres actuels",
       "employee": "Employé",
       "hours": "Heures",
       "utilization": "Utilisation",

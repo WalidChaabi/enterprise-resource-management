@@ -167,32 +167,32 @@
         </form>
       </app-card-content>
 
-      <!-- Future SSO Section (Prepared but hidden) -->
-      <!-- Enterprise pattern: Structure ready for SSO without visual clutter -->
-      <!-- 
-      <app-card-content class="border-t pt-4">
-        <div class="space-y-3">
-          <div class="relative">
-            <div class="absolute inset-0 flex items-center">
-              <span class="w-full border-t"></span>
+      @if (ssoProviders().length > 0) {
+        <app-card-content class="border-t pt-4">
+          <div class="space-y-3">
+            <div class="relative">
+              <div class="absolute inset-0 flex items-center">
+                <span class="w-full border-t"></span>
+              </div>
+              <div class="relative flex justify-center text-xs uppercase">
+                <span class="bg-card px-2 text-muted-foreground">{{ 'auth.login.orContinueWith' | translate }}</span>
+              </div>
             </div>
-            <div class="relative flex justify-center text-xs uppercase">
-              <span class="bg-background px-2 text-muted-foreground">Or continue with</span>
+            <div class="grid gap-3" [class.grid-cols-2]="ssoProviders().length > 1">
+              @if (ssoProviders().includes('google')) {
+                <app-button type="button" variant="outline" class="w-full" (click)="startSso('google')">
+                  {{ 'auth.login.continueGoogle' | translate }}
+                </app-button>
+              }
+              @if (ssoProviders().includes('azure')) {
+                <app-button type="button" variant="outline" class="w-full" (click)="startSso('azure')">
+                  {{ 'auth.login.continueMicrosoft' | translate }}
+                </app-button>
+              }
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-3">
-            <button type="button" class="flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent">
-              <svg class="h-5 w-5" viewBox="0 0 24 24">...</svg>
-              <span>Google</span>
-            </button>
-            <button type="button" class="flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent">
-              <svg class="h-5 w-5" viewBox="0 0 24 24">...</svg>
-              <span>Microsoft</span>
-            </button>
-          </div>
-        </div>
-      </app-card-content>
-      -->
+        </app-card-content>
+      }
 
       <!-- Demo Credentials Section (dev only) -->
       @if (demoAccessEnabled) {

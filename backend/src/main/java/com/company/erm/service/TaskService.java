@@ -14,6 +14,8 @@ import com.company.erm.repository.ProjectRepository;
 import com.company.erm.repository.TaskRepository;
 import com.company.erm.repository.UserRepository;
 import com.company.erm.security.PermissionChecker;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -214,26 +216,20 @@ public class TaskService {
      * List tasks for a project.
      */
     @Transactional(readOnly = true)
-    public List<TaskResponseDTO> listTasksByProject(
+    public Page<TaskResponseDTO> listTasksByProject(
             UUID organizationId,
             UUID projectId,
+            Pageable pageable,
             String currentUserEmail) {
         
-        // 1. Verify project belongs to organization (validation only)
         projectRepository.findByIdAndOrganizationId(projectId, organizationId)
             .orElseThrow(() -> new BusinessException("Project not found or does not belong to organization"));
         
-        // 2. Security check
         permissionChecker.requireRole(organizationId, currentUserEmail, 
             "ORG_ADMIN", "PROJECT_MANAGER", "EMPLOYEE");
         
-        // 3. Load tasks
-        List<Task> tasks = taskRepository.findByProjectIdAndOrganizationId(projectId, organizationId);
-        
-        // 4. Map to DTOs
-        return tasks.stream()
-            .map(taskMapper::toResponseDTO)
-            .collect(Collectors.toList());
+        return taskRepository.findPageByProjectIdAndOrganizationId(projectId, organizationId, pageable)
+            .map(taskMapper::toResponseDTO);
     }
 
     /**

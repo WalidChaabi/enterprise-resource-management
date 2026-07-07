@@ -1,14 +1,6 @@
-<div class="mt-6 space-y-6">
-  <div>
-    <h2 class="text-xl font-semibold text-foreground">{{ 'settings.privacy.title' | translate }}</h2>
-    <p class="text-sm text-muted-foreground">{{ 'settings.privacy.subtitle' | translate }}</p>
-  </div>
-
+<app-settings-page-layout>
   @if (error()) {
-    <app-alert variant="destructive">{{ error() | translate }}</app-alert>
-  }
-  @if (success()) {
-    <app-alert variant="default">{{ success() | translate }}</app-alert>
+    <app-alert variant="destructive" role="alert">{{ error() | translate }}</app-alert>
   }
 
   <app-card>
@@ -91,4 +83,4 @@
       </app-card-content>
     </app-card>
   }
-</div>
+</app-settings-page-layout>

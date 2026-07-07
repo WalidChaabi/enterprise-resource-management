@@ -21,6 +21,11 @@ import { AlertComponent } from '../../../shared/components/ui/alert/alert.compon
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
 import { InputComponent } from '../../../shared/components/ui/input/input.component';
+import { CheckboxComponent } from '../../../shared/components/ui/checkbox';
+import { ConfirmDialogService } from '../../../shared/components/ui/alert-dialog';
+import { ToastService } from '../../../shared/components/ui/toast/toast.service';
+import { TranslationService } from '../../../core/services/translation.service';
+import { SettingsPageLayoutComponent, SettingsFieldComponent } from '../components';
 
 @Component({
   selector: 'app-webhook-settings',
@@ -38,6 +43,9 @@ import { InputComponent } from '../../../shared/components/ui/input/input.compon
     ButtonComponent,
     BadgeComponent,
     InputComponent,
+    CheckboxComponent,
+    SettingsPageLayoutComponent,
+    SettingsFieldComponent,
   ],
   templateUrl: './webhook-settings.component.html',
 })
@@ -45,12 +53,14 @@ export class WebhookSettingsComponent implements OnInit {
   private readonly webhookService = inject(WebhookService);
   private readonly entitlementService = inject(EntitlementService);
   private readonly fb = inject(FormBuilder);
+  private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly toastService = inject(ToastService);
+  private readonly translation = inject(TranslationService);
 
   readonly eventOptions = WEBHOOK_EVENT_OPTIONS;
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly error = signal('');
-  readonly success = signal('');
   readonly endpoints = signal<WebhookEndpoint[]>([]);
   readonly deliveries = signal<WebhookDelivery[]>([]);
   readonly createdSecret = signal('');
@@ -108,6 +118,10 @@ export class WebhookSettingsComponent implements OnInit {
     return (this.form.value.eventTypes as WebhookEventType[]).includes(eventType);
   }
 
+  eventCheckboxId(eventType: WebhookEventType): string {
+    return `webhook-event-${eventType.replace(/\./g, '-')}`;
+  }
+
   startCreate(): void {
     this.editingId.set(null);
     this.createdSecret.set('');
@@ -132,7 +146,6 @@ export class WebhookSettingsComponent implements OnInit {
     }
     this.saving.set(true);
     this.error.set('');
-    this.success.set('');
     const payload = this.form.getRawValue();
     const id = this.editingId();
 
@@ -146,7 +159,7 @@ export class WebhookSettingsComponent implements OnInit {
           this.createdSecret.set(result.secret);
         }
         this.saving.set(false);
-        this.success.set(id ? 'settings.webhooks.updateSuccess' : 'settings.webhooks.createSuccess');
+        this.toastService.successI18n(id ? 'settings.webhooks.updateSuccess' : 'settings.webhooks.createSuccess');
         this.startCreate();
         this.load();
       },
@@ -157,13 +170,21 @@ export class WebhookSettingsComponent implements OnInit {
     });
   }
 
-  remove(endpoint: WebhookEndpoint): void {
-    if (!confirm(`Delete webhook ${endpoint.url}?`)) {
+  async remove(endpoint: WebhookEndpoint): Promise<void> {
+    const confirmed = await this.confirmDialog.open({
+      title: this.translation.translate('settings.webhooks.deleteTitle'),
+      description: this.translation.translate('settings.webhooks.deleteDescription', { url: endpoint.url }),
+      confirmLabel: this.translation.translate('common.delete'),
+      cancelLabel: this.translation.translate('common.cancel'),
+      variant: 'destructive',
+    });
+    if (!confirmed) {
       return;
     }
+
     this.webhookService.deleteEndpoint(endpoint.id).subscribe({
       next: () => {
-        this.success.set('settings.webhooks.deleteSuccess');
+        this.toastService.successI18n('settings.webhooks.deleteSuccess');
         this.load();
       },
       error: (err) => {

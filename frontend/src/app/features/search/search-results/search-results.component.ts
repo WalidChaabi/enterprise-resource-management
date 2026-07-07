@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, signal, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SearchResult, SearchItem, SearchEntityType } from '../../../core/models/search.model';
 import { SearchService } from '../../../core/services/search.service';
@@ -7,10 +7,11 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { CardComponent } from '../../../shared/components/ui/card/card.component';
 import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
+import { EmptyStateComponent } from '../../../shared/components/ui/empty-state/empty-state.component';
 
 @Component({
     selector: 'app-search-results',
-    imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, BadgeComponent, DatePipe],
+    imports: [CommonModule, RouterModule, TranslatePipe, ButtonComponent, CardComponent, BadgeComponent, EmptyStateComponent],
     templateUrl: './search-results.component.html'
 })
 export class SearchResultsComponent implements OnInit {

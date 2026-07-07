@@ -4,7 +4,6 @@ import {
   TemplateRef,
   computed,
   input,
-  signal,
   viewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -12,38 +11,27 @@ import { RouterModule } from '@angular/router';
 import {
   CellContext,
   ColumnDef,
-  ColumnFiltersState,
-  FlexRenderDirective,
   HeaderContext,
   SortingState,
-  VisibilityState,
-  createAngularTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
 } from '@tanstack/angular-table';
-import { FormsModule } from '@angular/forms';
 import { Employee } from '@/core/models/employee.model';
 import { TranslatePipe } from '@/core/pipes/translate.pipe';
 import { BadgeComponent } from '@/shared/components/ui/badge/badge.component';
 import { DataTableColumnHeaderComponent } from '@/shared/components/data-table/data-table-column-header.component';
-import { DataTablePaginationComponent } from '@/shared/components/data-table/data-table-pagination.component';
-import { DataTableViewOptionsComponent } from '@/shared/components/data-table/data-table-view-options.component';
+import { EntityDataTableComponent } from '@/shared/components/entity-data-table/entity-data-table.component';
+import { createEntityTableState } from '@/shared/components/entity-data-table/entity-table-state';
 import { EmployeeRowActionsComponent } from './employee-row-actions.component';
+import { EmployeeStatusFilter } from './employee-list.component';
 
 @Component({
   selector: 'app-employee-data-table',
   imports: [
     CommonModule,
     RouterModule,
-    FormsModule,
-    FlexRenderDirective,
     TranslatePipe,
     BadgeComponent,
+    EntityDataTableComponent,
     DataTableColumnHeaderComponent,
-    DataTablePaginationComponent,
-    DataTableViewOptionsComponent,
     EmployeeRowActionsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,6 +39,7 @@ import { EmployeeRowActionsComponent } from './employee-row-actions.component';
 })
 export class EmployeeDataTableComponent {
   readonly data = input.required<Employee[]>();
+  readonly statusFilter = input<EmployeeStatusFilter>('ALL');
 
   readonly nameHeader = viewChild.required<TemplateRef<{ $implicit: HeaderContext<Employee, unknown> }>>('nameHeader');
   readonly emailHeader = viewChild.required<TemplateRef<{ $implicit: HeaderContext<Employee, unknown> }>>('emailHeader');
@@ -66,10 +55,12 @@ export class EmployeeDataTableComponent {
   readonly statusCell = viewChild.required<TemplateRef<{ $implicit: CellContext<Employee, unknown> }>>('statusCell');
   readonly actionsCell = viewChild.required<TemplateRef<{ $implicit: CellContext<Employee, unknown> }>>('actionsCell');
 
-  readonly filterValue = signal('');
-  readonly sorting = signal<SortingState>([]);
-  readonly columnFilters = signal<ColumnFiltersState>([]);
-  readonly columnVisibility = signal<VisibilityState>({});
+  readonly filteredData = computed(() => {
+    const filter = this.statusFilter();
+    if (filter === 'ALL') return this.data();
+    if (filter === 'ACTIVE') return this.data().filter((e) => e.active);
+    return this.data().filter((e) => !e.active);
+  });
 
   readonly columns = computed<ColumnDef<Employee, unknown>[]>(() => [
     {
@@ -112,40 +103,32 @@ export class EmployeeDataTableComponent {
     },
   ]);
 
-  readonly table = createAngularTable<Employee>(() => ({
-    data: this.data(),
-    columns: this.columns(),
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(this.sorting()) : updater;
-      this.sorting.set(next);
-    },
-    onColumnFiltersChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(this.columnFilters()) : updater;
-      this.columnFilters.set(next);
-    },
-    onColumnVisibilityChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(this.columnVisibility()) : updater;
-      this.columnVisibility.set(next);
-    },
-    state: {
-      sorting: this.sorting(),
-      columnFilters: this.columnFilters(),
-      columnVisibility: this.columnVisibility(),
-    },
-  }));
+  private readonly tableState = createEntityTableState<Employee>({
+    data: () => this.filteredData(),
+    columns: () => this.columns(),
+    initialSorting: [{ id: 'name', desc: false }] as SortingState,
+    matchesFilter: (employee, query) =>
+      [
+        employee.firstName,
+        employee.lastName,
+        employee.email,
+        employee.jobTitle,
+        employee.departmentName,
+        employee.employeeCode,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(query),
+  });
 
-  onFilterChange(value: string): void {
-    this.filterValue.set(value);
-    this.table.getColumn('name')?.setFilterValue(value);
-  }
+  readonly filterValue = this.tableState.filterValue;
+  readonly table = this.tableState.table;
+  readonly onFilterChange = this.tableState.onFilterChange;
 
   initials(employee: Employee): string {
     const first = employee.firstName?.charAt(0) ?? '';
     const last = employee.lastName?.charAt(0) ?? '';
-    return `${first}${last}`.toUpperCase();
+    return `${first}${last}`.toUpperCase() || '?';
   }
 }

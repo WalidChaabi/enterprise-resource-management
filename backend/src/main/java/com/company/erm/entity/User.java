@@ -35,7 +35,7 @@ public class User {
     @Column(nullable = false, length = 255)
     private String email;
 
-    @Column(name = "password_hash", nullable = false, length = 255)
+    @Column(name = "password_hash", length = 255)
     private String passwordHash;
 
     @Column(name = "first_name", nullable = false, length = 100)
@@ -52,6 +52,10 @@ public class User {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @jakarta.persistence.Version
+    @Column(name = "version", nullable = false)
+    private long version;
 
     @PrePersist
     protected void onCreate() {
@@ -138,6 +142,14 @@ public class User {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public long getVersion() {
+        return version;
+    }
+
+    public void setVersion(long version) {
+        this.version = version;
     }
 
     @Transient

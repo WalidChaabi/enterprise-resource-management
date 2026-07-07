@@ -1,33 +1,52 @@
 import { LucideAngularModule } from 'lucide-angular';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ProjectService } from '../../../core/services/project.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Project } from '../../../core/models/project.model';
+import { Project, ProjectStatus } from '../../../core/models/project.model';
 import { ROLES } from '../../../core/utils/constants';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
+import { TranslationService } from '../../../core/services/translation.service';
+import { ConfirmDialogService } from '../../../shared/components/ui/alert-dialog';
+import { ToastService } from '../../../shared/components/ui/toast/toast.service';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { CardComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
-import { SkeletonComponent, SkeletonTableComponent } from '../../../shared/components/ui/skeleton/skeleton.component';
+import { SkeletonTableComponent } from '../../../shared/components/ui/skeleton/skeleton.component';
+import { EmptyStateComponent } from '../../../shared/components/ui/empty-state/empty-state.component';
 import { DialogComponent } from '../../../shared/components/ui/dialog/dialog.component';
+import { ListPageShellComponent } from '../../../shared/components/list-page-shell/list-page-shell.component';
 import { ProjectFormComponent } from '../project-form/project-form.component';
 import { ProjectDataTableComponent } from './project-data-table.component';
+import {
+  TabsComponent,
+  TabsContentComponent,
+  TabsListComponent,
+  TabsTriggerComponent,
+} from '../../../shared/components/ui/tabs';
+
+export type ProjectStatusFilter = 'ALL' | ProjectStatus;
 
 @Component({
   selector: 'app-project-list',
   imports: [
     CommonModule,
+    CurrencyPipe,
     TranslatePipe,
     LucideAngularModule,
     ButtonComponent,
     CardComponent,
     CardContentComponent,
-    SkeletonComponent,
     SkeletonTableComponent,
+    EmptyStateComponent,
     DialogComponent,
+    ListPageShellComponent,
     ProjectFormComponent,
     ProjectDataTableComponent,
+    TabsComponent,
+    TabsListComponent,
+    TabsTriggerComponent,
+    TabsContentComponent,
   ],
   templateUrl: './project-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,13 +55,24 @@ export class ProjectListComponent {
   private readonly projectService = inject(ProjectService);
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly toastService = inject(ToastService);
+  private readonly translation = inject(TranslationService);
 
   readonly projects = signal<Project[]>([]);
   readonly loading = signal<boolean>(false);
   readonly error = signal<string>('');
   readonly showCreateModal = signal<boolean>(false);
-  readonly archivingProjectId = signal<string | null>(null);
   readonly processing = signal(false);
+  readonly statusFilter = signal<ProjectStatusFilter>('ALL');
+
+  readonly statusFilters: { value: ProjectStatusFilter; labelKey: string }[] = [
+    { value: 'ALL', labelKey: 'projects.filters.all' },
+    { value: ProjectStatus.ACTIVE, labelKey: 'projects.status.active' },
+    { value: ProjectStatus.PLANNING, labelKey: 'projects.status.planning' },
+    { value: ProjectStatus.ON_HOLD, labelKey: 'projects.status.on-hold' },
+    { value: ProjectStatus.COMPLETED, labelKey: 'projects.status.completed' },
+  ];
 
   readonly canCreateProject = computed(() => {
     return this.authService.hasAnyRole(ROLES.ORG_ADMIN, ROLES.PROJECT_MANAGER);
@@ -50,6 +80,26 @@ export class ProjectListComponent {
 
   readonly canArchiveProject = computed(() => {
     return this.authService.hasAnyRole(ROLES.ORG_ADMIN);
+  });
+
+  readonly countByStatus = computed(() => {
+    const items = this.projects();
+    return {
+      active: items.filter((p) => p.status === ProjectStatus.ACTIVE).length,
+      planning: items.filter((p) => p.status === ProjectStatus.PLANNING).length,
+      onHold: items.filter((p) => p.status === ProjectStatus.ON_HOLD).length,
+      completed: items.filter((p) => p.status === ProjectStatus.COMPLETED).length,
+    };
+  });
+
+  readonly totalBudget = computed(() =>
+    this.projects().reduce((sum, project) => sum + (project.budget ?? 0), 0)
+  );
+
+  readonly filteredCount = computed(() => {
+    const filter = this.statusFilter();
+    if (filter === 'ALL') return this.projects().length;
+    return this.projects().filter((project) => project.status === filter).length;
   });
 
   constructor() {
@@ -87,6 +137,19 @@ export class ProjectListComponent {
     });
   }
 
+  onStatusTabChange(value: string): void {
+    this.statusFilter.set(value as ProjectStatusFilter);
+  }
+
+  isStatusTabActive(filter: ProjectStatusFilter): boolean {
+    return this.statusFilter() === filter;
+  }
+
+  statusCount(filter: ProjectStatusFilter): number {
+    if (filter === 'ALL') return this.projects().length;
+    return this.projects().filter((project) => project.status === filter).length;
+  }
+
   openCreateModal(): void {
     this.showCreateModal.set(true);
   }
@@ -97,32 +160,33 @@ export class ProjectListComponent {
 
   onProjectCreated(): void {
     this.closeCreateModal();
+    this.toastService.successI18n('projects.toast.createdTitle', 'projects.toast.createdDescription');
     this.loadProjects();
   }
 
-  startArchive(projectId: string): void {
-    this.archivingProjectId.set(projectId);
-  }
-
-  closeArchiveDialog(): void {
-    this.archivingProjectId.set(null);
-  }
-
-  confirmArchive(): void {
-    const projectId = this.archivingProjectId();
-    if (!projectId || this.processing()) return;
+  async startArchive(projectId: string): Promise<void> {
+    const confirmed = await this.confirmDialog.open({
+      title: this.translation.translate('projects.archive'),
+      description: this.translation.translate('projects.archiveConfirm'),
+      confirmLabel: this.translation.translate('projects.confirmArchive'),
+      cancelLabel: this.translation.translate('common.cancel'),
+      variant: 'destructive',
+    });
+    if (!confirmed || this.processing()) {
+      return;
+    }
 
     this.processing.set(true);
     this.projectService.archiveProject(projectId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
-        this.closeArchiveDialog();
+        this.toastService.successI18n('projects.toast.archivedTitle', 'projects.toast.archivedDescription');
         this.loadProjects();
         this.processing.set(false);
       },
       error: (err) => {
         this.error.set(err?.details?.[0] || err?.message || 'Failed to archive project');
         this.processing.set(false);
-      }
+      },
     });
   }
 }

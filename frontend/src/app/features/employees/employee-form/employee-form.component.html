@@ -36,7 +36,7 @@
                   class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   [placeholder]="'employees.form.userIdPlaceholder' | translate" />
                 @if (getFieldError('userId')) {
-                  <p class="text-sm text-destructive">{{ getFieldError('userId') }}</p>
+                  <p class="text-sm text-destructive">{{ getFieldError('userId') | translate }}</p>
                 }
                 <p class="text-xs text-muted-foreground">{{ 'employees.form.userIdHint' | translate }}</p>
               </div>
@@ -137,7 +137,7 @@
               class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               [placeholder]="'employees.form.userIdPlaceholder' | translate" />
             @if (getFieldError('userId')) {
-              <p class="text-sm text-destructive">{{ getFieldError('userId') }}</p>
+              <p class="text-sm text-destructive">{{ getFieldError('userId') | translate }}</p>
             }
             <p class="text-xs text-muted-foreground">{{ 'employees.form.userIdHint' | translate }}</p>
           </div>

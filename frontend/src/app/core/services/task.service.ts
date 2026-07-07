@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { HttpParams } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
 import { Task, TaskCreateDTO, TaskUpdateDTO } from '../models/task.model';
@@ -23,9 +24,20 @@ export class TaskService {
     return orgId;
   }
 
-  getTasks(projectId: string): Observable<Task[]> {
+  getTasks(projectId: string, params?: { page?: number; size?: number }): Observable<Task[]> {
     const orgId = this.getOrgId();
-    return this.api.get<Task[]>(API_ENDPOINTS.TASKS(orgId, projectId));
+    let httpParams = new HttpParams();
+    if (params?.page !== undefined) httpParams = httpParams.set('page', params.page.toString());
+    if (params?.size !== undefined) httpParams = httpParams.set('size', params.size.toString());
+
+    return this.api.get<unknown>(API_ENDPOINTS.TASKS(orgId, projectId), httpParams).pipe(
+      map((response) => {
+        const rows = Array.isArray(response)
+          ? response
+          : ((response as { content?: unknown[] })?.content ?? []);
+        return rows as Task[];
+      })
+    );
   }
 
   getTask(projectId: string, taskId: string): Observable<Task> {

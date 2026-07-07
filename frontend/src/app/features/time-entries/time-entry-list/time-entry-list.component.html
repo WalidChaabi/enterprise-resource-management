@@ -1,91 +1,133 @@
-<div class="space-y-6">
-  <div class="flex items-center justify-between">
+<app-list-page-shell [loading]="loading()" [empty]="timeEntries().length === 0" [error]="error()">
+  <div shell-heading>
     <div>
       <h1 class="text-2xl font-semibold text-foreground">{{ 'timeEntries.title' | translate }}</h1>
+      @if (!loading() && timeEntries().length > 0) {
+        <p class="page-description mt-1">
+          {{ filteredCount() }} {{ 'timeEntries.stats.entries' | translate }}
+          @if (statusFilter() !== 'ALL') {
+            <span class="text-muted-foreground">· {{ 'timeEntries.filters.filtered' | translate }}</span>
+          }
+        </p>
+      }
     </div>
-    <app-button (click)="openCreateModal()">
-      {{ 'timeEntries.newTimeEntry' | translate }}
-    </app-button>
+  </div>
+  <app-button shell-actions (click)="openCreateModal()">
+    {{ 'timeEntries.newTimeEntry' | translate }}
+  </app-button>
+
+  @if (canApprove() && pendingApprovalCount() > 0) {
+    <div shell-banner class="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+      <lucide-icon name="clock" [size]="20" class="mt-0.5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-medium text-foreground">{{ 'timeEntries.pendingBanner.title' | translate }}</p>
+        <p class="mt-1 text-sm text-muted-foreground">
+          {{ 'timeEntries.pendingBanner.description' | translate:{ count: pendingApprovalCount() } }}
+        </p>
+      </div>
+      <app-button variant="outline" size="sm" (click)="setStatusFilter(TimeEntryStatus.SUBMITTED)">
+        {{ 'timeEntries.pendingBanner.action' | translate }}
+      </app-button>
+    </div>
+  }
+
+  <app-card shell-loading>
+    <app-card-content class="p-6">
+      <app-skeleton-table [rows]="5" [columns]="[
+        { width: '16%' },
+        { width: '28%' },
+        { width: '14%' },
+        { width: '10%' },
+        { width: '16%' },
+        { width: '12%' },
+        { width: '4%' }
+      ]" />
+    </app-card-content>
+  </app-card>
+
+  <app-card shell-empty>
+    <app-card-content>
+      <app-empty-state
+        [iconName]="'clock'"
+        [title]="'timeEntries.emptyTitle' | translate"
+        [description]="'timeEntries.emptyDescription' | translate">
+        <app-button action (click)="openCreateModal()">
+          {{ 'timeEntries.newTimeEntry' | translate }}
+        </app-button>
+      </app-empty-state>
+    </app-card-content>
+  </app-card>
+
+  <div shell-stats class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        <app-card>
+          <app-card-content class="px-4 py-3">
+            <p class="text-xs font-medium text-muted-foreground">{{ 'timeEntries.stats.totalHours' | translate }}</p>
+            <div class="mt-1 flex items-baseline gap-2">
+              <p class="text-xl font-semibold tabular-nums leading-none">{{ totalHours() | number:'1.1-1' }}h</p>
+              <p class="text-xs text-muted-foreground">{{ timeEntries().length }} {{ 'timeEntries.stats.entries' | translate }}</p>
+            </div>
+          </app-card-content>
+        </app-card>
+        <app-card>
+          <app-card-content class="px-4 py-3">
+            <p class="text-xs font-medium text-muted-foreground">{{ 'timeEntries.stats.approved' | translate }}</p>
+            <div class="mt-1 flex items-baseline gap-2">
+              <p class="text-xl font-semibold tabular-nums leading-none">{{ hoursByStatus().approved | number:'1.1-1' }}h</p>
+              <p class="text-xs text-muted-foreground">{{ entriesByStatus().approved }} {{ 'timeEntries.stats.entries' | translate }}</p>
+            </div>
+          </app-card-content>
+        </app-card>
+        <app-card>
+          <app-card-content class="px-4 py-3">
+            <p class="text-xs font-medium text-muted-foreground">{{ 'timeEntries.stats.pending' | translate }}</p>
+            <div class="mt-1 flex items-baseline gap-2">
+              <p class="text-xl font-semibold tabular-nums leading-none">{{ hoursByStatus().submitted | number:'1.1-1' }}h</p>
+              <p class="text-xs text-muted-foreground">{{ entriesByStatus().submitted }} {{ 'timeEntries.stats.entries' | translate }}</p>
+            </div>
+          </app-card-content>
+        </app-card>
+        <app-card>
+          <app-card-content class="px-4 py-3">
+            <p class="text-xs font-medium text-muted-foreground">{{ 'timeEntries.stats.draft' | translate }}</p>
+            <div class="mt-1 flex items-baseline gap-2">
+              <p class="text-xl font-semibold tabular-nums leading-none">{{ hoursByStatus().draft | number:'1.1-1' }}h</p>
+              <p class="text-xs text-muted-foreground">{{ entriesByStatus().draft }} {{ 'timeEntries.stats.entries' | translate }}</p>
+            </div>
+          </app-card-content>
+        </app-card>
   </div>
 
-  @if (error()) {
-    <div class="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-      <lucide-icon name="alert-circle" [size]="20" class="flex-shrink-0 text-destructive mt-0.5" />
-      <p class="text-sm font-medium text-foreground">{{ error() }}</p>
-    </div>
-  }
-
-  @if (loading()) {
-    <app-card>
-      <app-card-content class="p-6">
-        <app-skeleton-table [rows]="5" [columns]="[
-          { width: '20%' },
-          { width: '30%' },
-          { width: '15%' },
-          { width: '20%' },
-          { width: '15%' }
-        ]" />
-      </app-card-content>
-    </app-card>
-  } @else if (timeEntries().length === 0) {
-    <app-card>
-      <app-card-content>
-        <div class="flex flex-col items-center justify-center py-12 text-center">
-          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-            <lucide-icon name="clock" [size]="24" class="text-muted-foreground" />
-          </div>
-          <h3 class="text-base font-semibold text-foreground mb-1">{{ 'timeEntries.emptyTitle' | translate }}</h3>
-          <p class="text-sm text-muted-foreground mb-6 max-w-sm">{{ 'timeEntries.emptyDescription' | translate }}</p>
-          <app-button (click)="openCreateModal()">
-            {{ 'timeEntries.newTimeEntry' | translate }}
-          </app-button>
-        </div>
-      </app-card-content>
-    </app-card>
-  } @else {
-    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <app-card>
-        <app-card-content class="p-6">
-          <p class="text-sm font-medium text-muted-foreground mb-1">{{ 'timeEntries.stats.totalHours' | translate }}</p>
-          <p class="text-2xl font-semibold">{{ totalHours() | number:'1.1-1' }}h</p>
-          <p class="text-xs text-muted-foreground mt-1">{{ timeEntries().length }} {{ 'timeEntries.stats.entries' | translate }}</p>
-        </app-card-content>
-      </app-card>
-      <app-card>
-        <app-card-content class="p-6">
-          <p class="text-sm font-medium text-muted-foreground mb-1">{{ 'timeEntries.stats.approved' | translate }}</p>
-          <p class="text-2xl font-semibold">{{ hoursByStatus().approved | number:'1.1-1' }}h</p>
-          <p class="text-xs text-muted-foreground mt-1">{{ entriesByStatus().approved }} {{ 'timeEntries.stats.entries' | translate }}</p>
-        </app-card-content>
-      </app-card>
-      <app-card>
-        <app-card-content class="p-6">
-          <p class="text-sm font-medium text-muted-foreground mb-1">{{ 'timeEntries.stats.pending' | translate }}</p>
-          <p class="text-2xl font-semibold">{{ hoursByStatus().submitted | number:'1.1-1' }}h</p>
-          <p class="text-xs text-muted-foreground mt-1">{{ entriesByStatus().submitted }} {{ 'timeEntries.stats.entries' | translate }}</p>
-        </app-card-content>
-      </app-card>
-      <app-card>
-        <app-card-content class="p-6">
-          <p class="text-sm font-medium text-muted-foreground mb-1">{{ 'timeEntries.stats.draft' | translate }}</p>
-          <p class="text-2xl font-semibold">{{ hoursByStatus().draft | number:'1.1-1' }}h</p>
-          <p class="text-xs text-muted-foreground mt-1">{{ entriesByStatus().draft }} {{ 'timeEntries.stats.entries' | translate }}</p>
-        </app-card-content>
-      </app-card>
-    </div>
+  <app-tabs shell-filters class="gap-5" [value]="statusFilter()" (valueChange)="onStatusTabChange($event)">
+    <app-tabs-list class="max-w-full overflow-x-auto">
+      @for (filter of statusFilters; track filter.value) {
+        <app-tabs-trigger [value]="filter.value">
+          <span>{{ filter.labelKey | translate }}</span>
+          <span
+            class="inline-flex min-w-[1.125rem] items-center justify-center rounded-sm px-1 text-[11px] font-normal tabular-nums text-muted-foreground"
+            [class.text-foreground]="isStatusTabActive(filter.value)"
+            [class.opacity-100]="isStatusTabActive(filter.value)"
+            [class.opacity-70]="!isStatusTabActive(filter.value)">
+            {{ statusCount(filter.value) }}
+          </span>
+        </app-tabs-trigger>
+      }
+    </app-tabs-list>
 
     <app-card>
       <app-card-content class="p-6">
-        <app-time-entry-data-table
-          [data]="timeEntries()"
-          [canApprove]="canApprove()"
-          [processingId]="processing()"
-          (submitEntry)="submitEntry($event)"
-          (approve)="approveEntry($event)"
-          (reject)="startRejectEntry($event)" />
+        <app-tabs-content [value]="statusFilter()" class="mt-0">
+          <app-time-entry-data-table
+            [data]="timeEntries()"
+            [canApprove]="canApprove()"
+            [processingId]="processing()"
+            [statusFilter]="statusFilter()"
+            (submitEntry)="submitEntry($event)"
+            (approve)="approveEntry($event)"
+            (reject)="startRejectEntry($event)" />
+        </app-tabs-content>
       </app-card-content>
     </app-card>
-  }
+  </app-tabs>
 
   <app-dialog
     [open]="showCreateModal()"
@@ -99,13 +141,21 @@
     [title]="'timeEntries.reject' | translate"
     (closed)="closeRejectDialog()">
     <div class="space-y-4">
-      <label class="text-sm font-medium">{{ 'timeEntries.rejectionReason' | translate }}</label>
-      <textarea
-        [value]="rejectionReason()"
-        (input)="rejectionReason.set($any($event.target).value)"
-        rows="3"
-        class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-        [placeholder]="'timeEntries.rejectionReasonPlaceholder' | translate"></textarea>
+      @if (rejectingEntry(); as entry) {
+        <p class="text-sm text-muted-foreground">
+          {{ entry.projectName }} · {{ entry.date | date:'mediumDate' }} · {{ entry.hours | number:'1.1-1' }}h
+        </p>
+      }
+      <div class="space-y-2">
+        <label class="text-sm font-medium" for="rejection-reason">{{ 'timeEntries.rejectionReason' | translate }}</label>
+        <textarea
+          id="rejection-reason"
+          [value]="rejectionReason()"
+          (input)="rejectionReason.set($any($event.target).value)"
+          rows="3"
+          class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          [placeholder]="'timeEntries.rejectionReasonPlaceholder' | translate"></textarea>
+      </div>
       <div class="flex justify-end gap-2">
         <app-button variant="outline" (click)="closeRejectDialog()" [disabled]="processing() !== null">
           {{ 'common.cancel' | translate }}
@@ -116,4 +166,4 @@
       </div>
     </div>
   </app-dialog>
-</div>
+</app-list-page-shell>

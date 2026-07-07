@@ -10,6 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.company.erm.config.RateLimitProperties;
+
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
@@ -21,9 +23,12 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class LoginRateLimitFilter extends OncePerRequestFilter {
 
-    private static final int REQUESTS_PER_MINUTE = 10;
-
+    private final RateLimitProperties rateLimitProperties;
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+
+    public LoginRateLimitFilter(RateLimitProperties rateLimitProperties) {
+        this.rateLimitProperties = rateLimitProperties;
+    }
 
     @Override
     protected void doFilterInternal(
@@ -36,23 +41,22 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
         }
 
         String uri = request.getRequestURI();
-        if (!"/auth/login".equals(uri) && !"/auth/signup".equals(uri)) {
+        if (!rateLimitProperties.getPaths().contains(uri)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String clientKey = resolveClientKey(request);
+        String clientKey = resolveClientKey(request) + ":" + uri;
+        int limit = rateLimitProperties.getRequestsPerMinute();
         Bucket bucket = buckets.computeIfAbsent(clientKey, key -> Bucket.builder()
-                .addLimit(Bandwidth.classic(
-                        REQUESTS_PER_MINUTE,
-                        Refill.intervally(REQUESTS_PER_MINUTE, Duration.ofMinutes(1))))
+                .addLimit(Bandwidth.classic(limit, Refill.intervally(limit, Duration.ofMinutes(1))))
                 .build());
 
         if (!bucket.tryConsume(1)) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.getWriter().write(
-                    "{\"code\":\"RATE_LIMITED\",\"details\":[\"Too many login attempts. Please try again later.\"]}");
+                    "{\"code\":\"RATE_LIMITED\",\"details\":[\"Too many requests. Please try again later.\"]}");
             return;
         }
 

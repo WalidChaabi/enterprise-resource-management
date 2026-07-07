@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthRequest, AuthResponse, SignupRequest, User } from '../models/auth.model';
+import { AuthRequest, AuthResponse, SignupRequest, User, LoginResponse, MfaVerifyRequest, SsoProvidersResponse } from '../models/auth.model';
 import { EntitlementService } from './entitlement.service';
 import { STORAGE_KEYS, type Role } from '../utils/constants';
 
@@ -30,12 +30,33 @@ export class AuthService {
     this.loadUserFromStorage();
   }
 
-  login(credentials: AuthRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiBase}/auth/login`, credentials, {
+  login(credentials: AuthRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiBase}/auth/login`, credentials, {
+      withCredentials: true
+    }).pipe(
+      tap(response => {
+        if (!response.mfaRequired && response.session) {
+          this.setCurrentUser(response.session);
+        }
+      })
+    );
+  }
+
+  verifyMfa(request: MfaVerifyRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiBase}/auth/mfa/verify`, request, {
       withCredentials: true
     }).pipe(
       tap(response => this.setCurrentUser(response))
     );
+  }
+
+  getSsoProviders(email?: string): Observable<SsoProvidersResponse> {
+    const params = email ? `?email=${encodeURIComponent(email)}` : '';
+    return this.http.get<SsoProvidersResponse>(`${this.apiBase}/auth/sso/providers${params}`);
+  }
+
+  startSsoLogin(provider: string): void {
+    window.location.href = `/oauth2/authorization/${provider}`;
   }
 
   signup(request: SignupRequest): Observable<AuthResponse> {

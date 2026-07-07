@@ -23,6 +23,11 @@ import com.company.erm.service.OrganizationSwitcherService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "Organization Switcher", description = "Switch active organization context")
 @RestController
 @RequestMapping("/api/organizations")
 @PreAuthorize("isAuthenticated()")
@@ -38,6 +43,8 @@ public class OrganizationSwitcherController {
         this.authCookieService = authCookieService;
     }
 
+    @Operation(summary = "List Organizations")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping
     public ResponseEntity<List<OrganizationSummaryDTO>> listOrganizations(Authentication authentication) {
         List<OrganizationSummaryDTO> orgs = organizationSwitcherService
@@ -45,6 +52,8 @@ public class OrganizationSwitcherController {
         return ResponseEntity.ok(orgs);
     }
 
+    @Operation(summary = "Switch Organization")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping("/switch")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<OrganizationSwitchResponseDTO> switchOrganization(

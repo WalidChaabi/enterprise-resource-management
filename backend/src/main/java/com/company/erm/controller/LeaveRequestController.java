@@ -7,6 +7,9 @@ import com.company.erm.entity.LeaveRequestStatus;
 import com.company.erm.entity.LeaveType;
 import com.company.erm.service.LeaveRequestService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +20,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -28,9 +30,14 @@ import java.util.UUID;
  * - Multi-tenant isolation enforced at service layer
  * - Role-based access control via @PreAuthorize
  */
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "Leave Requests", description = "Leave request workflow")
 @RestController
 @RequestMapping("/api/v1/organizations/{organizationId}/leave-requests")
-@PreAuthorize("hasAnyRole('ORG_ADMIN', 'HR_ADMIN', 'DEPARTMENT_MANAGER', 'EMPLOYEE')")
+@PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN', 'HR_ADMIN', 'DEPARTMENT_MANAGER', 'EMPLOYEE')")
 public class LeaveRequestController {
 
     private final LeaveRequestService leaveRequestService;
@@ -49,6 +56,8 @@ public class LeaveRequestController {
      * @param authentication Current authenticated user
      * @return Created leave request with 201 status
      */
+    @Operation(summary = "Create Leave Request")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<LeaveRequestResponseDTO> createLeaveRequest(
@@ -84,6 +93,8 @@ public class LeaveRequestController {
      * @param authentication Current authenticated user
      * @return Leave request details
      */
+    @Operation(summary = "Get Leave Request")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping("/{leaveRequestId}")
     public ResponseEntity<LeaveRequestResponseDTO> getLeaveRequest(
             @PathVariable UUID organizationId,
@@ -111,6 +122,8 @@ public class LeaveRequestController {
      * @param authentication Current authenticated user
      * @return Updated leave request
      */
+    @Operation(summary = "Update Leave Request")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PutMapping("/{leaveRequestId}")
     public ResponseEntity<LeaveRequestResponseDTO> updateLeaveRequest(
             @PathVariable UUID organizationId,
@@ -146,8 +159,10 @@ public class LeaveRequestController {
      * @param authentication Current authenticated user
      * @return List of leave requests
      */
+    @Operation(summary = "List Leave Requests")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping
-    public ResponseEntity<List<LeaveRequestResponseDTO>> listLeaveRequests(
+    public ResponseEntity<Page<LeaveRequestResponseDTO>> listLeaveRequests(
             @PathVariable UUID organizationId,
             @RequestParam(required = false) UUID employeeId,
             @RequestParam(required = false) UUID departmentId,
@@ -155,10 +170,11 @@ public class LeaveRequestController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) LeaveRequestStatus status,
             @RequestParam(required = false) LeaveType leaveType,
+            @PageableDefault(size = 20) Pageable pageable,
             Authentication authentication) {
         
         String currentUserEmail = authentication.getName();
-        List<LeaveRequestResponseDTO> requests = leaveRequestService.listLeaveRequests(
+        Page<LeaveRequestResponseDTO> requests = leaveRequestService.listLeaveRequests(
             organizationId,
             employeeId,
             departmentId,
@@ -166,6 +182,7 @@ public class LeaveRequestController {
             endDate,
             status,
             leaveType,
+            pageable,
             currentUserEmail
         );
         
@@ -182,8 +199,10 @@ public class LeaveRequestController {
      * @param authentication Current authenticated user
      * @return Approved leave request
      */
+    @Operation(summary = "Approve Leave Request")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping("/{leaveRequestId}/approve")
-    @PreAuthorize("hasAnyRole('ORG_ADMIN', 'HR_ADMIN', 'DEPARTMENT_MANAGER')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN', 'HR_ADMIN', 'DEPARTMENT_MANAGER')")
     public ResponseEntity<LeaveRequestResponseDTO> approveLeaveRequest(
             @PathVariable UUID organizationId,
             @PathVariable UUID leaveRequestId,
@@ -210,8 +229,10 @@ public class LeaveRequestController {
      * @param authentication Current authenticated user
      * @return Rejected leave request
      */
+    @Operation(summary = "Reject Leave Request")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping("/{leaveRequestId}/reject")
-    @PreAuthorize("hasAnyRole('ORG_ADMIN', 'HR_ADMIN', 'DEPARTMENT_MANAGER')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN', 'HR_ADMIN', 'DEPARTMENT_MANAGER')")
     public ResponseEntity<LeaveRequestResponseDTO> rejectLeaveRequest(
             @PathVariable UUID organizationId,
             @PathVariable UUID leaveRequestId,
@@ -239,6 +260,8 @@ public class LeaveRequestController {
      * @param authentication Current authenticated user
      * @return Cancelled leave request
      */
+    @Operation(summary = "Cancel Leave Request")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping("/{leaveRequestId}/cancel")
     public ResponseEntity<LeaveRequestResponseDTO> cancelLeaveRequest(
             @PathVariable UUID organizationId,
@@ -265,6 +288,8 @@ public class LeaveRequestController {
      * @param authentication Current authenticated user
      * @return 204 No Content
      */
+    @Operation(summary = "Delete Leave Request")
+    @ApiResponse(responseCode = "200", description = "Success")
     @DeleteMapping("/{leaveRequestId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteLeaveRequest(

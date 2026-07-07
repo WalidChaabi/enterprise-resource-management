@@ -4,11 +4,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,12 +19,14 @@ import com.company.erm.entity.Task;
 import com.company.erm.entity.TaskStatus;
 import com.company.erm.entity.TimeEntry;
 import com.company.erm.entity.TimeEntryStatus;
-import com.company.erm.entity.User;
 import com.company.erm.exception.BusinessException;
 import com.company.erm.repository.ProjectRepository;
 import com.company.erm.repository.TaskRepository;
 import com.company.erm.repository.TimeEntryRepository;
 import com.company.erm.repository.UserRepository;
+import com.company.erm.repository.reporting.EmployeeHoursAggregate;
+import com.company.erm.repository.reporting.ProjectHoursAggregate;
+import com.company.erm.security.OrganizationSecurityService;
 
 @Service
 @Transactional(readOnly = true)
@@ -34,19 +36,23 @@ public class TimeReportService {
     private final TaskRepository taskRepository;
     private final TimeEntryRepository timeEntryRepository;
     private final UserRepository userRepository;
+    private final OrganizationSecurityService organizationSecurity;
 
     public TimeReportService(
             ProjectRepository projectRepository,
             TaskRepository taskRepository,
             TimeEntryRepository timeEntryRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            OrganizationSecurityService organizationSecurity) {
         this.projectRepository = projectRepository;
         this.taskRepository = taskRepository;
         this.timeEntryRepository = timeEntryRepository;
         this.userRepository = userRepository;
+        this.organizationSecurity = organizationSecurity;
     }
 
     public ProjectStatsDTO getProjectStats(UUID organizationId, UUID projectId) {
+        organizationSecurity.requireOrgMembership(organizationId);
         Project project = projectRepository
                 .findByIdAndOrganizationId(projectId, organizationId)
                 .orElseThrow(() -> new BusinessException("Project not found"));
@@ -88,96 +94,48 @@ public class TimeReportService {
     }
 
     public List<TimeReportDTO> getTimeReportByProject(UUID organizationId, LocalDate startDate, LocalDate endDate) {
-        List<Project> projects = projectRepository.findByOrganizationId(organizationId);
+        organizationSecurity.requireOrgMembership(organizationId);
         LocalDate start = startDate != null ? startDate : LocalDate.MIN;
         LocalDate end = endDate != null ? endDate : LocalDate.MAX;
 
-        return projects.stream()
-                .map(project -> {
-                    List<TimeEntry> entries = timeEntryRepository.findByProjectIdAndEntryDateBetween(
-                            project.getId(), start, end);
+        Map<UUID, Project> projectsById = projectRepository.findByOrganizationId(organizationId).stream()
+                .collect(Collectors.toMap(Project::getId, Function.identity()));
 
-                    BigDecimal totalHours = entries.stream()
-                            .filter(te -> te.getStatus() == TimeEntryStatus.APPROVED)
-                            .map(TimeEntry::getDurationHours)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                    int count = (int) entries.stream()
-                            .filter(te -> te.getStatus() == TimeEntryStatus.APPROVED)
-                            .count();
-
-                    BigDecimal avgHours = count > 0
-                            ? totalHours.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP)
-                            : BigDecimal.ZERO;
-
-                    return new TimeReportDTO(
-                            project.getId(),
-                            project.getName(),
-                            totalHours,
-                            count,
-                            avgHours
-                    );
-                })
-                .filter(tr -> tr.getTotalHours().compareTo(BigDecimal.ZERO) > 0)
+        return timeEntryRepository.sumApprovedHoursByProjectInRange(
+                        organizationId, TimeEntryStatus.APPROVED, start, end)
+                .stream()
+                .filter(row -> row.getTotalHours().compareTo(BigDecimal.ZERO) > 0)
+                .map(row -> toProjectTimeReport(row, projectsById.get(row.getProjectId())))
                 .collect(Collectors.toList());
     }
 
     public List<TimeReportDTO> getTimeReportByEmployee(UUID organizationId, LocalDate startDate, LocalDate endDate) {
-        Pageable pageable = PageRequest.of(0, 10000);
-        List<User> employees = userRepository.findByOrganizationIdAndFilters(
-                organizationId, null, true, pageable).getContent();
+        organizationSecurity.requireOrgMembership(organizationId);
         LocalDate start = startDate != null ? startDate : LocalDate.MIN;
         LocalDate end = endDate != null ? endDate : LocalDate.MAX;
 
-        return employees.stream()
-                .map(employee -> {
-                    List<TimeEntry> entries = timeEntryRepository.findByEmployeeIdAndEntryDateBetween(
-                            employee.getId(), start, end);
+        Map<UUID, String> namesByUserId = userRepository.findActiveByOrganizationId(organizationId).stream()
+                .collect(Collectors.toMap(
+                        user -> user.getId(),
+                        user -> user.getFirstName() + " " + user.getLastName()));
 
-                    BigDecimal totalHours = entries.stream()
-                            .filter(te -> te.getStatus() == TimeEntryStatus.APPROVED)
-                            .map(TimeEntry::getDurationHours)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                    int count = (int) entries.stream()
-                            .filter(te -> te.getStatus() == TimeEntryStatus.APPROVED)
-                            .count();
-
-                    BigDecimal avgHours = count > 0
-                            ? totalHours.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP)
-                            : BigDecimal.ZERO;
-
-                    return new TimeReportDTO(
-                            employee.getId(),
-                            employee.getFirstName() + " " + employee.getLastName(),
-                            totalHours,
-                            count,
-                            avgHours
-                    );
-                })
-                .filter(tr -> tr.getTotalHours().compareTo(BigDecimal.ZERO) > 0)
+        return timeEntryRepository.sumApprovedHoursByEmployeeInRange(
+                        organizationId, TimeEntryStatus.APPROVED, start, end)
+                .stream()
+                .filter(row -> row.getTotalHours().compareTo(BigDecimal.ZERO) > 0)
+                .map(row -> toEmployeeTimeReport(row, namesByUserId.get(row.getEmployeeId())))
                 .collect(Collectors.toList());
     }
 
     public TimeReportDTO getTimeSummary(UUID organizationId, LocalDate startDate, LocalDate endDate) {
-        List<TimeEntry> entries = timeEntryRepository.findByOrganizationId(organizationId);
+        organizationSecurity.requireOrgMembership(organizationId);
+        LocalDate start = startDate != null ? startDate : LocalDate.MIN;
+        LocalDate end = endDate != null ? endDate : LocalDate.MAX;
 
-        if (startDate != null || endDate != null) {
-            LocalDate start = startDate != null ? startDate : LocalDate.MIN;
-            LocalDate end = endDate != null ? endDate : LocalDate.MAX;
-            entries = entries.stream()
-                    .filter(te -> !te.getEntryDate().isBefore(start) && !te.getEntryDate().isAfter(end))
-                    .collect(Collectors.toList());
-        }
-
-        BigDecimal totalHours = entries.stream()
-                .filter(te -> te.getStatus() == TimeEntryStatus.APPROVED)
-                .map(TimeEntry::getDurationHours)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        int count = (int) entries.stream()
-                .filter(te -> te.getStatus() == TimeEntryStatus.APPROVED)
-                .count();
+        BigDecimal totalHours = timeEntryRepository.sumHoursByOrganizationStatusAndDateRange(
+                organizationId, TimeEntryStatus.APPROVED, start, end);
+        long count = timeEntryRepository.countByOrganizationIdAndStatusAndDateRange(
+                organizationId, TimeEntryStatus.APPROVED, start, end);
 
         BigDecimal avgHours = count > 0
                 ? totalHours.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP)
@@ -187,8 +145,25 @@ public class TimeReportService {
                 organizationId,
                 "Total",
                 totalHours,
-                count,
+                (int) count,
                 avgHours
         );
+    }
+
+    private TimeReportDTO toProjectTimeReport(ProjectHoursAggregate row, Project project) {
+        String name = project != null ? project.getName() : "Unknown project";
+        return toTimeReportDto(row.getProjectId(), name, row.getTotalHours(), row.getEntryCount());
+    }
+
+    private TimeReportDTO toEmployeeTimeReport(EmployeeHoursAggregate row, String name) {
+        String displayName = name != null ? name : "Unknown employee";
+        return toTimeReportDto(row.getEmployeeId(), displayName, row.getTotalHours(), row.getEntryCount());
+    }
+
+    private TimeReportDTO toTimeReportDto(UUID id, String name, BigDecimal totalHours, long count) {
+        BigDecimal avgHours = count > 0
+                ? totalHours.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+        return new TimeReportDTO(id, name, totalHours, (int) count, avgHours);
     }
 }

@@ -24,11 +24,15 @@ Use after Phase 4 hardening. Run against a dev/staging environment with at least
 
 ## Multi-tenant isolation
 
+See [ADR-org-scoped-authorization.md](./ADR-org-scoped-authorization.md) and [authorization-coverage-matrix.md](./authorization-coverage-matrix.md).
+
 | # | Test | Expected |
 |---|------|----------|
-| T1 | User A requests org B project by ID | 404 or 403 |
-| T2 | User A lists org B employees | Empty or 403 |
-| T3 | Org switch without membership | 403 |
+| T1 | User A requests org B project by ID | 403 |
+| T2 | User A searches org B (`GET .../organizations/{orgB}/search`) | 403 |
+| T3 | User A lists org B employees | 403 |
+| T4 | Org switch without membership | 403 |
+| T5 | User with ORG_ADMIN in org A calls org B endpoint with global `hasRole` (pre-1.2) | 403 after Task 1.2 migration |
 
 ## Production surface
 

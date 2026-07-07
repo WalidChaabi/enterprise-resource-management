@@ -64,6 +64,10 @@ public class Project {
 
     private boolean archived = false;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
+
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();

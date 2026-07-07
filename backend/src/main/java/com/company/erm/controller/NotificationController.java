@@ -22,6 +22,11 @@ import com.company.erm.service.NotificationService;
  * - GET /api/notifications
  * - POST /api/notifications/mark-all-read
  */
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "Notifications", description = "In-app notifications")
 @RestController
 @RequestMapping("/api/notifications")
 @PreAuthorize("isAuthenticated()")
@@ -36,6 +41,8 @@ public class NotificationController {
     /**
      * List current user's notifications with pagination.
      */
+    @Operation(summary = "List Notifications")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping
     public ResponseEntity<Page<NotificationResponseDTO>> listNotifications(
             @RequestParam(defaultValue = "0") int page,
@@ -50,6 +57,8 @@ public class NotificationController {
     /**
      * Mark all notifications as read for current user.
      */
+    @Operation(summary = "Mark All Read")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping("/mark-all-read")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> markAllRead(Authentication authentication) {

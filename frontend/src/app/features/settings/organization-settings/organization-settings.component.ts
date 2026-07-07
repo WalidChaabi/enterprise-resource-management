@@ -4,9 +4,15 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { SettingsService } from '../../../core/services/settings.service';
 import { OrganizationSettings, OrganizationSettingsUpdate } from '../../../core/models/settings.model';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
-import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
-import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent } from '../../../shared/components/ui/card/card.component';
+import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent, CardFooterComponent } from '../../../shared/components/ui/card/card.component';
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
+import { InputComponent } from '../../../shared/components/ui/input/input.component';
+import { ToastService } from '../../../shared/components/ui/toast/toast.service';
+import {
+  SettingsPageLayoutComponent,
+  SettingsFieldComponent,
+  SettingsFormActionsComponent,
+} from '../components';
 
 @Component({
     selector: 'app-organization-settings',
@@ -14,22 +20,21 @@ import { AlertComponent } from '../../../shared/components/ui/alert/alert.compon
         CommonModule,
         ReactiveFormsModule,
         TranslatePipe,
-        ButtonComponent,
         CardComponent,
         CardHeaderComponent,
         CardTitleComponent,
         CardContentComponent,
-        AlertComponent
+        CardFooterComponent,
+        AlertComponent,
+        InputComponent,
+        SettingsPageLayoutComponent,
+        SettingsFieldComponent,
+        SettingsFormActionsComponent,
     ],
     template: `
-    <div class="mt-6 space-y-6">
-      <div>
-        <h2 class="text-xl font-semibold text-foreground">Organization Settings</h2>
-        <p class="text-sm text-muted-foreground">Manage your organization details and workspace settings.</p>
-      </div>
-
+    <app-settings-page-layout>
       @if (error()) {
-        <app-alert variant="destructive">{{ error() }}</app-alert>
+        <app-alert variant="destructive" role="alert">{{ error() }}</app-alert>
       }
 
       @if (loading()) {
@@ -40,58 +45,45 @@ import { AlertComponent } from '../../../shared/components/ui/alert/alert.compon
         <form [formGroup]="orgForm" (ngSubmit)="onSubmit()">
           <app-card>
             <app-card-header>
-              <app-card-title>Organization Information</app-card-title>
+              <app-card-title>{{ 'settings.organization.infoTitle' | translate }}</app-card-title>
             </app-card-header>
             <app-card-content class="space-y-4">
-              <div>
-                <label for="name" class="text-sm font-medium text-foreground">Organization Name</label>
-                <input
-                  id="name"
-                  type="text"
-                  formControlName="name"
-                  class="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <app-settings-field
+                labelKey="settings.organization.name"
+                forId="name">
+                <app-input id="name" formControlName="name" />
                 @if (orgForm.get('name')?.hasError('required') && orgForm.get('name')?.touched) {
-                  <p class="mt-1 text-xs text-destructive">Organization name is required.</p>
+                  <p class="text-xs text-destructive">{{ 'settings.organization.nameRequired' | translate }}</p>
                 }
-              </div>
+              </app-settings-field>
 
-              <div>
-                <label for="description" class="text-sm font-medium text-foreground">Description</label>
+              <app-settings-field
+                labelKey="settings.organization.description"
+                forId="description">
                 <textarea
                   id="description"
                   formControlName="description"
                   rows="4"
-                  class="mt-1 flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  class="flex min-h-[80px] w-full rounded-[10px] border border-subtle bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50">
                 </textarea>
-              </div>
-
-              <div class="flex justify-end gap-2 pt-4">
-                <button
-                  type="button"
-                  class="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
-                  (click)="resetForm()">
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  [disabled]="orgForm.invalid || saving()"
-                  class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50">
-                  @if (saving()) {
-                    <span class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
-                  }
-                  Save Changes
-                </button>
-              </div>
+              </app-settings-field>
             </app-card-content>
+            <app-card-footer class="justify-end">
+              <app-settings-form-actions
+                [saving]="saving()"
+                [disabled]="orgForm.invalid"
+                (cancelled)="resetForm()" />
+            </app-card-footer>
           </app-card>
         </form>
       }
-    </div>
+    </app-settings-page-layout>
   `
 })
 export class OrganizationSettingsComponent implements OnInit {
   private readonly settingsService = inject(SettingsService);
   private readonly fb = inject(FormBuilder);
+  private readonly toastService = inject(ToastService);
 
   readonly loading = signal(false);
   readonly saving = signal(false);
@@ -144,6 +136,7 @@ export class OrganizationSettingsComponent implements OnInit {
       next: (updated) => {
         this.organization.set(updated);
         this.saving.set(false);
+        this.toastService.successI18n('settings.toast.organizationSaved', 'settings.toast.organizationSavedDescription');
       },
       error: (err) => {
         this.error.set(err.details?.[0] || 'Failed to update organization');

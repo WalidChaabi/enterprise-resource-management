@@ -8,6 +8,7 @@ import { CardComponent, CardHeaderComponent, CardTitleComponent, CardDescription
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
+import { SettingsPageLayoutComponent } from '../components';
 
 @Component({
   selector: 'app-audit-settings',
@@ -24,6 +25,7 @@ import { BadgeComponent } from '../../../shared/components/ui/badge/badge.compon
     AlertComponent,
     ButtonComponent,
     BadgeComponent,
+    SettingsPageLayoutComponent,
   ],
   templateUrl: './audit-settings.component.html',
 })

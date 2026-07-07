@@ -25,9 +25,14 @@ import java.util.UUID;
  * - Multi-tenant isolation enforced at service layer
  * - Role-based access control via @PreAuthorize
  */
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "Roles", description = "Role definitions")
 @RestController
 @RequestMapping("/api/v1/organizations/{organizationId}/roles")
-@PreAuthorize("hasAnyRole('HR_ADMIN', 'ORG_ADMIN', 'DEPARTMENT_MANAGER')")
+@PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'HR_ADMIN', 'ORG_ADMIN', 'DEPARTMENT_MANAGER')")
 public class RoleController {
 
     private final RoleService roleService;
@@ -41,8 +46,10 @@ public class RoleController {
      * 
      * Permissions: ORG_ADMIN only
      */
+    @Operation(summary = "Create Role")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PostMapping
-    @PreAuthorize("hasAnyRole('ORG_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<RoleResponseDTO> createRole(
             @PathVariable UUID organizationId,
@@ -68,6 +75,8 @@ public class RoleController {
     /**
      * Get role by ID.
      */
+    @Operation(summary = "Get Role")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping("/{roleId}")
     public ResponseEntity<RoleResponseDTO> getRole(
             @PathVariable("organizationId") UUID organizationId,
@@ -89,8 +98,10 @@ public class RoleController {
      * 
      * Permissions: ORG_ADMIN only
      */
+    @Operation(summary = "Update Role")
+    @ApiResponse(responseCode = "200", description = "Success")
     @PutMapping("/{roleId}")
-    @PreAuthorize("hasAnyRole('ORG_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN')")
     public ResponseEntity<RoleResponseDTO> updateRole(
             @PathVariable UUID organizationId,
             @PathVariable UUID roleId,
@@ -111,6 +122,8 @@ public class RoleController {
     /**
      * List roles with pagination and filtering.
      */
+    @Operation(summary = "List Roles")
+    @ApiResponse(responseCode = "200", description = "Success")
     @GetMapping
     public ResponseEntity<Page<RoleResponseDTO>> listRoles(
             @PathVariable UUID organizationId,
@@ -134,8 +147,10 @@ public class RoleController {
      * 
      * Permissions: ORG_ADMIN only
      */
+    @Operation(summary = "Delete Role")
+    @ApiResponse(responseCode = "200", description = "Success")
     @DeleteMapping("/{roleId}")
-    @PreAuthorize("hasAnyRole('ORG_ADMIN')")
+    @PreAuthorize("@organizationSecurity.hasAnyOrgRole(#organizationId, 'ORG_ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteRole(
             @PathVariable UUID organizationId,

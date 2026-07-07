@@ -4,6 +4,7 @@ import java.util.List;
 
 import jakarta.validation.ConstraintViolationException;
 
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import jakarta.persistence.OptimisticLockException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -66,6 +69,18 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("UNAUTHORIZED", List.of("Authentication required")));
     }
 
+    @ExceptionHandler({
+            OptimisticLockingFailureException.class,
+            OptimisticLockException.class,
+            org.hibernate.StaleObjectStateException.class
+    })
+    public ResponseEntity<ErrorResponse> handleOptimisticLock(Exception exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(
+                        "OPTIMISTIC_LOCK_CONFLICT",
+                        List.of("The record was modified by another request. Reload and try again.")));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException exception) {
         return ResponseEntity.badRequest()
@@ -76,7 +91,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception exception) {
         logger.error("Unexpected error", exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("UNEXPECTED_ERROR", List.of("Une erreur interne est survenue.")));
+                .body(new ErrorResponse("UNEXPECTED_ERROR", List.of("An internal error occurred.")));
     }
 
     private String formatFieldError(FieldError error) {

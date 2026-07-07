@@ -7,8 +7,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.company.erm.config.AuthCookieProperties;
+import com.company.erm.config.EncryptionProperties;
 import com.company.erm.config.JwtProperties;
 import com.company.erm.config.MailProperties;
+import com.company.erm.config.RateLimitProperties;
 import com.company.erm.config.SettingsShortcutsProperties;
 import com.company.erm.config.StripeProperties;
 import com.company.erm.config.UiConfigProperties;
@@ -19,6 +21,8 @@ import com.company.erm.config.UiConfigProperties;
 @EnableConfigurationProperties({
     JwtProperties.class,
     AuthCookieProperties.class,
+    EncryptionProperties.class,
+    RateLimitProperties.class,
     UiConfigProperties.class,
     SettingsShortcutsProperties.class,
     StripeProperties.class,
