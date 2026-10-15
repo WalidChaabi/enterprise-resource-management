@@ -1,210 +1,153 @@
 # Enterprise Resource Management (ERM)
 
 [![CI](https://github.com/WalidChaabi/enterprise-resource-management/actions/workflows/ci.yml/badge.svg)](https://github.com/WalidChaabi/enterprise-resource-management/actions/workflows/ci.yml)
-![Backend coverage](https://img.shields.io/badge/backend%20line%20coverage-37%25-yellow)
-![Frontend specs](https://img.shields.io/badge/frontend%20spec%20files-15+-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Multi-tenant enterprise resource management platform — employees, projects, time tracking, leave, reporting, and organization-scoped security.
+Multi-tenant business management platform covering employees, projects, time tracking, leave and reporting.
 
-**Author:** [Walid Chaabi](https://github.com/WalidChaabi) · **Stack:** Spring Boot 3 · Angular 19 · PostgreSQL · Docker
+**Author:** [Walid Chaabi](https://github.com/WalidChaabi)  
+**Stack:** Spring Boot 4.0.1 · Java 17 · Angular 19 · PostgreSQL · Docker
 
-## Highlights
+> Portfolio project with frontend hardening in progress. See the [implementation roadmap](docs/PORTFOLIO_IMPLEMENTATION_ROADMAP.md) for release scope and remaining work.
 
-- Multi-tenant authorization with org-scoped JWT and cross-tenant security tests
-- MFA, SSO, webhooks, audit events, and reporting dashboards
-- Angular frontend with shared list/table shells and i18n (EN/FR)
-- Flyway migrations, integration tests, GitHub Actions CI
+## Project focus
 
-> Portfolio project — Phase 4 frontend hardening in progress. See [docs/PORTFOLIO_IMPLEMENTATION_ROADMAP.md](docs/PORTFOLIO_IMPLEMENTATION_ROADMAP.md).
+- Organization-scoped authorization using JWT and cross-tenant security tests.
+- Employee, project, time-tracking and leave-management workflows.
+- Authentication features including MFA and SSO.
+- Reporting dashboards, audit events and webhooks.
+- Angular frontend with shared list/table components and English/French support.
 
----
+## Technical decisions
 
-Système de gestion des ressources d'entreprise full-stack développé avec Spring Boot et Angular.
+- Separate the Spring Boot API and Angular client so authorization and business rules are enforced in the backend.
+- Use Flyway migrations to version database changes.
+- Include cross-tenant tests to exercise organization boundaries.
+- Use Docker Compose and health checks to coordinate service startup.
+- Generate coverage with JaCoCo rather than present a manually maintained coverage percentage. The Maven configuration defines a 35% line-coverage check with explicit exclusions; run verify to check the current result.
 
-## 📋 Table des matières
+## Repository structure
 
-- [Structure du projet](#structure-du-projet)
-- [Prérequis](#prérequis)
-- [Installation](#installation)
-- [Développement](#développement)
-- [Déploiement](#déploiement)
-- [Documentation](#documentation)
-
-## 🏗️ Structure du projet
-
-```
+```text
 enterprise-resource-management/
-├── backend/          # API Spring Boot (Java 17+)
-├── frontend/         # Application Angular 17+
-├── docker/           # Configuration Docker (stack unifiée)
-├── docs/             # Documentation
-└── shared/            # Code partagé (optionnel)
+├── backend/          # Spring Boot API
+├── frontend/         # Angular client
+├── docker/           # Unified Docker configuration
+├── docs/             # Project documentation
+└── shared/           # Optional shared resources
 ```
 
-## 📦 Prérequis
+## Prerequisites
 
-### Backend
-- Java 17 ou supérieur
-- Maven 3.8+
-- Docker (optionnel)
+- Java 17 and Maven 3.8+ for the backend.
+- Node.js 20+ and npm 9+ for the frontend.
+- PostgreSQL, or Docker for the development stack.
 
-### Frontend
-- Node.js 20+
-- npm 9+
+Framework versions above match backend/pom.xml and frontend/package.json.
 
-## 🚀 Installation
-
-### 1. Cloner le repository
+## Quick start
 
 ```bash
 git clone https://github.com/WalidChaabi/enterprise-resource-management.git
-cd enterprise-resource-management
+cd enterprise-resource-management/docker
+docker compose -f docker-compose.dev.yml up --build
 ```
 
-### 2. Backend
+Review the [Docker guide](docker/README.md) for environment configuration.
+
+| Service | Local URL |
+|---------|-----------|
+| Frontend | http://localhost:4200 |
+| Backend | http://localhost:8080 |
+| Backend health | http://localhost:8080/actuator/health |
+
+### Run services separately
+
+Configure the database and environment using the module documentation first.
+
+Backend:
 
 ```bash
 cd backend
 ./mvnw clean install
+./mvnw spring-boot:run
 ```
 
-### 3. Frontend
+Frontend, in a separate terminal:
 
 ```bash
 cd frontend
 npm install
-```
-
-## 💻 Développement
-
-### Démarrer le backend
-
-```bash
-cd backend
-./mvnw spring-boot:run
-```
-
-Le backend sera disponible sur `http://localhost:8080`
-
-### Démarrer le frontend
-
-```bash
-cd frontend
 npm start
 ```
 
-Le frontend sera disponible sur `http://localhost:4200`
+## Tests and coverage
 
-### Développement avec Docker
-
-```bash
-# Stack complète (recommandé) — projet Docker: erm-platform
-cd docker
-docker compose -f docker-compose.dev.yml up --build
-
-# Backend seul
-cd backend/docker
-docker compose -f docker-compose.dev.yml up --build
-
-# Frontend seul
-cd frontend/docker
-docker compose -f docker-compose.dev.yml up --build
-```
-
-**Convention de nommage (kebab-case):**
-
-| Ressource | Nom |
-|-----------|-----|
-| Projet Compose | `erm-platform` |
-| Conteneurs | `erm-front`, `erm-backend`, `erm-db`, `erm-pgadmin` |
-| Images | `erm-front:latest`, `erm-backend:latest` |
-| Réseau | `erm-platform-network` |
-| Volumes | `erm-platform-pgdata`, `erm-platform-pgadmin-data` |
-
-## 🧪 Tests
-
-### Backend
+Backend tests:
 
 ```bash
 cd backend
 ./mvnw test
 ```
 
-### Frontend
+Coverage report: backend/target/site/jacoco/index.html after tests. To enforce the configured coverage check:
+
+```bash
+./mvnw verify
+```
+
+Frontend tests:
 
 ```bash
 cd frontend
 npm test
 ```
 
-## 🐳 Déploiement
+Inspect the [CI workflow](.github/workflows/ci.yml) and its run results for build verification. Feature descriptions are not a claim that every workflow is production-ready.
 
-### Production avec Docker
+## Deployment configuration
 
 ```bash
 cd docker
 cp env.example .env
-# Edit .env: set POSTGRES_PASSWORD, JWT_SECRET, CORS_ALLOWED_ORIGINS
+# Configure POSTGRES_PASSWORD, JWT_SECRET and CORS_ALLOWED_ORIGINS.
 docker compose up --build
 ```
 
-Compose waits for PostgreSQL and the backend health checks before starting dependent services. Verify backend health:
+Compose waits for PostgreSQL and backend health checks before starting dependent services.
 
 ```bash
 curl http://localhost:8080/actuator/health
 ```
 
-### HTTPS (staging / production)
-
-See [docker/README.md](./docker/README.md) for TLS setup with `docker-compose.tls.yml`:
+For HTTPS configuration, see the [Docker guide](docker/README.md):
 
 ```bash
 cd docker/scripts
-./generate-staging-certs.sh localhost   # or generate-staging-certs.ps1 on Windows
+./generate-staging-certs.sh localhost
 cd ..
-# Set CORS_ALLOWED_ORIGINS=https://localhost in .env
+# Set CORS_ALLOWED_ORIGINS=https://localhost in .env.
 docker compose -f docker-compose.yml -f docker-compose.tls.yml up --build
 ```
 
-## 📚 Documentation
+Use generate-staging-certs.ps1 on Windows.
 
-- [Guide Monorepo](./MONOREPO_GUIDE.md)
-- [Architecture Backend](./backend/docs/architecture/)
-- [Architecture Frontend](./frontend/doc/architecture/)
-- [API Documentation](./backend/docs/api/)
+### Demo data
 
-## 🔐 Identifiants par défaut (développement uniquement)
+Use demo data only in a local development environment. ERM_DEMO_DATA_ENABLED=false is the production default in docker/env.example. Configure credentials locally and do not reuse development accounts in production.
 
-Ces identifiants proviennent des données de démo Flyway (profil `dev` uniquement) :
+## Documentation
 
-- **Email:** `admin@demo.com`
-- **Password:** `password123`
+- [Monorepo guide](MONOREPO_GUIDE.md)
+- [Backend architecture](backend/docs/architecture/)
+- [Frontend architecture](frontend/doc/architecture/)
+- [API documentation](backend/docs/api/)
+- [Implementation roadmap](docs/PORTFOLIO_IMPLEMENTATION_ROADMAP.md)
 
-⚠️ **Production:** `ERM_DEMO_DATA_ENABLED=false` par défaut dans `docker/env.example`. Ne réutilisez jamais ces identifiants en production.
+## Contributing
 
-## 🛠️ Technologies
-
-### Backend
-- Spring Boot 3.x
-- Spring Security (JWT)
-- PostgreSQL
-- Maven
-
-### Frontend
-- Angular 17+
-- TailwindCSS
-- RxJS
-- Chart.js
+See the module documentation for development guidelines. For questions or bugs, open a GitHub issue.
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
-
-## 👥 Contribution
-
-Voir les guidelines dans la documentation respective de chaque module.
-
-## 📞 Support
-
-Pour toute question, ouvrez une issue sur GitHub.
